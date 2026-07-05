@@ -1,51 +1,7 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-export async function middleware(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    return NextResponse.next();
-  }
-
-  const response = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const { pathname } = request.nextUrl;
-
-  const publicPaths = ["/", "/login", "/register", "/pricing", "/about"];
-  const isPublic = publicPaths.includes(pathname) || pathname.startsWith("/api/");
-
-  if (!session && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  if (session && pathname === "/login") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
-
-  return response;
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
 }
 
 export const config = {
