@@ -19,5 +19,9 @@ npm-debug.log*
 # typescript
 tsconfig.tsbuildinfo
 
+# journal data
+data/journals/*
+!data/journals/contoh-jurnal.txt
+
 # vercel
 .vercel

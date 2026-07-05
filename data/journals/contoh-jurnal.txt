@@ -1,0 +1,3 @@
+JUDUL: Dietary Factors and Acne Vulgaris
+SUMBER: Journal of the American Academy of Dermatology, 2019
+ISI: High glycemic index diets and frequent dairy consumption are associated with increased acne prevalence. Studies show that low-glycemic-load diets can reduce acne lesion counts by 23-50% over 12 weeks. The proposed mechanism involves insulin/IGF-1 signaling pathways that stimulate sebum production and keratinocyte proliferation. Multiple randomized controlled trials have confirmed the association between Western diet patterns and acne severity, particularly in adolescents and young adults. Dietary intervention focusing on reducing high-glycemic foods showed significant improvement in acne lesion counts compared to control groups over 10-12 week periods.
