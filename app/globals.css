@@ -28,8 +28,4 @@
   }
 }
 
-@layer utilities {
-  .text-muted {
-    @apply text-muted;
-  }
-}
+
