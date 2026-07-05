@@ -105,7 +105,7 @@ CREATE TABLE public.documents (
   title TEXT NOT NULL,
   content TEXT NOT NULL,
   source TEXT NOT NULL DEFAULT '',
-  embedding vector(1536),
+  embedding vector(384),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -199,7 +199,7 @@ CREATE POLICY "Anyone can view documents" ON public.documents
 
 -- Match similar documents by embedding (for RAG)
 CREATE OR REPLACE FUNCTION public.match_documents(
-  query_embedding vector(1536),
+  query_embedding vector(384),
   match_threshold float DEFAULT 0.78,
   match_count int DEFAULT 5
 )
