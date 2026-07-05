@@ -7,7 +7,6 @@ const navItems = [
   { href: "/dashboard", icon: "home", label: "Beranda" },
   { href: "/tracker", icon: "edit_calendar", label: "Tracker" },
   { href: "/progress", icon: "trending_up", label: "Progress" },
-  { href: "/recommendations", icon: "vaccines", label: "Rekomendasi" },
   { href: "/ai-consult", icon: "smart_toy", label: "AI", pro: true },
   { href: "/settings", icon: "person", label: "Akun" },
 ];

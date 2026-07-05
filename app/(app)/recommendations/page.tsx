@@ -222,7 +222,7 @@ export default function RecommendationsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
+                      <div className="overflow-hidden">
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
                             catColor[p.category] || "text-slate-600 bg-slate-50"
@@ -290,7 +290,7 @@ export default function RecommendationsPage() {
                   })}
                 </div>
                 <div className="mt-3 pt-3 border-t border-border-subtle">
-                  <p className="text-[10px] text-muted">
+                  <p className="text-[10px] text-muted break-words">
                     <span className="font-semibold text-slate-600">
                       Kenapa direkomendasikan:
                     </span>{" "}
