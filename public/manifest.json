@@ -1,0 +1,17 @@
+{
+  "name": "Narehat — Pahami Pemicu Jerawatmu",
+  "short_name": "Narehat",
+  "description": "Catat kebiasaan harian, lacak progres kulit, dan temukan pola pemicu jerawatmu.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3525cd",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "lang": "id"
+}
