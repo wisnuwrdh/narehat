@@ -133,5 +133,6 @@ export interface Database {
         Returns: { content: string; similarity: number }[];
       };
     };
+    Views: {};
   };
 }
