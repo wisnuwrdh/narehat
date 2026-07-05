@@ -29,5 +29,9 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "unrs-resolver": true,
+    "sharp@0.34.5": true
   }
 }

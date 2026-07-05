@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@layer base {
+  body {
+    @apply bg-white text-slate-900 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .container-narrow {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-title {
+    @apply text-3xl sm:text-4xl lg:text-5xl tracking-tight;
+  }
+
+  .hero-subtitle {
+    @apply text-base sm:text-lg;
+  }
+
+  .btn-press {
+    @apply active:scale-[0.98] transition-transform;
+  }
+}
+
+@layer utilities {
+  .text-muted {
+    @apply text-muted;
+  }
+}
