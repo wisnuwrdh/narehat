@@ -300,6 +300,103 @@ narehat/
 
 ---
 
+## 7.2 AI CONSULTANT (RAG) v1.0
+
+### Ringkasan
+Fitur premium yang menggabungkan data tracker pengguna, progress foto, knowledge base jurnal dermatologi, dan AI berbasis RAG.
+
+### Tujuan
+- Insight personal berbasis data tracker & progress foto — bukan jawaban umum
+- Evidence ilmiah terhubung dengan kondisi user
+- Hemat token melalui retrieval-first approach
+
+### Ruang Lingkup MVP
+- Chat AI berbasis RAG
+- Citation sumber jurnal
+- Insight dari tracker
+- Guardrails medis
+- Prompt injection defense dasar
+
+### Knowledge Base
+**Sumber:** PubMed, AAD, Journal of Investigative Dermatology
+
+**Format:** Teks → vector embeddings → Supabase pgvector
+
+**Scope:** ≈70–90 jurnal
+
+| Domain | Target Jurnal |
+|---|---|
+| Acne Basics | 8–10 |
+| Acne Treatment | 10–15 |
+| Ingredients | 15–20 |
+| Lifestyle | 10–15 |
+| Skin Barrier | 8–10 |
+| Acne Scar (PIH, PIE, Scar) | 8–10 |
+| Brightening / Hyperpigmentation | 8–10 |
+
+### RAG Pipeline
+```
+User query → Embedding → Vector Search (pgvector) → Re-ranking (similarity) → LLM → Citation
+```
+
+**Parameter retrieval:**
+- Maksimal 3–5 chunks per query
+- Similarity threshold ≥ 0.75
+- Chunk size maks 500 token per chunk
+
+### Chat Mode
+**Stateless** — tiap pertanyaan independen tanpa riwayat percakapan.
+Chat history hanya disimpan di client-side (localStorage) untuk UI.
+
+### Integrasi Tracker
+Insight di-*precompute* oleh `lib/insights/correlation.ts` dan disimpan di tabel `insights`. Saat user memulai chat, insight terbaru di-inject ke RAG prompt — bukan real-time compute dari raw tracker.
+
+Flow:
+```
+User update tracker → correlation.ts compute → simpan ke tabel insights
+                                                    ↓
+User chat ke AI     → query insights terbaru → inject ke RAG prompt → jawaban
+```
+
+### Guardrails Medis
+
+**AI boleh:**
+- Edukasi kulit & jerawat
+- Insight berdasarkan data tracker user
+- Menjelaskan isi jurnal dermatologi
+- Memberikan langkah perawatan yang bisa dicoba
+
+**AI tidak boleh:**
+- Diagnosis kondisi kulit
+- Meresepkan obat (oral maupun topikal)
+- Menggantikan dokter
+- Menyatakan tingkat keparahan jerawat (ringan/sedang/parah)
+
+### Prompt Injection Defense
+- System prompt immutable
+- Abaikan instruksi untuk membocorkan prompt
+- Retrieval dari knowledge base dianggap sebagai **data**, bukan instruksi
+- Tidak menampilkan seluruh isi knowledge base
+- Input user dibatasi maksimal 500 karakter
+
+### Output Format Jawaban
+Setiap jawaban wajib mengikuti format:
+
+1. **Jawaban singkat** — ringkasan 1–3 kalimat
+2. **Penjelasan** — elaborasi berbasis jurnal
+3. **Sumber** — format: `Author et al. (Tahun) — Judul Jurnal`
+4. **Langkah yang bisa dicoba** — actionable tips
+5. **Kapan perlu ke dokter** — dengan disclaimer: *"Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional."*
+
+### Roadmap
+- [x] Scope AI
+- [ ] Knowledge Base
+- [ ] Embedding + pgvector
+- [ ] AI Consultant MVP
+- [ ] Personal Insight
+
+---
+
 ## 8. MONETISASI
 
 ### Model Bisnis
@@ -364,7 +461,7 @@ User mulai bayar setelah mendapat "aha moment" pertama — biasanya di minggu ke
 - [x] Nama produk final: **Narehat**
 - [x] Konsep nama & visual karakter coach per tema: **Ara, Nara, Rex, Sage** — didokumentasikan di section 6 sebagai referensi, tapi **ditunda ke future release** (bukan bagian MVP), menunggu validasi user asli
 - [ ] Desain Lottie character final (menyusul jika/setelah konsep maskot divalidasi post-launch)
-- [ ] Scope jurnal dermatologi awal (berapa jurnal, topik apa saja)
+- [x] Scope jurnal dermatologi awal: ≈70–90 jurnal dari 7 domain (lihat Section 7.2)
 - [ ] Target tanggal soft launch yang konkret
 - [ ] Struktur affiliate — platform mana yang jadi prioritas (Shopee, Tokopedia, dll)
 
