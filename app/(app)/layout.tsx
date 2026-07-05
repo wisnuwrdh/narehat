@@ -13,10 +13,12 @@ const navItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult");
 
   return (
-    <div className="min-h-screen bg-white pb-32">
+    <div className={`min-h-screen bg-white ${hideNav ? "" : "pb-32"}`}>
       {children}
+      {!hideNav && (
       <nav
         className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/90 backdrop-blur-xl border-t border-border-subtle px-2 z-50"
         style={{
@@ -58,6 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="w-28 h-1 bg-slate-300 rounded-full" />
         </div>
       </nav>
+      )}
     </div>
   );
 }
