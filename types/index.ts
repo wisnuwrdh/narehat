@@ -82,6 +82,14 @@ export interface OnboardingData {
   photo_url?: string;
 }
 
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -109,6 +117,20 @@ export interface Database {
         Row: Insight;
         Insert: Omit<Insight, "id" | "created_at">;
         Update: Partial<Omit<Insight, "id" | "created_at">>;
+      };
+    };
+    Functions: {
+      generate_embedding: {
+        Args: { input_text: string };
+        Returns: number[];
+      };
+      match_documents: {
+        Args: {
+          query_embedding: number[];
+          match_threshold: number;
+          match_count: number;
+        };
+        Returns: { content: string; similarity: number }[];
       };
     };
   };
