@@ -1,46 +1,70 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 const faqs = [
   {
-    q: "Apa bedanya Narehat dengan aplikasi skincare lain?",
-    a: "Narehat tidak hanya merekomendasikan produk — kami menganalisis data kebiasaan harianmu (tidur, makan, stres, skincare) dan menghubungkannya dengan kondisi jerawatmu menggunakan AI berbasis jurnal dermatologi peer-reviewed.",
+    q: "Apakah Narehat menggantikan dokter kulit?",
+    a: "Tidak. Narehat adalah alat bantu untuk memahami pola dan pemicu jerawatmu. Untuk diagnosis medis dan pengobatan, tetap konsultasi dengan dokter kulit.",
   },
   {
-    q: "Apakah data foto saya aman?",
-    a: "Ya. Foto kulit Anda dienkripsi dan tidak akan dijual atau digunakan untuk training AI tanpa izin eksplisit. Kami mematuhi UU Perlindungan Data Pribadi Indonesia.",
+    q: "Apakah data fotoku aman?",
+    a: "Sangat aman. Foto dienkripsi end-to-end dan tidak akan digunakan untuk training AI tanpa persetujuanmu. Kami mematuhi UU Perlindungan Data Pribadi Indonesia.",
   },
   {
-    q: "Apakah saya bisa pakai gratis selamanya?",
-    a: "Bisa! Fitur tracker, progress foto, dan insight dasar gratis selamanya. Premium memberi akses ke AI deteksi jerawat, konsultasi AI, dan insight lebih mendalam.",
+    q: "Berapa lama sampai lihat hasil?",
+    a: "Banyak user mulai melihat pola dalam 1–2 minggu. Insight yang lebih mendalam biasanya muncul setelah 3–4 minggu konsisten mencatat kebiasaan.",
   },
   {
-    q: "Apakah AI bisa menggantikan dokter kulit?",
-    a: "Tidak. AI kami adalah alat bantu berbasis jurnal dermatologi, bukan pengganti diagnosis medis profesional. Untuk kondisi serius, tetap konsultasikan ke dokter kulit.",
-  },
-  {
-    q: "Bagaimana cara berlangganan Premium?",
-    a: "Setelah daftar akun gratis, Anda bisa upgrade ke Premium langsung dari dashboard. Pembayaran diproses melalui Xendit — aman dan mudah.",
+    q: "Bisa batalkan subscription kapan saja?",
+    a: "Tentu! Kamu bisa batalkan kapan saja tanpa biaya tambahan. Akses premium tetap aktif sampai akhir periode berlangganan.",
   },
 ];
 
 export default function FAQSection() {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null!);
+
+  useEffect(() => {
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="container-narrow py-20 bg-slate-50">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="section-title font-extrabold text-slate-900 mb-4">
+    <section id="faq" ref={ref} className="py-16 px-5 lg:py-24">
+      <div className="container-narrow">
+        <div className="text-center mb-10 lg:mb-14">
+          <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
+            FAQ
+          </span>
+          <h2 className="section-title font-extrabold text-slate-900 leading-tight">
             Pertanyaan Umum
           </h2>
         </div>
-        <div className="space-y-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4 max-w-3xl mx-auto">
           {faqs.map((faq, i) => (
-            <details key={i} className="group bg-white rounded-2xl border border-border-subtle">
-              <summary className="px-6 py-4 cursor-pointer font-medium text-slate-900 select-none list-none flex items-center justify-between">
-                {faq.q}
-                <svg className="w-5 h-5 text-muted group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+            <details
+              key={i}
+              className={`group bg-white border border-border-subtle rounded-2xl overflow-hidden ${visible ? "reveal visible" : "reveal"}`}
+              style={{ transitionDelay: `${i * 0.05}s` }}
+            >
+              <summary className="flex items-center justify-between p-5 cursor-pointer list-none">
+                <span className="text-sm lg:text-base font-semibold text-slate-800 pr-4">{faq.q}</span>
+                <span className="material-symbols-outlined text-muted shrink-0 transition-transform group-open:rotate-180">expand_more</span>
               </summary>
-              <div className="px-6 pb-4 text-sm text-muted leading-relaxed">
-                {faq.a}
+              <div className="px-5 pb-5">
+                <p className="text-xs lg:text-sm text-muted leading-relaxed">{faq.a}</p>
               </div>
             </details>
           ))}

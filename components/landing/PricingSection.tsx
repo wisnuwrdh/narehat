@@ -1,14 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 const plans = [
   {
-    name: "Gratis",
+    name: "Free",
+    subtitle: "Untuk memulai perjalananmu",
     price: "Rp0",
     period: "selamanya",
     features: [
       "Tracker kebiasaan harian",
-      "Tracker produk skincare",
-      "Progress foto",
+      "Progress foto & perbandingan",
       "Insight dasar",
       "Rekomendasi produk",
     ],
@@ -17,94 +20,133 @@ const plans = [
     featured: false,
   },
   {
-    name: "Premium Bulanan",
+    name: "Premium",
+    subtitle: "Bulanan, batalkan kapan saja",
     price: "Rp19.000",
     period: "/bulan",
     features: [
-      "Semua fitur Gratis",
+      "Semua fitur Free",
       "Deteksi jerawat AI",
       "Konsultasi AI (RAG)",
-      "Insight mendalam",
+      "Insight & grafik mendalam",
       "Tema UI custom",
     ],
-    cta: "Coba Premium",
+    cta: "Upgrade ke Premium",
     href: "/register?plan=premium_monthly",
     featured: true,
+    badge: "PALING POPULER",
   },
   {
     name: "Premium Tahunan",
+    subtitle: "Hemat ~35%",
     price: "Rp149.000",
     period: "/tahun",
     features: [
-      "Semua fitur Premium",
-      "Hemat ~35%",
-      "Prioritas support",
-      "Akses fitur eksperimental",
+      "Semua fitur Premium Bulanan",
+      "Akses fitur baru lebih awal",
     ],
-    cta: "Langganan Tahunan",
+    savings: "Hemat Rp79.000 dibanding bulanan",
+    cta: "Pilih Tahunan",
     href: "/register?plan=premium_yearly",
     featured: false,
   },
 ];
 
 export default function PricingSection() {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null!);
+
+  useEffect(() => {
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="container-narrow py-20">
-      <div className="text-center mb-16">
-        <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
-          Harga
-        </span>
-        <h2 className="section-title font-extrabold text-slate-900 mb-4">
-          Pilih Plan yang Tepat
-        </h2>
-        <p className="hero-subtitle text-muted max-w-2xl mx-auto">
-          Mulai gratis, upgrade kapan saja untuk akses fitur AI dan insight mendalam.
-        </p>
-      </div>
-      <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className={`relative rounded-3xl p-8 border ${
-              plan.featured
-                ? "border-primary bg-white shadow-xl shadow-primary/10"
-                : "border-border-subtle bg-white shadow-sm"
-            }`}
-          >
-            {plan.featured && (
-              <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-white text-xs font-bold rounded-full">
-                Populer
-              </span>
-            )}
-            <div className="text-center mb-6">
-              <h3 className="text-lg font-bold text-slate-900 mb-2">{plan.name}</h3>
-              <div className="text-4xl font-extrabold text-slate-900">
-                {plan.price}
-                <span className="text-base font-normal text-muted">{plan.period}</span>
-              </div>
-            </div>
-            <ul className="space-y-3 mb-8">
-              {plan.features.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm text-muted">
-                  <svg className="w-5 h-5 text-primary shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link
-              href={plan.href}
-              className={`btn-press block text-center px-6 py-3 rounded-2xl font-bold text-sm transition-colors ${
+    <section id="pricing" ref={ref} className="py-16 px-5 bg-slate-50/50 lg:py-24">
+      <div className="container-narrow">
+        <div className="text-center mb-10 lg:mb-14">
+          <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
+            Harga
+          </span>
+          <h2 className="section-title font-extrabold text-slate-900 leading-tight">
+            Pilih Plan yang Cocok
+          </h2>
+          <p className="text-sm lg:text-base text-muted mt-3">Mulai gratis. Upgrade kapan saja.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-start">
+          {plans.map((plan, i) => (
+            <div
+              key={plan.name}
+              className={`relative rounded-2xl p-6 lg:p-8 pricing-card transition-all duration-300 hover:-translate-y-1.5 ${
                 plan.featured
-                  ? "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
-                  : "bg-slate-50 text-slate-900 hover:bg-slate-100 border border-border-subtle"
-              }`}
+                  ? "bg-white border-2 border-primary shadow-xl shadow-primary/10 md:scale-105"
+                  : "bg-white border border-border-subtle shadow-sm"
+              } ${visible ? "reveal visible" : "reveal"}`}
+              style={{ transitionDelay: `${i * 0.1}s` }}
             >
-              {plan.cta}
-            </Link>
-          </div>
-        ))}
+              {plan.badge && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                  <span className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full shadow-lg shadow-primary/20">
+                    {plan.badge}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mb-4 mt-1">
+                <div>
+                  <h3 className="font-bold text-slate-800 text-base lg:text-lg">{plan.name}</h3>
+                  <p className="text-xs lg:text-sm text-muted">{plan.subtitle}</p>
+                </div>
+                <div className="text-right">
+                  <p className={`text-2xl lg:text-3xl font-extrabold ${plan.featured ? "text-primary" : "text-slate-900"}`}>
+                    {plan.price}
+                  </p>
+                  <p className="text-[10px] lg:text-xs text-muted">{plan.period}</p>
+                </div>
+              </div>
+
+              {"savings" in plan && (
+                <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-success-light/50 rounded-xl">
+                  <span className="material-symbols-outlined text-success text-sm">savings</span>
+                  <span className="text-xs text-success font-semibold">{plan.savings}</span>
+                </div>
+              )}
+
+              <ul className="space-y-2.5 mb-6">
+                {plan.features.map((f, j) => (
+                  <li key={j} className="flex items-center gap-2 text-xs lg:text-sm text-slate-600">
+                    <span className={`material-symbols-outlined text-sm ${plan.featured ? "text-primary" : "text-success"}`}>
+                      check_circle
+                    </span>
+                    <span className={j === 0 && plan.featured ? "font-semibold" : ""}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.href}
+                className={`btn-press block text-center w-full py-3.5 rounded-2xl font-bold text-sm transition-all ${
+                  plan.featured
+                    ? "bg-primary text-white shadow-xl shadow-primary/25"
+                    : "bg-white border-2 border-border-light text-slate-700 hover:border-primary/30 hover:text-primary"
+                }`}
+              >
+                {plan.cta}
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

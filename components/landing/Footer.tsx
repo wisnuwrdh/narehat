@@ -1,32 +1,73 @@
 import Link from "next/link";
 
+const footerLinks = {
+  produk: [
+    { label: "Fitur", href: "#features" },
+    { label: "Harga", href: "#pricing" },
+    { label: "Download App", href: "#" },
+  ],
+  perusahaan: [
+    { label: "Tentang Kami", href: "/about" },
+    { label: "Blog", href: "#" },
+    { label: "Kontak", href: "#" },
+  ],
+  legal: [
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
+  ],
+};
+
 export default function Footer() {
   return (
-    <footer className="bg-slate-50 border-t border-border-subtle">
-      <div className="container-narrow py-12">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <Link href="/" className="text-xl font-extrabold text-primary">
-              Narehat
-            </Link>
-            <p className="text-sm text-muted mt-1">
-              Jurnal jerawat cerdas berbasis AI
+    <footer className="py-10 px-5 bg-slate-900 lg:py-16">
+      <div className="container-narrow">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-sm">spa</span>
+              </div>
+              <span className="font-bold text-lg text-white">Narehat</span>
+            </div>
+            <p className="text-xs lg:text-sm text-white/50 leading-relaxed max-w-xs">
+              Jurnal jerawat cerdas yang membantumu memahami pemicu personal jerawatmu.
             </p>
           </div>
-          <div className="flex gap-6 text-sm text-muted">
-            <Link href="/about" className="hover:text-slate-900 transition-colors">
-              Tentang
+
+          {Object.entries(footerLinks).map(([group, links]) => (
+            <div key={group}>
+              <h4 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-3">
+                {group}
+              </h4>
+              <ul className="space-y-2">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-xs lg:text-sm text-white/60 hover:text-white transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-[11px] lg:text-xs text-white/40">
+            &copy; {new Date().getFullYear()} Narehat. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4">
+            <Link href="#" className="text-[11px] lg:text-xs text-white/40 hover:text-white/60 transition-colors">
+              Privacy
             </Link>
-            <Link href="/pricing" className="hover:text-slate-900 transition-colors">
-              Harga
-            </Link>
-            <Link href="/register" className="hover:text-slate-900 transition-colors">
-              Daftar
+            <Link href="#" className="text-[11px] lg:text-xs text-white/40 hover:text-white/60 transition-colors">
+              Terms
             </Link>
           </div>
-        </div>
-        <div className="text-center text-xs text-muted-light mt-8 pt-6 border-t border-border-subtle">
-          &copy; {new Date().getFullYear()} Narehat. All rights reserved.
         </div>
       </div>
     </footer>
