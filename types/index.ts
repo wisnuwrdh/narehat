@@ -97,26 +97,31 @@ export interface Database {
         Row: User;
         Insert: Omit<User, "id" | "created_at">;
         Update: Partial<Omit<User, "id" | "created_at">>;
+        Relationships: [];
       };
       daily_logs: {
         Row: DailyLog;
         Insert: Omit<DailyLog, "id" | "created_at">;
         Update: Partial<Omit<DailyLog, "id" | "created_at">>;
+        Relationships: [];
       };
       skin_photos: {
         Row: SkinPhoto;
         Insert: Omit<SkinPhoto, "id" | "created_at">;
         Update: Partial<Omit<SkinPhoto, "id" | "created_at">>;
+        Relationships: [];
       };
       skincare_products: {
         Row: SkincareProduct;
         Insert: Omit<SkincareProduct, "id" | "created_at">;
         Update: Partial<Omit<SkincareProduct, "id" | "created_at">>;
+        Relationships: [];
       };
       insights: {
         Row: Insight;
         Insert: Omit<Insight, "id" | "created_at">;
         Update: Partial<Omit<Insight, "id" | "created_at">>;
+        Relationships: [];
       };
     };
     Functions: {
@@ -133,6 +138,6 @@ export interface Database {
         Returns: { content: string; similarity: number }[];
       };
     };
-    Views: {};
+    Views: Record<string, never>;
   };
 }
