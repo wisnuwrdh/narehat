@@ -1,24 +1,75 @@
 "use client";
 
-const notifications = [
-  { icon: "notifications", color: "indigo", title: "Reminder Harian", sub: "Isi tracker setiap hari", checked: true },
-  { icon: "lightbulb", color: "amber", title: "Insight Baru", sub: "Notifikasi saat ada insight", checked: true },
-  { icon: "campaign", color: "rose", title: "Promo & Update", sub: "Info produk dan fitur baru", checked: false },
-];
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-const themes = [
-  { name: "Default", sub: "Soft navy", gradient: "from-[#3525cd] to-[#6366f1]", active: true },
-  { name: "Feminine", sub: "Dusty rose", gradient: "from-[#be185d] to-[#f472b6]", active: false },
-  { name: "Dark", sub: "Sleek", gradient: "from-[#1e293b] to-[#3b82f6]", active: false },
-  { name: "Nature", sub: "Sage green", gradient: "from-[#059669] to-[#84cc16]", active: false },
-];
+const notificationDefaults = [true, true, false];
 
-const privacyItems = [
-  { icon: "download", title: "Export Data", sub: "Download semua data kamu" },
-  { icon: "delete", title: "Hapus Akun", sub: "Hapus semua data permanen" },
+const themeList = [
+  { name: "Default", sub: "Soft navy", gradient: "from-[#3525cd] to-[#6366f1]" },
+  { name: "Feminine", sub: "Dusty rose", gradient: "from-[#be185d] to-[#f472b6]" },
+  { name: "Dark", sub: "Sleek", gradient: "from-[#1e293b] to-[#3b82f6]" },
+  { name: "Nature", sub: "Sage green", gradient: "from-[#059669] to-[#84cc16]" },
 ];
 
 export default function SettingsPage() {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState("Wisnu Prasetyo");
+  const [email, setEmail] = useState("wisnu@email.com");
+  const [displayName, setDisplayName] = useState("Wisnu Prasetyo");
+  const [displayEmail, setDisplayEmail] = useState("wisnu@email.com");
+  const [activeTheme, setActiveTheme] = useState(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("narehat-theme") || "Default";
+    return "Default";
+  });
+  const [notifications, setNotifications] = useState(notificationDefaults);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteInput, setDeleteInput] = useState("");
+  const [toast, setToast] = useState("");
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [showSubDetail, setShowSubDetail] = useState(false);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(""), 3000);
+  };
+
+  const handleThemeChange = (name: string) => {
+    setActiveTheme(name);
+    localStorage.setItem("narehat-theme", name);
+    showToast(`Tema diubah ke ${name}`);
+  };
+
+  const handleSaveProfile = () => {
+    setDisplayName(name);
+    setDisplayEmail(email);
+    setEditing(false);
+    showToast("Profil berhasil diperbarui");
+  };
+
+  const handleExport = () => {
+    showToast("Data sedang disiapkan... akan dikirim ke email kamu dalam 24 jam");
+  };
+
+  const handleDelete = () => {
+    if (deleteInput === "HAPUS") {
+      showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
+      setTimeout(() => router.push("/"), 2000);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("narehat-theme");
+    router.push("/login");
+  };
+
+  const infoItems = [
+    { key: "help", icon: "help_outline", title: "Pusat Bantuan", content: "Hubungi kami di support@narehat.id atau melalui chat di aplikasi. Tim kami aktif Senin-Jumat pukul 09:00-18:00 WIB." },
+    { key: "privacy", icon: "policy", title: "Kebijakan Privasi", content: "Data kamu dienkripsi end-to-end. Foto kulit tidak akan digunakan untuk training AI tanpa izin. Kami mematuhi UU Perlindungan Data Pribadi Indonesia." },
+    { key: "terms", icon: "description", title: "Syarat & Ketentuan", content: "Dengan menggunakan Narehat, kamu setuju bahwa informasi yang diberikan bersifat edukatif dan bukan pengganti diagnosis medis profesional." },
+  ];
+
   return (
     <main className="max-w-md mx-auto">
       <header className="px-6 pt-6 pb-4">
@@ -26,38 +77,80 @@ export default function SettingsPage() {
         <p className="text-sm text-muted">Kelola profil dan preferensimu</p>
       </header>
 
+      {toast && (
+        <div className="px-6 mb-4">
+          <div className="animate-fade-in-up p-3 bg-primary-light border border-primary/10 rounded-2xl text-center">
+            <span className="text-xs font-bold text-primary flex items-center justify-center gap-1">
+              <span className="material-symbols-outlined text-sm">check_circle</span>
+              {toast}
+            </span>
+          </div>
+        </div>
+      )}
+
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center text-2xl">👤</div>
-            <div className="flex-1">
-              <h2 className="font-bold text-slate-900">Wisnu Prasetyo</h2>
-              <p className="text-xs text-muted">wisnu@email.com</p>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">Kombinasi</span>
-                <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">Sedang</span>
+          {editing ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Nama</label>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={handleSaveProfile} className="btn-press flex-1 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors">Simpan</button>
+                <button onClick={() => { setName(displayName); setEmail(displayEmail); setEditing(false); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
               </div>
             </div>
-            <button className="btn-press p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
-              <span className="material-symbols-outlined text-lg">edit</span>
-            </button>
-          </div>
+          ) : (
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center text-2xl">👤</div>
+              <div className="flex-1">
+                <h2 className="font-bold text-slate-900">{displayName}</h2>
+                <p className="text-xs text-muted">{displayEmail}</p>
+                <div className="flex items-center gap-2 mt-1.5">
+                  <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">Kombinasi</span>
+                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">Sedang</span>
+                </div>
+              </div>
+              <button onClick={() => setEditing(true)} className="btn-press p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
+                <span className="material-symbols-outlined text-lg">edit</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
       <section className="px-6 mb-6">
         <div className="bg-gradient-to-br from-primary-light/60 to-indigo-50/30 border border-primary/10 rounded-3xl p-5 relative overflow-hidden">
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
-          <div className="relative flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="material-symbols-outlined text-primary text-sm">diamond</span>
-                <span className="text-xs font-bold text-primary">Premium Aktif</span>
+          <div className="relative">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="material-symbols-outlined text-primary text-sm">diamond</span>
+                  <span className="text-xs font-bold text-primary">Premium Aktif</span>
+                </div>
+                <p className="text-sm font-bold text-slate-800">Plan Bulanan</p>
+                <p className="text-xs text-muted mt-0.5">Berakhir 3 Agustus 2026</p>
               </div>
-              <p className="text-sm font-bold text-slate-800">Plan Bulanan</p>
-              <p className="text-xs text-muted mt-0.5">Berakhir 3 Agustus 2026</p>
+              <button onClick={() => setShowSubDetail(!showSubDetail)} className="btn-press px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
+                {showSubDetail ? "Tutup" : "Kelola"}
+              </button>
             </div>
-            <button className="btn-press px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">Kelola</button>
+            {showSubDetail && (
+              <div className="mt-4 pt-4 border-t border-primary/10 animate-scale-in">
+                <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> Rp19.000/bulan</p>
+                <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> AI Deteksi Jerawat, Konsultasi RAG, Insight Mendalam, Tema Custom</p>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => showToast("Kamu sudah di plan terbaik!")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-slate-600 rounded-xl border border-border-light hover:bg-slate-50 transition-colors">Upgrade</button>
+                  <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -67,18 +160,21 @@ export default function SettingsPage() {
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <p className="text-xs text-muted mb-3">Pilih tampilan yang paling nyaman untukmu</p>
           <div className="grid grid-cols-2 gap-3">
-            {themes.map((t) => (
-              <label key={t.name} className={`btn-press relative p-4 border-2 rounded-2xl cursor-pointer transition-all ${t.active ? "border-primary bg-primary-light/20" : "border-border-subtle hover:border-slate-300"}`}>
-                <input type="radio" name="theme" className="hidden" defaultChecked={t.active} />
+            {themeList.map((t) => (
+              <button
+                key={t.name}
+                onClick={() => handleThemeChange(t.name)}
+                className={`btn-press relative p-4 border-2 rounded-2xl cursor-pointer transition-all text-left ${activeTheme === t.name ? "border-primary bg-primary-light/20" : "border-border-subtle hover:border-slate-300"}`}
+              >
                 <div className={`w-full h-8 bg-gradient-to-r ${t.gradient} rounded-lg mb-2`} />
                 <span className="text-xs font-bold text-slate-800 block">{t.name}</span>
                 <span className="text-[10px] text-muted">{t.sub}</span>
-                {t.active && (
+                {activeTheme === t.name && (
                   <span className="absolute top-2 right-2 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
                     <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   </span>
                 )}
-              </label>
+              </button>
             ))}
           </div>
         </div>
@@ -86,10 +182,14 @@ export default function SettingsPage() {
 
       <section className="px-6 mb-6">
         <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Notifikasi</h3>
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm space-y-4">
-          {notifications.map((n, i) => (
+        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
+          {[
+            { icon: "notifications", color: "indigo", title: "Reminder Harian", sub: "Isi tracker setiap hari" },
+            { icon: "lightbulb", color: "amber", title: "Insight Baru", sub: "Notifikasi saat ada insight" },
+            { icon: "campaign", color: "rose", title: "Promo & Update", sub: "Info produk dan fitur baru" },
+          ].map((n, i) => (
             <div key={n.title}>
-              {i > 0 && <div className="h-px bg-border-subtle -mx-5 mb-4" />}
+              {i > 0 && <div className="h-px bg-border-subtle -mx-5 my-4" />}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${n.color === "indigo" ? "bg-indigo-50" : n.color === "amber" ? "bg-amber-50" : "bg-rose-50"}`}>
@@ -101,7 +201,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked={n.checked} className="sr-only peer" />
+                  <input type="checkbox" checked={notifications[i]} onChange={() => setNotifications((prev) => { const next = [...prev]; next[i] = !next[i]; return next; })} className="sr-only peer" />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                 </label>
               </div>
@@ -113,10 +213,13 @@ export default function SettingsPage() {
       <section className="px-6 mb-6">
         <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Privasi & Data</h3>
         <div className="bg-white border border-border-subtle rounded-3xl shadow-sm overflow-hidden">
-          {privacyItems.map((p, i) => (
+          {[
+            { icon: "download", title: "Export Data", sub: "Download semua data kamu", action: handleExport },
+            { icon: "delete", title: "Hapus Akun", sub: "Hapus semua data permanen", action: () => setShowDeleteConfirm(true) },
+          ].map((p, i) => (
             <div key={p.title}>
               {i > 0 && <div className="h-px bg-border-subtle mx-4" />}
-              <button className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
+              <button onClick={p.action} className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
                 <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center">
                   <span className="material-symbols-outlined text-slate-500 text-sm">{p.icon}</span>
                 </div>
@@ -131,35 +234,57 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {showDeleteConfirm && (
+        <section className="px-6 mb-6">
+          <div className="bg-white border-2 border-red-200 rounded-3xl p-5 shadow-lg animate-scale-in">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-red-500">warning</span>
+              <h3 className="font-bold text-red-600 text-sm">Konfirmasi Hapus Akun</h3>
+            </div>
+            <p className="text-xs text-muted mb-3">Semua data akan dihapus permanen dan tidak bisa dikembalikan. Ketik <strong>HAPUS</strong> untuk melanjutkan.</p>
+            <input type="text" value={deleteInput} onChange={(e) => setDeleteInput(e.target.value)} placeholder="Ketik HAPUS..." className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-300 transition-all mb-3" />
+            <div className="flex gap-2">
+              <button onClick={handleDelete} disabled={deleteInput !== "HAPUS"} className={`btn-press flex-1 py-2.5 text-sm font-bold rounded-xl transition-colors ${deleteInput === "HAPUS" ? "bg-red-500 text-white hover:bg-red-600" : "bg-red-100 text-red-300 cursor-not-allowed"}`}>
+                Hapus Akun
+              </button>
+              <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="px-6 mb-8">
         <div className="bg-white border border-border-subtle rounded-3xl shadow-sm overflow-hidden">
-          {[
-            { icon: "help_outline", title: "Pusat Bantuan" },
-            { icon: "policy", title: "Kebijakan Privasi" },
-            { icon: "description", title: "Syarat & Ketentuan" },
-          ].map((item, i) => (
-            <div key={item.title}>
+          {infoItems.map((item, i) => (
+            <div key={item.key}>
               {i > 0 && <div className="h-px bg-border-subtle mx-4" />}
-              <button className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
-                <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center">
-                  <span className="material-symbols-outlined text-slate-500 text-sm">{item.icon}</span>
-                </div>
-                <div className="flex-1">
-                  <span className="text-sm font-semibold text-slate-700 block">{item.title}</span>
-                </div>
-                <span className="material-symbols-outlined text-muted-light text-lg">chevron_right</span>
-              </button>
+              <div>
+                <button onClick={() => setExpandedItem(expandedItem === item.key ? null : item.key)} className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
+                  <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center">
+                    <span className="material-symbols-outlined text-slate-500 text-sm">{item.icon}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-slate-700 block">{item.title}</span>
+                  </div>
+                  <span className={`material-symbols-outlined text-muted-light text-lg transition-transform ${expandedItem === item.key ? "rotate-180" : ""}`}>expand_more</span>
+                </button>
+                {expandedItem === item.key && (
+                  <div className="px-4 pb-4 animate-scale-in">
+                    <p className="text-xs text-muted leading-relaxed">{item.content}</p>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
       <section className="px-6 pb-8">
-        <button className="btn-press w-full py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+        <button onClick={handleLogout} className="btn-press w-full py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
           <span className="material-symbols-outlined">logout</span>
           Keluar
         </button>
-        <p className="text-center text-[10px] text-muted mt-4">Narehat v0.1 • &copy; 2026</p>
+        <p className="text-center text-[10px] text-muted mt-4">Narehat v0.1 &bull; &copy; 2026</p>
       </section>
     </main>
   );
