@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AppLayout({
   children,
 }: {
@@ -14,12 +16,12 @@ export default function AppLayout({
             { href: "/ai-consult", label: "AI" },
             { href: "/recommendations", label: "Produk" },
           ].map((item) => (
-            <a key={item.href} href={item.href} className="flex flex-col items-center gap-1 text-xs font-medium text-muted hover:text-primary transition-colors">
+            <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1 text-xs font-medium text-muted hover:text-primary transition-colors">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
               {item.label}
-            </a>
+            </Link>
           ))}
         </div>
       </nav>
