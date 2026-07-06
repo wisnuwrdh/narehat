@@ -176,6 +176,7 @@ export default function ProgressPage() {
             </span>
           </div>
           <div ref={chartRef} className="relative h-44">
+            {pts.length > 0 ? (
             <svg className="w-full h-full" viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
@@ -214,6 +215,11 @@ export default function ProgressPage() {
                 </g>
               ))}
             </svg>
+            ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-xs text-muted">Isi tracker secara rutin untuk melihat grafik skin score.</p>
+            </div>
+            )}
           </div>
         </div>
       </section>
