@@ -1,7 +1,35 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+interface UserProfile {
+  name: string;
+  email: string;
+  skin_type: string;
+  acne_severity: string;
+  goal: string;
+  plan: string;
+}
+
+const skinLabels: Record<string, string> = {
+  oily: "Berminyak",
+  dry: "Kering",
+  combination: "Kombinasi",
+  normal: "Normal",
+  sensitive: "Sensitif",
+};
+const severityLabels: Record<string, string> = {
+  mild: "Ringan",
+  moderate: "Sedang",
+  severe: "Parah",
+};
+const planLabels: Record<string, string> = {
+  free: "Gratis",
+  premium_monthly: "Bulanan",
+  premium_yearly: "Tahunan",
+};
 
 const notificationDefaults = [true, true, false];
 
@@ -14,11 +42,18 @@ const themeList = [
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile>({
+    name: "",
+    email: "",
+    skin_type: "combination",
+    acne_severity: "mild",
+    goal: "clear_acne",
+    plan: "free",
+  });
+  const [loaded, setLoaded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState("Wisnu Prasetyo");
-  const [email, setEmail] = useState("wisnu@email.com");
-  const [displayName, setDisplayName] = useState("Wisnu Prasetyo");
-  const [displayEmail, setDisplayEmail] = useState("wisnu@email.com");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [activeTheme, setActiveTheme] = useState(() => {
     if (typeof window !== "undefined") return localStorage.getItem("narehat-theme") || "Default";
     return "Default";
@@ -29,6 +64,30 @@ export default function SettingsPage() {
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showSubDetail, setShowSubDetail] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (loaded) return;
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          const u = data.user;
+          setProfile({
+            name: u.name || u.email?.split("@")[0] || "User",
+            email: u.email || "",
+            skin_type: u.skin_type || "combination",
+            acne_severity: u.acne_severity || "mild",
+            goal: u.goal || "clear_acne",
+            plan: u.plan || "free",
+          });
+          setName(u.name || "");
+          setEmail(u.email || "");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, [loaded]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -41,11 +100,21 @@ export default function SettingsPage() {
     showToast(`Tema diubah ke ${name}`);
   };
 
-  const handleSaveProfile = () => {
-    setDisplayName(name);
-    setDisplayEmail(email);
-    setEditing(false);
-    showToast("Profil berhasil diperbarui");
+  const handleSaveProfile = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      if (res.ok) {
+        setProfile((p) => ({ ...p, name }));
+        setEditing(false);
+        showToast("Profil berhasil diperbarui");
+      }
+    } catch {}
+    setSaving(false);
   };
 
   const handleExport = () => {
@@ -59,7 +128,9 @@ export default function SettingsPage() {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     localStorage.removeItem("narehat-theme");
     router.push("/login");
   };
@@ -98,22 +169,24 @@ export default function SettingsPage() {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                <input type="email" value={email} disabled className="w-full px-4 py-3 bg-slate-100 border border-border-light rounded-xl text-sm text-muted" />
               </div>
               <div className="flex gap-2">
-                <button onClick={handleSaveProfile} className="btn-press flex-1 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors">Simpan</button>
-                <button onClick={() => { setName(displayName); setEmail(displayEmail); setEditing(false); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
+                <button onClick={handleSaveProfile} disabled={saving} className="btn-press flex-1 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
+                  {saving ? "Menyimpan..." : "Simpan"}
+                </button>
+                <button onClick={() => { setName(profile.name); setEmail(profile.email); setEditing(false); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center text-2xl">👤</div>
               <div className="flex-1">
-                <h2 className="font-bold text-slate-900">{displayName}</h2>
-                <p className="text-xs text-muted">{displayEmail}</p>
+                <h2 className="font-bold text-slate-900">{profile.name}</h2>
+                <p className="text-xs text-muted">{profile.email}</p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">Kombinasi</span>
-                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">Sedang</span>
+                  <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">{skinLabels[profile.skin_type] || "Kombinasi"}</span>
+                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">{severityLabels[profile.acne_severity] || "Sedang"}</span>
                 </div>
               </div>
               <button onClick={() => setEditing(true)} className="btn-press p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
@@ -132,23 +205,39 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="material-symbols-outlined text-primary text-sm">diamond</span>
-                  <span className="text-xs font-bold text-primary">Premium Aktif</span>
+                  <span className="text-xs font-bold text-primary">{profile.plan !== "free" ? "Premium Aktif" : "Gratis"}</span>
                 </div>
-                <p className="text-sm font-bold text-slate-800">Plan Bulanan</p>
-                <p className="text-xs text-muted mt-0.5">Berakhir 3 Agustus 2026</p>
+                <p className="text-sm font-bold text-slate-800">Plan {planLabels[profile.plan] || "Gratis"}</p>
+                <p className="text-xs text-muted mt-0.5">{profile.plan !== "free" ? "Nikmati semua fitur premium" : "Upgrade untuk fitur lengkap"}</p>
               </div>
-              <button onClick={() => setShowSubDetail(!showSubDetail)} className="btn-press px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                {showSubDetail ? "Tutup" : "Kelola"}
+              <button
+                onClick={() => setShowSubDetail(!showSubDetail)}
+                className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors ${profile.plan !== "free" ? "bg-primary text-white hover:bg-primary/90" : "bg-primary text-white hover:bg-primary/90"}`}
+              >
+                {showSubDetail ? "Tutup" : profile.plan !== "free" ? "Kelola" : "Upgrade"}
               </button>
             </div>
-            {showSubDetail && (
+              {showSubDetail && (
               <div className="mt-4 pt-4 border-t border-primary/10 animate-scale-in">
-                <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> Rp19.000/bulan</p>
-                <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> AI Deteksi Jerawat, Konsultasi RAG, Insight Mendalam, Tema Custom</p>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => showToast("Kamu sudah di plan terbaik!")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-slate-600 rounded-xl border border-border-light hover:bg-slate-50 transition-colors">Upgrade</button>
-                  <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
-                </div>
+                {profile.plan !== "free" ? (
+                  <>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Plan:</strong> {planLabels[profile.plan]}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {profile.plan === "premium_monthly" ? "Rp19.000/bulan" : "Rp149.000/tahun"}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> AI Deteksi Jerawat, Konsultasi RAG, Insight Mendalam, Tema Custom</p>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => showToast("Kamu sudah di plan terbaik!")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-slate-600 rounded-xl border border-border-light hover:bg-slate-50 transition-colors">Upgrade</button>
+                      <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Plan saat ini:</strong> Gratis</p>
+                    <p className="text-xs text-slate-600 mb-2">Upgrade untuk akses AI Deteksi, Konsultasi RAG, Insight Mendalam, dan Tema Custom.</p>
+                    <div className="flex gap-2 mt-3">
+                      <a href="/pricing" className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors text-center">Lihat Harga</a>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

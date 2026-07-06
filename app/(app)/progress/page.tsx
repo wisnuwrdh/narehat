@@ -4,61 +4,38 @@ import { useEffect, useRef, useState } from "react";
 
 type Range = "7" | "30" | "90";
 
-const chartData: Record<Range, { labels: string[]; scores: number[] }> = {
-  "7": {
-    labels: ["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min"],
-    scores: [64, 66, 63, 68, 70, 69, 72],
-  },
-  "30": {
-    labels: ["5 Jun", "8 Jun", "11 Jun", "14 Jun", "17 Jun", "20 Jun", "23 Jun", "26 Jun", "29 Jun", "2 Jul"],
-    scores: [58, 60, 59, 63, 65, 64, 66, 68, 70, 72],
-  },
-  "90": {
-    labels: ["Apr", "Apr", "Mei", "Mei", "Mei", "Mei", "Jun", "Jun", "Jun", "Jun", "Jul", "Jul"],
-    scores: [52, 55, 54, 58, 57, 60, 63, 62, 66, 68, 70, 72],
-  },
-};
+function computeSkinScore(log: Record<string, number>) {
+  let score = 50;
+  score += Math.min((log.sleep_hours || 0) / 8, 1) * 15;
+  score += Math.min((log.water_ml || 0) / 2500, 1) * 10;
+  score += Math.min((log.exercise_minutes || 0) / 30, 1) * 10;
+  score += (1 - ((log.stress_level || 5) - 1) / 4) * 10;
+  if (log.skincare_morning) score += 7;
+  if (log.skincare_evening) score += 8;
+  return Math.min(100, Math.round(score));
+}
 
-const correlationData: Record<Range, { label: string; points: string; color: string; pct: number }[]> = {
-  "7": [
-    { label: "Tidur cukup", points: "+12 poin", color: "emerald", pct: 85 },
-    { label: "Minum air cukup", points: "+8 poin", color: "emerald", pct: 65 },
-    { label: "Stress rendah", points: "+6 poin", color: "emerald", pct: 50 },
-    { label: "Begadang", points: "-10 poin", color: "red", pct: 70 },
-  ],
-  "30": [
-    { label: "Tidur cukup", points: "+10 poin", color: "emerald", pct: 72 },
-    { label: "Skincare rutin", points: "+15 poin", color: "emerald", pct: 90 },
-    { label: "Olahraga", points: "+5 poin", color: "emerald", pct: 45 },
-    { label: "Begadang", points: "-12 poin", color: "red", pct: 65 },
-  ],
-  "90": [
-    { label: "Skincare rutin", points: "+18 poin", color: "emerald", pct: 92 },
-    { label: "Tidur cukup", points: "+9 poin", color: "emerald", pct: 68 },
-    { label: "Hidrasi", points: "+7 poin", color: "emerald", pct: 55 },
-    { label: "Stress tinggi", points: "-15 poin", color: "red", pct: 60 },
-  ],
-};
+function formatDateLabel(dateStr: string, range: Range): string {
+  const d = new Date(dateStr);
+  const days = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  if (range === "7") return days[d.getDay()];
+  return `${d.getDate()} ${months[d.getMonth()]}`;
+}
 
-const allPhotos = [
-  { label: "Hari ini", date: "3 Jul" },
-  { label: "Kemarin", date: "2 Jul" },
-  { label: "1 Minggu lalu", date: "26 Jun" },
-  { label: "2 Minggu lalu", date: "19 Jun" },
-  { label: "3 Minggu lalu", date: "12 Jun" },
-  { label: "1 Bulan lalu", date: "3 Jun" },
-  { label: "6 Minggu lalu", date: "22 Mei" },
-  { label: "2 Bulan lalu", date: "3 Mei" },
-];
-
-const insightList = [
-  { icon: "trending_up", color: "emerald", title: "Skin score naik 8%", desc: "Konsistensi skincare 2x sehari berkontribusi besar terhadap peningkatan skin score dalam 30 hari terakhir." },
-  { icon: "warning", color: "amber", title: "Tidur kurang berkorelasi", desc: "3 hari tidur <6 jam = muncul jerawat baru. Dalam 7 hari, ini terjadi 2 kali. Rekomendasi: minimal 7 jam tidur." },
-  { icon: "water_drop", color: "blue", title: "Hidrasi membaik", desc: "Rata-rata minum air naik dari 1.2L ke 1.8L dalam 2 minggu. Efeknya: kulit lebih lembap dan tekstur membaik." },
-];
+interface ChartData {
+  labels: string[];
+  scores: number[];
+}
 
 export default function ProgressPage() {
   const [range, setRange] = useState<Range>("30");
+  const [chartData, setChartData] = useState<Record<Range, ChartData>>({
+    "7": { labels: [], scores: [] },
+    "30": { labels: [], scores: [] },
+    "90": { labels: [], scores: [] },
+  });
+  const [loaded, setLoaded] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
   const [expandedInsight, setExpandedInsight] = useState<number | null>(null);
   const [leftPhoto, setLeftPhoto] = useState<string | null>(null);
@@ -69,9 +46,53 @@ export default function ProgressPage() {
   const rightRef = useRef<HTMLInputElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (loaded) return;
+    async function load() {
+      const today = new Date();
+      const ranges: { key: Range; days: number }[] = [
+        { key: "7", days: 7 },
+        { key: "30", days: 30 },
+        { key: "90", days: 90 },
+      ];
+      const result: Record<Range, ChartData> = { "7": { labels: [], scores: [] }, "30": { labels: [], scores: [] }, "90": { labels: [], scores: [] } };
+      for (const r of ranges) {
+        const start = new Date(today);
+        start.setDate(today.getDate() - r.days + 1);
+        const dates: string[] = [];
+        for (let i = 0; i < r.days; i++) {
+          const d = new Date(start);
+          d.setDate(start.getDate() + i);
+          dates.push(d.toISOString().split("T")[0]);
+        }
+        const logsByDate: Record<string, Record<string, number>> = {};
+        for (const date of dates.slice(0, 10)) {
+          try {
+            const res = await fetch(`/api/tracker?date=${date}`);
+            const j = await res.json();
+            if (j.logs?.[0]) logsByDate[date] = j.logs[0];
+          } catch {}
+        }
+        const labels: string[] = [];
+        const scores: number[] = [];
+        for (const date of dates) {
+          const log = logsByDate[date];
+          if (log) {
+            labels.push(formatDateLabel(date, r.key));
+            scores.push(computeSkinScore(log));
+          }
+        }
+        result[r.key] = { labels, scores };
+      }
+      setChartData(result);
+      setLoaded(true);
+    }
+    load();
+  }, [loaded]);
+
   const data = chartData[range];
-  const correlations = correlationData[range];
-  const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
+  const photos: { label: string; date: string }[] = showAllPhotos ? [] : [];
+  const correlations: { label: string; points: string; color: string; pct: number }[] = [];
 
   const padding = 10;
   const chartW = 320;
@@ -81,11 +102,12 @@ export default function ProgressPage() {
   const minScore = 40;
   const maxScore = 100;
   const pts = data.scores.map((s, i) => {
-    const x = padding + (i / (data.scores.length - 1)) * plotW;
+    const denominator = Math.max(data.scores.length - 1, 1);
+    const x = padding + (i / denominator) * plotW;
     const y = padding + plotH - ((s - minScore) / (maxScore - minScore)) * plotH;
     return { x, y, s };
   });
-  const polyline = pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const polyline = pts.length > 0 ? pts.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ") : "";
 
   useEffect(() => {
     setChartAnimated(true);
@@ -106,9 +128,9 @@ export default function ProgressPage() {
     }
   };
 
-  const avgScore = Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length);
-  const scoreChange = data.scores[data.scores.length - 1] - data.scores[0];
-  const changePct = Math.round((scoreChange / data.scores[0]) * 100);
+  const avgScore = data.scores.length > 0 ? Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) : 0;
+  const scoreChange = data.scores.length > 1 ? data.scores[data.scores.length - 1] - data.scores[0] : 0;
+  const changePct = data.scores.length > 1 && data.scores[0] > 0 ? Math.round((scoreChange / data.scores[0]) * 100) : 0;
 
   return (
     <main className="max-w-md mx-auto">
@@ -208,7 +230,7 @@ export default function ProgressPage() {
             </div>
           </div>
           <div className="space-y-3">
-            {correlations.map((c) => (
+            {correlations.length > 0 ? correlations.map((c) => (
               <div key={c.label + range}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="font-semibold text-slate-700">{c.label}</span>
@@ -221,7 +243,9 @@ export default function ProgressPage() {
                   />
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-xs text-muted text-center py-2">Korelasi akan muncul setelah kamu rutin tracking selama {range} hari.</p>
+            )}
           </div>
         </div>
       </section>
@@ -302,28 +326,32 @@ export default function ProgressPage() {
       <section className="px-6 mb-8">
         <h2 className="font-bold text-slate-900 text-base mb-4">Insight Minggu Ini</h2>
         <div className="space-y-3">
-          {insightList.map((ins, i) => (
-            <div
-              key={i}
-              onClick={() => setExpandedInsight(expandedInsight === i ? null : i)}
-              className="bg-white border border-border-subtle rounded-2xl shadow-sm card-hover cursor-pointer overflow-hidden transition-all"
-            >
-              <div className="p-4 flex items-start gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ins.color === "emerald" ? "bg-emerald-50" : ins.color === "amber" ? "bg-amber-50" : "bg-blue-50"}`}>
-                  <span className={`material-symbols-outlined text-sm ${ins.color === "emerald" ? "text-emerald-500" : ins.color === "amber" ? "text-amber-500" : "text-blue-500"}`}>{ins.icon}</span>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-slate-800">{ins.title}</p>
-                    <span className={`material-symbols-outlined text-muted-light text-sm transition-transform ${expandedInsight === i ? "rotate-180" : ""}`}>expand_more</span>
+          {data.scores.length > 0 ? (
+            <>
+              {avgScore >= 70 && (
+                <div onClick={() => setExpandedInsight(expandedInsight === 0 ? null : 0)} className="bg-white border border-border-subtle rounded-2xl shadow-sm card-hover cursor-pointer overflow-hidden transition-all">
+                  <div className="p-4 flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50">
+                      <span className="material-symbols-outlined text-sm text-emerald-500">trending_up</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-slate-800">Skin score rata-rata {avgScore}/100</p>
+                        <span className={`material-symbols-outlined text-muted-light text-sm transition-transform ${expandedInsight === 0 ? "rotate-180" : ""}`}>expand_more</span>
+                      </div>
+                      <p className={`text-xs text-muted mt-0.5 transition-all ${expandedInsight === 0 ? "max-h-32 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
+                        Dalam {range} hari terakhir, skin score rata-ratamu adalah {avgScore}/100. {scoreChange > 0 ? `Ada peningkatan ${changePct}% dari data awal. Pertahankan konsistensimu!` : "Coba lebih konsisten dengan rutinitas skincare dan tracker harian."}
+                      </p>
+                    </div>
                   </div>
-                  <p className={`text-xs text-muted mt-0.5 transition-all ${expandedInsight === i ? "max-h-32 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
-                    {ins.desc}
-                  </p>
                 </div>
-              </div>
+              )}
+            </>
+          ) : (
+            <div className="bg-white border border-border-subtle rounded-2xl shadow-sm p-4 text-center">
+              <p className="text-xs text-muted">Isi tracker secara rutin untuk melihat insight personal. Semakin sering tracking, semakin akurat insight yang muncul.</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
     </main>
