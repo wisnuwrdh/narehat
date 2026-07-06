@@ -403,6 +403,7 @@ export default function TrackerPage() {
           onClick={handleReset}
           disabled={loading}
           className="btn-press w-full py-3 bg-white border border-border-light text-sm font-semibold text-slate-500 rounded-2xl hover:bg-slate-50 transition-colors disabled:opacity-50"
+        >
           Reset
         </button>
       </div>
