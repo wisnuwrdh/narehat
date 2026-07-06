@@ -1,38 +1,74 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface Day {
   day: string;
   date: string;
+  dateStr: string;
   past: boolean;
 }
 
-const days: Day[] = [
-  { day: "Sen", date: "30", past: true },
-  { day: "Sel", date: "1", past: true },
-  { day: "Rab", date: "2", past: true },
-  { day: "Kam", date: "3", past: false },
-  { day: "Jum", date: "4", past: false },
-  { day: "Sab", date: "5", past: false },
-];
+function getWeekDays(): Day[] {
+  const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+  const today = new Date();
+  const result: Day[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    const monthDay = d.getDate().toString();
+    result.push({
+      day: dayNames[d.getDay()],
+      date: monthDay,
+      dateStr,
+      past: i > 0,
+    });
+  }
+  return result;
+}
+
+const days = getWeekDays();
+const todayStr = days[6].dateStr;
 
 const stressLabels = ["", "Santai", "Santai", "Sedang", "Tinggi", "Ekstrem"];
 const stressEmojis = ["", "😌", "😌", "😤", "😫", "🤯"];
 const stressColors = ["", "bg-emerald-50 text-emerald-600", "bg-emerald-50 text-emerald-600", "bg-amber-50 text-amber-600", "bg-orange-50 text-orange-600", "bg-red-50 text-red-600"];
 
 export default function TrackerPage() {
-  const [activeDate, setActiveDate] = useState(3);
-  const [sleep, setSleep] = useState(6.2);
-  const [exercise, setExercise] = useState(30);
-  const [water, setWater] = useState(1.5);
-  const [stress, setStress] = useState(3);
-  const [skincareMorning, setSkincareMorning] = useState(true);
-  const [skincareEvening, setSkincareEvening] = useState(true);
+  const [activeDate, setActiveDate] = useState(6); // today
+  const [sleep, setSleep] = useState(0);
+  const [exercise, setExercise] = useState(0);
+  const [water, setWater] = useState(0);
+  const [stress, setStress] = useState(1);
+  const [skincareMorning, setSkincareMorning] = useState(false);
+  const [skincareEvening, setSkincareEvening] = useState(false);
   const [notes, setNotes] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (loaded) return;
+    fetch(`/api/tracker?date=${todayStr}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const log = data.logs?.[0];
+        if (log) {
+          setSleep(log.sleep_hours ?? 0);
+          setExercise(log.exercise_minutes ?? 0);
+          setWater((log.water_ml ?? 0) / 1000);
+          setStress(log.stress_level ?? 1);
+          setSkincareMorning(log.skincare_morning ?? false);
+          setSkincareEvening(log.skincare_evening ?? false);
+          setNotes(log.notes ?? "");
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, [loaded, todayStr]);
 
   const adjSleep = (delta: number) => setSleep((s) => Math.min(12, Math.max(0, Math.round((s + delta) * 10) / 10)));
   const adjExercise = (delta: number) => setExercise((e) => Math.min(120, Math.max(0, e + delta)));
@@ -51,30 +87,41 @@ export default function TrackerPage() {
     }
   };
 
-  const handleSave = () => {
-    const data = {
-      date: days[activeDate].date,
-      sleep,
-      exercise,
-      water,
-      stress,
-      skincareMorning,
-      skincareEvening,
-      notes,
-      photo: photoPreview ? "ada" : "tidak ada",
-    };
-    console.log("Tracker saved:", data);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/tracker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: days[activeDate].dateStr,
+          sleep_hours: sleep,
+          water_ml: Math.round(water * 1000),
+          exercise_minutes: exercise,
+          stress_level: stress,
+          skincare_morning: skincareMorning,
+          skincare_evening: skincareEvening,
+          notes,
+        }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+      }
+    } catch {
+      // silently fail — user sees actual error only on console
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReset = () => {
-    setSleep(6.2);
-    setExercise(30);
-    setWater(1.5);
-    setStress(3);
-    setSkincareMorning(true);
-    setSkincareEvening(true);
+    setSleep(0);
+    setExercise(0);
+    setWater(0);
+    setStress(1);
+    setSkincareMorning(false);
+    setSkincareEvening(false);
     setNotes("");
     setPhotoPreview(null);
     setSaved(false);
@@ -344,11 +391,18 @@ export default function TrackerPage() {
             </span>
           </div>
         )}
-        <button onClick={handleSave} className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+        <button
+          onClick={handleSave}
+          disabled={loading}
+          className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           <span className="material-symbols-outlined">save</span>
-          Simpan Catatan Hari Ini
+          {loading ? "Menyimpan..." : "Simpan Catatan Hari Ini"}
         </button>
-        <button onClick={handleReset} className="btn-press w-full py-3 bg-white border border-border-light text-sm font-semibold text-slate-500 rounded-2xl hover:bg-slate-50 transition-colors">
+        <button
+          onClick={handleReset}
+          disabled={loading}
+          className="btn-press w-full py-3 bg-white border border-border-light text-sm font-semibold text-slate-500 rounded-2xl hover:bg-slate-50 transition-colors disabled:opacity-50"
           Reset
         </button>
       </div>

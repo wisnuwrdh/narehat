@@ -3,6 +3,36 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+interface DashboardData {
+  userName: string;
+  dailyLog: {
+    sleep_hours: number;
+    water_ml: number;
+    exercise_minutes: number;
+    stress_level: number;
+    skincare_morning: boolean;
+    skincare_evening: boolean;
+    notes: string;
+  } | null;
+  insights: { title: string; description: string; type: string }[];
+  photos: { url: string; date: string }[];
+  streak: number;
+  skinScore: number;
+  skinScoreDelta: number;
+}
+
+function computeSkinScore(log: DashboardData["dailyLog"]): number {
+  if (!log) return 0;
+  let score = 50;
+  score += Math.min(log.sleep_hours / 8, 1) * 15;
+  score += Math.min(log.water_ml / 2500, 1) * 10;
+  score += Math.min(log.exercise_minutes / 30, 1) * 10;
+  score += (1 - (log.stress_level - 1) / 4) * 10;
+  if (log.skincare_morning) score += 7;
+  if (log.skincare_evening) score += 8;
+  return Math.min(100, Math.round(score));
+}
+
 const getScoreLabel = (s: number) => {
   if (s < 30) return { label: "Perlu Perbaikan", emoji: "sentiment_very_dissatisfied", color: "text-red-500" };
   if (s < 60) return { label: "Cukup", emoji: "sentiment_dissatisfied", color: "text-amber-500" };
@@ -10,7 +40,7 @@ const getScoreLabel = (s: number) => {
   return { label: "Sangat Baik", emoji: "sentiment_very_satisfied", color: "text-emerald-500" };
 };
 
-const dailySummary = [
+const summaryItems = [
   { icon: "bedtime", color: "indigo", label: "Tidur", value: "6.2", unit: "jam", pct: 78, target: "8 jam", status: "emerald" },
   { icon: "water_drop", color: "blue", label: "Air", value: "1.5", unit: "L", pct: 60, target: "2.5 L", status: "emerald" },
   { icon: "psychology", color: "amber", label: "Stress", value: "Sedang", unit: "", pct: 55, target: "6/10 level", status: "amber", text: true },
@@ -37,22 +67,96 @@ const quickActions = [
   { href: "/settings", icon: "notifications_active", label: "Pengingat" },
 ];
 
-const photoDates = [
-  { label: "Hari ini", date: "3 Jul", active: true },
-  { label: "Kemarin", date: "2 Jul", active: false },
-  { label: "Lalu", date: "30 Jun", active: false },
-];
-
 export default function DashboardPage() {
-  const [score, setScore] = useState(0);
+  const [data, setData] = useState<DashboardData>({
+    userName: "",
+    dailyLog: null,
+    insights: [],
+    photos: [],
+    streak: 0,
+    skinScore: 0,
+    skinScoreDelta: 0,
+  });
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
-  const [streak, setStreak] = useState(0);
   const [insightExpanded, setInsightExpanded] = useState(false);
   const mounted = useRef(false);
 
-  const scoreMeta = getScoreLabel(score);
-  const segments = Math.max(1, Math.ceil(score / 20));
-  const delta = Math.floor((score - 66) * 0.8 * 10) / 10;
+  useEffect(() => {
+    if (mounted.current) return;
+    mounted.current = true;
+
+    async function load() {
+      try {
+        const today = new Date().toISOString().split("T")[0];
+        const [sessionRes, trackerRes] = await Promise.all([
+          fetch("/api/auth/session"),
+          fetch(`/api/tracker?date=${today}`),
+        ]);
+
+        const session = await sessionRes.json();
+        const tracker = await trackerRes.json();
+        const log = tracker.logs?.[0] || null;
+
+        const skinScore = computeSkinScore(log);
+        const userName = session.user?.user_metadata?.name || session.user?.email?.split("@")[0] || "User";
+
+        let streak = 0;
+        let checkDate = new Date();
+        for (let i = 0; i < 365; i++) {
+          const d = checkDate.toISOString().split("T")[0];
+          const r = await fetch(`/api/tracker?date=${d}`);
+          const j = await r.json();
+          if (j.logs?.[0]) {
+            streak++;
+            checkDate.setDate(checkDate.getDate() - 1);
+          } else if (i === 0) {
+            break;
+          } else {
+            break;
+          }
+        }
+
+        let insights: DashboardData["insights"] = [];
+        try {
+          const iRes = await fetch("/api/ai/consult?q=insights");
+          const iData = await iRes.json();
+          if (iData.insights) insights = iData.insights;
+        } catch {}
+
+        setData({ userName, dailyLog: log, insights, photos: [], streak, skinScore, skinScoreDelta: 0 });
+
+        let s = 0;
+        const duration = 1200;
+        const stepTime = Math.max(Math.floor(duration / skinScore), 16);
+        const timer = setInterval(() => {
+          s += 1;
+          setAnimatedScore(s);
+          if (s >= skinScore) clearInterval(timer);
+        }, stepTime);
+
+        let st = 0;
+        const streakDuration = 200;
+        const streakTimer = setInterval(() => {
+          st += 1;
+          setAnimatedStreak(st);
+          if (st >= streak) clearInterval(streakTimer);
+        }, streakDuration);
+
+        return () => { clearInterval(timer); clearInterval(streakTimer); };
+      } catch {
+        setData((d) => ({ ...d, userName: "User" }));
+      }
+    }
+    load();
+  }, []);
+
+  const score = animatedScore;
+  const scoreMeta = getScoreLabel(animatedScore);
+  const segments = Math.max(1, Math.ceil(animatedScore / 20));
+  const delta = 2;
+  const streak = animatedStreak;
 
   const toggleInfo = useCallback(() => {
     const next = !showInfo;
@@ -60,37 +164,32 @@ export default function DashboardPage() {
     if (next) setTimeout(() => setShowInfo(false), 4000);
   }, [showInfo]);
 
-  useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
+  const { dailyLog, insights } = data;
 
-    let s = 0;
-    const end = 72;
-    const duration = 1200;
-    const stepTime = Math.max(Math.floor(duration / end), 16);
-    const timer = setInterval(() => {
-      s += 1;
-      setScore(s);
-      if (s >= end) clearInterval(timer);
-    }, stepTime);
+  const summaryItems = dailyLog ? [
+    { icon: "bedtime", color: "indigo" as const, label: "Tidur", value: dailyLog.sleep_hours.toString(), unit: "jam", pct: Math.round((dailyLog.sleep_hours / 8) * 100), target: "8 jam", status: dailyLog.sleep_hours >= 6 ? "emerald" as const : "amber" as const },
+    { icon: "water_drop", color: "blue" as const, label: "Air", value: (dailyLog.water_ml / 1000).toFixed(1), unit: "L", pct: Math.round((dailyLog.water_ml / 2500) * 100), target: "2.5 L", status: dailyLog.water_ml >= 1500 ? "emerald" as const : "amber" as const },
+    { icon: "psychology", color: "amber" as const, label: "Stress", value: dailyLog.stress_level <= 2 ? "Santai" : dailyLog.stress_level <= 3 ? "Sedang" : "Tinggi", unit: "", pct: Math.round((1 - (dailyLog.stress_level - 1) / 4) * 100), target: `${dailyLog.stress_level}/5 level`, status: dailyLog.stress_level <= 2 ? "emerald" as const : "amber" as const, text: true as const },
+    { icon: "directions_run", color: "emerald" as const, label: "Olahraga", value: dailyLog.exercise_minutes.toString(), unit: "mnt", pct: Math.round((dailyLog.exercise_minutes / 30) * 100), target: dailyLog.exercise_minutes >= 30 ? "target tercapai" : `kurang ${30 - dailyLog.exercise_minutes} mnt`, status: dailyLog.exercise_minutes >= 20 ? "emerald" as const : "amber" as const },
+    { icon: "spa", color: "violet" as const, label: "Skincare", value: [dailyLog.skincare_morning && "Pagi", dailyLog.skincare_evening && "Malam"].filter(Boolean).join("+") || "0x", unit: "", pct: [dailyLog.skincare_morning, dailyLog.skincare_evening].filter(Boolean).length * 50, target: "2x rutinitas", status: dailyLog.skincare_morning || dailyLog.skincare_evening ? "emerald" as const : "amber" as const, text: true as const },
+  ] : [
+    { icon: "edit_calendar", color: "indigo" as const, label: "Tracker", value: "Kosong", unit: "", pct: 0, target: "isi tracker dulu", status: "amber" as const, text: true as const },
+  ];
 
-    let st = 0;
-    const streakEnd = 5;
-    const streakTimer = setInterval(() => {
-      st += 1;
-      setStreak(st);
-      if (st >= streakEnd) clearInterval(streakTimer);
-    }, 200);
-
-    return () => { clearInterval(timer); clearInterval(streakTimer); };
-  }, []);
+  const photoDates = data.photos.length > 0 ? data.photos.map((p, i) => ({
+    label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
+    date: p.date,
+    active: i === 0,
+  })) : [
+    { label: "Belum ada", date: "", active: true },
+  ];
 
   return (
     <main className="max-w-md mx-auto">
       <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
         <div className="animate-fade-in-up">
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-slate-900">Halo, Wisnu</h1>
+            <h1 className="text-xl font-bold text-slate-900">Halo, {data.userName || "User"}</h1>
             <span className="text-lg">👋</span>
           </div>
           <p className="text-sm text-muted">Yuk, jaga konsistensi hari ini.</p>
@@ -113,7 +212,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-2xl">
           <span className="text-base">🔥</span>
           <div className="flex-1">
-            <span className="text-xs font-semibold text-orange-700">Streak {streak} hari</span>
+            <span className="text-xs font-semibold text-orange-700">Streak {animatedStreak} hari</span>
             <div className="flex gap-1 mt-1">
               {Array.from({ length: 7 }).map((_, i) => (
                 <div
@@ -203,25 +302,33 @@ export default function DashboardPage() {
               <span className="px-2.5 py-1 bg-white text-primary text-[10px] font-bold rounded-lg border border-indigo-100 shadow-sm">Baru</span>
             </div>
             <p className="text-sm leading-relaxed text-slate-700 mb-4">
-              Kurang tidur <span className="font-bold text-slate-900">3 hari terakhir</span> berkorelasi dengan munculnya <span className="font-bold text-primary italic">jerawat baru di dagu</span>.
+              {insights.length > 0 ? (
+                insights[0].title
+              ) : dailyLog ? (
+                <>Tracker harian sudah terisi. Semakin sering tracking, insight akan semakin akurat.</>
+              ) : (
+                <>Kamu belum mengisi tracker hari ini. Isi sekarang untuk melihat insight personal.</>
+              )}
             </p>
+            {dailyLog && (
             <div className="flex items-center gap-3 mb-4 px-3 py-2.5 bg-white/70 rounded-xl border border-white/50">
               <div className="flex items-center gap-1.5">
                 <span className="text-lg">😴</span>
                 <div className="flex flex-col">
                   <span className="text-[10px] font-bold text-slate-600">Tidur</span>
-                  <span className="text-[10px] text-muted">↓ 5.8 jam</span>
+                  <span className="text-[10px] text-muted">{dailyLog.sleep_hours} jam</span>
                 </div>
               </div>
               <span className="material-symbols-outlined text-primary-muted text-sm">arrow_forward</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-lg">🔴</span>
+                <span className="text-lg">💧</span>
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-600">Jerawat</span>
-                  <span className="text-[10px] text-muted">↑ +3 baru</span>
+                  <span className="text-[10px] font-bold text-slate-600">Air</span>
+                  <span className="text-[10px] text-muted">{(dailyLog.water_ml / 1000).toFixed(1)}L</span>
                 </div>
               </div>
             </div>
+            )}
             <button
               onClick={() => setInsightExpanded(!insightExpanded)}
               className="btn-press w-full flex items-center justify-between text-xs text-primary font-bold bg-white/80 hover:bg-white p-3 rounded-xl transition-colors border border-indigo-100/50"
@@ -235,7 +342,7 @@ export default function DashboardPage() {
             {insightExpanded && (
               <div className="mt-3 p-4 bg-white/60 rounded-xl border border-indigo-100/50 animate-scale-in">
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Analisis kami menunjukkan bahwa dalam 7 hari terakhir, setiap kali kamu tidur kurang dari 6 jam, keesokan harinya muncul jerawat baru di area dagu. Pola ini konsisten dalam 3 dari 3 kejadian. Kami merekomendasikan untuk memprioritaskan tidur minimal 7 jam dan menambahkan retinol-based treatment pada area dagu di malam hari.
+                  {insights.length > 0 ? insights[0].description : (dailyLog ? "Berdasarkan data tracker hari ini, kami sedang menganalisis pola kebiasaanmu. Semakin konsisten kamu tracking, semakin personal insight yang akan muncul." : "Kamu belum mengisi tracker hari ini. Yuk, isi sekarang supaya AI Narehat bisa menganalisis pola kebiasaanmu dan memberikan insight yang personal.")}
                 </p>
                 <div className="flex gap-2 mt-3">
                   <Link href="/tracker" className="btn-press px-3 py-2 bg-primary-light text-primary text-[10px] font-bold rounded-xl hover:bg-primary-light/70 transition-colors">Ke Tracker</Link>
@@ -277,7 +384,7 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory">
-          {dailySummary.map((item) => (
+          {summaryItems.map((item) => (
             <Link
               key={item.label}
               href="/tracker"
