@@ -48,6 +48,8 @@ export default function RecommendationsPage() {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState("");
+  const [userSkin, setUserSkin] = useState("kombinasi");
+  const [userConcern, setUserConcern] = useState("jerawat aktif");
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -61,6 +63,17 @@ export default function RecommendationsPage() {
         setFavorites(new Set(JSON.parse(saved)));
       } catch { /* ignore */ }
     }
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user) {
+          const skinLabels: Record<string, string> = { oily: "berminyak", dry: "kering", combination: "kombinasi", normal: "normal", sensitive: "sensitif" };
+          const concernLabels: Record<string, string> = { clear_acne: "jerawat aktif", fade_scars: "bekas jerawat", brighter_skin: "kulit lebih cerah", all: "jerawat & bekas" };
+          setUserSkin(skinLabels[data.user.skin_type] || "kombinasi");
+          setUserConcern(concernLabels[data.user.goal] || "jerawat aktif");
+        }
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -169,8 +182,8 @@ export default function RecommendationsPage() {
           </div>
           <p className="text-xs text-slate-600 leading-relaxed">
             Berdasarkan tipe kulit{" "}
-            <span className="font-bold text-slate-800">kombinasi</span> dan concern{" "}
-            <span className="font-bold text-slate-800">jerawat aktif</span>.
+            <span className="font-bold text-slate-800">{userSkin}</span> dan concern{" "}
+            <span className="font-bold text-slate-800">{userConcern}</span>.
           </p>
         </div>
       </section>
