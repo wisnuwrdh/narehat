@@ -21,12 +21,14 @@ export default function RegisterPage() {
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "", agreed: false });
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (!form.name.trim() || !form.email.trim() || !form.password) {
       setError("Semua field wajib diisi.");
@@ -43,7 +45,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
+    const { data, error: authError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: { data: { name: form.name } },
@@ -55,7 +57,13 @@ export default function RegisterPage() {
       return;
     }
 
-    router.push("/onboarding");
+    if (data.session) {
+      router.push("/onboarding");
+    } else {
+      setError("");
+      setForm({ name: "", email: "", password: "", agreed: false });
+      setSuccess("Cek email kamu untuk verifikasi, lalu login kembali.");
+    }
   };
 
   return (
@@ -74,6 +82,12 @@ export default function RegisterPage() {
         </div>
       )}
 
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-600 animate-scale-in">
+          {success}
+        </div>
+      )}
+
       <form className="space-y-4 animate-fade-in-up delay-100" onSubmit={handleSubmit}>
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
@@ -82,7 +96,8 @@ export default function RegisterPage() {
             placeholder="Wisnu Prasetyo"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            disabled={!!success}
+            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
           />
         </div>
         <div>
@@ -92,7 +107,8 @@ export default function RegisterPage() {
             placeholder="nama@email.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            disabled={!!success}
+            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
           />
         </div>
         <div>
@@ -103,7 +119,8 @@ export default function RegisterPage() {
               placeholder="Min. 8 karakter"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
+              disabled={!!success}
+              className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12 disabled:opacity-50"
             />
             <button
               type="button"
@@ -121,6 +138,7 @@ export default function RegisterPage() {
             type="checkbox"
             checked={form.agreed}
             onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
+            disabled={!!success}
             className="mt-0.5 w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary"
           />
           <span className="text-xs text-slate-500 leading-relaxed">
@@ -129,7 +147,7 @@ export default function RegisterPage() {
         </label>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !!success}
           className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 animate-fade-in-up delay-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Mendaftarkan..." : "Daftar Sekarang"}
