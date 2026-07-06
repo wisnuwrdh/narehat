@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/ui/Logo";
 
 const footerLinks = {
   produk: [
@@ -25,10 +26,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-sm">spa</span>
-              </div>
-              <span className="font-bold text-lg text-white">Narehat</span>
+              <Logo size={32} className="text-white" />
             </div>
             <p className="text-xs lg:text-sm text-white/50 leading-relaxed max-w-xs">
               Jurnal jerawat cerdas yang membantumu memahami pemicu personal jerawatmu.

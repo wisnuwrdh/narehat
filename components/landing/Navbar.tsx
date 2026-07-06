@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/ui/Logo";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -20,10 +21,7 @@ export default function Navbar() {
     >
       <div className="container-narrow py-3 flex items-center justify-between">
         <Link href="#" className="flex items-center gap-2">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-lg">spa</span>
-          </div>
-          <span className="font-bold text-lg text-slate-900">Narehat</span>
+          <Logo />
         </Link>
 
         <div className="flex items-center gap-2">
