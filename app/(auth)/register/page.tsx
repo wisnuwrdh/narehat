@@ -9,12 +9,21 @@ import { Logo } from "@/components/ui/Logo";
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     const msg = error.message;
+    if (!msg || msg === "{}") return "Gagal terhubung ke server. Periksa konfigurasi Supabase.";
     if (msg.includes("already registered") || msg.includes("already exists")) return "Email ini sudah terdaftar.";
     if (msg.includes("password")) return "Password minimal 6 karakter.";
     if (msg.includes("valid email")) return "Format email tidak valid.";
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
+}
+
+function logError(context: string, err: unknown) {
+  try {
+    console.log("[DEBUG]", context, JSON.stringify(err));
+  } catch {
+    console.log("[DEBUG]", context, String(err));
+  }
 }
 
 export default function RegisterPage() {
@@ -44,25 +53,32 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { name: form.name } },
-    });
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: { data: { name: form.name } },
+      });
+      setLoading(false);
 
-    if (authError) {
-      setError(getErrorMessage(authError));
-      return;
-    }
+      if (authError) {
+        logError("signUp authError", authError);
+        setError(getErrorMessage(authError));
+        return;
+      }
 
-    if (data.session) {
-      router.push("/onboarding");
-    } else {
-      setError("");
-      setForm({ name: "", email: "", password: "", agreed: false });
-      setSuccess("Cek email kamu untuk verifikasi, lalu login kembali.");
+      if (data.session) {
+        router.push("/onboarding");
+      } else {
+        setError("");
+        setForm({ name: "", email: "", password: "", agreed: false });
+        setSuccess("Cek email kamu untuk verifikasi, lalu login kembali.");
+      }
+    } catch (err) {
+      logError("signUp exception", err);
+      setLoading(false);
+      setError("Gagal terhubung ke server. Periksa konfigurasi Supabase.");
     }
   };
 

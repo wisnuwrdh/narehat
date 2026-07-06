@@ -9,11 +9,20 @@ import { Logo } from "@/components/ui/Logo";
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     const msg = error.message;
+    if (!msg || msg === "{}") return "Gagal terhubung ke server. Periksa konfigurasi Supabase.";
     if (msg.includes("Invalid login") || msg.includes("Invalid credentials")) return "Email atau password salah.";
     if (msg.includes("Email not confirmed")) return "Email belum diverifikasi. Cek inbox kamu.";
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
+}
+
+function logError(context: string, err: unknown) {
+  try {
+    console.log("[DEBUG]", context, JSON.stringify(err));
+  } catch {
+    console.log("[DEBUG]", context, String(err));
+  }
 }
 
 export default function LoginPage() {
@@ -33,19 +42,26 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword({
-      email: form.email,
-      password: form.password,
-    });
-    setLoading(false);
+    try {
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: form.email,
+        password: form.password,
+      });
+      setLoading(false);
 
-    if (authError) {
-      setError(getErrorMessage(authError));
-      return;
+      if (authError) {
+        logError("signIn authError", authError);
+        setError(getErrorMessage(authError));
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      logError("signIn exception", err);
+      setLoading(false);
+      setError("Gagal terhubung ke server. Periksa konfigurasi Supabase.");
     }
-
-    router.push("/dashboard");
   };
 
   return (
