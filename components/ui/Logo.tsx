@@ -1,9 +1,10 @@
 interface LogoProps {
   size?: number;
   className?: string;
+  showText?: boolean;
 }
 
-export function Logo({ size = 36, className = "text-slate-900" }: LogoProps) {
+export function Logo({ size = 36, className = "text-slate-900", showText = true }: LogoProps) {
   return (
     <div className="flex items-center gap-2">
       <svg
@@ -33,7 +34,7 @@ export function Logo({ size = 36, className = "text-slate-900" }: LogoProps) {
           <circle cx="236" cy="36" r="14" fill="#3525CD" />
         </g>
       </svg>
-      <span className={`font-bold text-lg ${className}`}>Narehat</span>
+      {showText && <span className={`font-bold text-lg ${className}`}>Narehat</span>}
     </div>
   );
 }

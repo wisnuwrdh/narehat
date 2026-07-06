@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/ui/Logo";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -60,8 +61,8 @@ export default function RegisterPage() {
   return (
     <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md mx-auto w-full min-h-screen">
       <div className="text-center mb-8 animate-fade-in-up">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-light rounded-3xl mb-4">
-          <span className="material-symbols-outlined text-3xl text-primary">sparkle</span>
+        <div className="inline-flex items-center justify-center mb-2">
+          <Logo size={48} showText={false} />
         </div>
         <h1 className="text-2xl font-bold text-slate-900">Buat akun baru</h1>
         <p className="text-sm text-muted mt-2">Mulai lacak perjalanan kulitmu hari ini</p>
