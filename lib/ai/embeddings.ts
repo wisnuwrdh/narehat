@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { Pipeline } from "@xenova/transformers";
+import type { FeatureExtractionPipeline } from "@xenova/transformers";
 
-let embedderPromise: Promise<Pipeline> | null = null;
+let embedderPromise: Promise<FeatureExtractionPipeline> | null = null;
 
 async function getEmbedder() {
   if (!embedderPromise) {
