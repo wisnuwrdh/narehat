@@ -149,7 +149,7 @@ export default function AIConsultPage() {
   const formatSimilarity = (s: number) => `${Math.round(s * 100)}%`;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="h-dvh bg-white flex flex-col">
       <header className="px-6 pt-6 pb-3 flex items-center gap-3 bg-white sticky top-0 z-10 border-b border-border-subtle">
         <Link
           href="/dashboard"
