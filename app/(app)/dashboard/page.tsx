@@ -103,7 +103,7 @@ export default function DashboardPage() {
         const userName = session.user?.user_metadata?.name || session.user?.email?.split("@")[0] || "User";
 
         let streak = 0;
-        let checkDate = new Date();
+        const checkDate = new Date();
         for (let i = 0; i < 365; i++) {
           const d = checkDate.toISOString().split("T")[0];
           const r = await fetch(`/api/tracker?date=${d}`);
