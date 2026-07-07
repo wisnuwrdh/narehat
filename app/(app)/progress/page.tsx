@@ -37,13 +37,14 @@ export default function ProgressPage() {
   });
   const [loaded, setLoaded] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
+  const [allPhotos, setAllPhotos] = useState<{ url: string; date: string; label: string }[]>([]);
   const [expandedInsight, setExpandedInsight] = useState<number | null>(null);
   const [leftPhoto, setLeftPhoto] = useState<string | null>(null);
+  const [leftLabel, setLeftLabel] = useState("");
   const [rightPhoto, setRightPhoto] = useState<string | null>(null);
+  const [rightLabel, setRightLabel] = useState("");
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
-  const leftRef = useRef<HTMLInputElement>(null);
-  const rightRef = useRef<HTMLInputElement>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -90,8 +91,25 @@ export default function ProgressPage() {
     load();
   }, [loaded]);
 
+  useEffect(() => {
+    fetch("/api/photos")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.photos) {
+          setAllPhotos(
+            data.photos.map((p: { url: string; date: string }, i: number) => ({
+              url: p.url,
+              date: p.date,
+              label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const data = chartData[range];
-  const photos: { label: string; date: string }[] = showAllPhotos ? [] : [];
+  const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
   const correlations: { label: string; points: string; color: string; pct: number }[] = [];
 
   const padding = 10;
@@ -116,15 +134,22 @@ export default function ProgressPage() {
     return () => clearTimeout(t);
   }, [range]);
 
-  const handlePhoto = (side: "left" | "right", e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (side === "left") setLeftPhoto(reader.result as string);
-        else setRightPhoto(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const selectPhoto = (side: "left" | "right") => {
+    if (allPhotos.length === 0) return;
+    const list = allPhotos
+      .map((p, i) => `${i}: ${p.date} (${p.label})`)
+      .join("\n");
+    const idxStr = prompt(`Pilih foto (0-${allPhotos.length - 1}):\n\n${list}`, "1");
+    if (idxStr === null) return;
+    const idx = parseInt(idxStr, 10);
+    if (isNaN(idx) || idx < 0 || idx >= allPhotos.length) return;
+    const selected = allPhotos[idx];
+    if (side === "left") {
+      setLeftPhoto(selected.url);
+      setLeftLabel(selected.date);
+    } else {
+      setRightPhoto(selected.url);
+      setRightLabel(selected.date);
     }
   };
 
@@ -267,7 +292,7 @@ export default function ProgressPage() {
           </button>
         </div>
         <div className={`grid gap-3 ${showAllPhotos ? "grid-cols-2 sm:grid-cols-3" : "flex overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory"}`}>
-          {photos.map((p, i) => (
+          {photos.length > 0 ? photos.map((p, i) => (
             <div
               key={p.date}
               className={`${showAllPhotos ? "" : "min-w-[140px]"} snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm ${i === 0 ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10" : "bg-white border-border-subtle"}`}
@@ -279,11 +304,15 @@ export default function ProgressPage() {
                 </div>
                 {i === 0 && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
               </div>
-              <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
+              <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
+                <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="w-full py-8 text-center">
+              <p className="text-xs text-muted">Belum ada foto. Upload dari tracker untuk melihat timeline.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -297,11 +326,10 @@ export default function ProgressPage() {
           </div>
           <div className="flex gap-3">
             {[
-              { side: "left" as const, ref: leftRef, photo: leftPhoto, setPhoto: setLeftPhoto, label: "19 Jun", badge: "Baseline" },
-              { side: "right" as const, ref: rightRef, photo: rightPhoto, setPhoto: setRightPhoto, label: "3 Jul", badge: "+8%", badgeColor: "bg-emerald-50 text-emerald-600" },
+              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, label: leftLabel || "Sebelum", badge: "Baseline", onClick: () => selectPhoto("left") },
+              { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, label: rightLabel || "Sekarang", badge: "Terbaru", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => selectPhoto("right") },
             ].map((s) => (
               <div key={s.side} className="flex-1">
-                <input ref={s.ref} type="file" accept="image/*" onChange={(e) => handlePhoto(s.side, e)} className="hidden" />
                 {s.photo ? (
                   <div className="relative">
                     <img src={s.photo} alt={s.label} className="w-full aspect-square object-cover rounded-2xl mb-2" />
@@ -310,8 +338,8 @@ export default function ProgressPage() {
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => s.ref.current?.click()} className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 mb-2 hover:border-primary/30 transition-colors">
-                    <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
+                  <button onClick={s.onClick} className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 mb-2 hover:border-primary/30 transition-colors">
+                    <span className="material-symbols-outlined text-3xl text-slate-300">{allPhotos.length > 0 ? "photo_library" : "add_a_photo"}</span>
                   </button>
                 )}
                 <div className="flex items-center justify-between">
