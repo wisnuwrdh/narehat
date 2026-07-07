@@ -108,6 +108,14 @@ export default function TrackerPage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
       }
+
+      if (photoPreview && fileRef.current?.files?.[0]) {
+        const photoForm = new FormData();
+        photoForm.append("file", fileRef.current.files[0]);
+        photoForm.append("date", days[activeDate].dateStr);
+        fetch("/api/photos", { method: "POST", body: photoForm }).catch(() => {});
+        setPhotoPreview(null);
+      }
     } catch {
       // silently fail — user sees actual error only on console
     } finally {

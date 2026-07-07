@@ -21,13 +21,14 @@ export async function PATCH(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { name, skin_type, acne_severity, goal } = body;
+  const { name, skin_type, acne_severity, goal, theme } = body;
 
   const updates: Record<string, unknown> = {};
   if (name) updates.name = name;
   if (skin_type) updates.skin_type = skin_type;
   if (acne_severity) updates.acne_severity = acne_severity;
   if (goal) updates.goal = goal;
+  if (theme) updates.theme = theme;
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
