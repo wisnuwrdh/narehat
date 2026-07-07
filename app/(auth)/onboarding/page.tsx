@@ -112,6 +112,24 @@ export default function OnboardingPage() {
       });
     } catch {}
     setLoading(false);
+
+    const planIntent = localStorage.getItem("narehat-plan-intent");
+    if (planIntent === "premium_monthly" || planIntent === "premium_yearly") {
+      localStorage.removeItem("narehat-plan-intent");
+      try {
+        const res = await fetch("/api/payment/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: planIntent }),
+        });
+        const data = await res.json();
+        if (data.invoice_url) {
+          router.push(data.invoice_url);
+          return;
+        }
+      } catch {}
+    }
+
     router.push("/dashboard");
   };
 

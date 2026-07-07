@@ -234,7 +234,46 @@ export default function SettingsPage() {
                     <p className="text-xs text-slate-600 mb-2"><strong>Plan saat ini:</strong> Gratis</p>
                     <p className="text-xs text-slate-600 mb-2">Upgrade untuk akses AI Deteksi, Konsultasi RAG, Insight Mendalam, dan Tema Custom.</p>
                     <div className="flex gap-2 mt-3">
-                      <a href="/pricing" className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors text-center">Lihat Harga</a>
+                      <button
+                        onClick={async () => {
+                          setSaving(true);
+                          try {
+                            const res = await fetch("/api/payment/create", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ plan: "premium_monthly" }),
+                            });
+                            const data = await res.json();
+                            if (data.invoice_url) window.open(data.invoice_url, "_blank");
+                            else showToast("Gagal membuat invoice. Coba lagi nanti.");
+                          } catch { showToast("Gagal terhubung ke server."); }
+                          setSaving(false);
+                        }}
+                        disabled={saving}
+                        className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
+                      >
+                        {saving ? "Memproses..." : "Upgrade Bulanan"}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setSaving(true);
+                          try {
+                            const res = await fetch("/api/payment/create", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ plan: "premium_yearly" }),
+                            });
+                            const data = await res.json();
+                            if (data.invoice_url) window.open(data.invoice_url, "_blank");
+                            else showToast("Gagal membuat invoice. Coba lagi nanti.");
+                          } catch { showToast("Gagal terhubung ke server."); }
+                          setSaving(false);
+                        }}
+                        disabled={saving}
+                        className="btn-press flex-1 py-2 bg-white text-primary text-xs font-bold rounded-xl border border-primary/20 hover:bg-primary-light/20 transition-colors disabled:opacity-50"
+                      >
+                        {saving ? "..." : "Tahunan"}
+                      </button>
                     </div>
                   </>
                 )}
