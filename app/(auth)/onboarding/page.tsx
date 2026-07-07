@@ -64,9 +64,9 @@ const steps = [
     type: "radio" as const,
     name: "goal",
     options: [
-      { value: "clear-acne", emoji: "🎯", label: "Jerawat hilang", desc: "Mengurangi jerawat aktif" },
-      { value: "fade-scars", emoji: "✨", label: "Bekas jerawat memudar", desc: "Mengurangi PIH" },
-      { value: "brighten", emoji: "🌟", label: "Kulit lebih cerah", desc: "Skin radiance" },
+      { value: "clear_acne", emoji: "🎯", label: "Jerawat hilang", desc: "Mengurangi jerawat aktif" },
+      { value: "fade_scars", emoji: "✨", label: "Bekas jerawat memudar", desc: "Mengurangi PIH" },
+      { value: "brighter_skin", emoji: "🌟", label: "Kulit lebih cerah", desc: "Skin radiance" },
       { value: "all", emoji: "🚀", label: "Semua di atas", desc: "Jerawat, bekas, dan cerah" },
     ],
   },
@@ -75,12 +75,49 @@ const steps = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [answers, setAnswers] = useState({
+    skin_type: "combination",
+    acne_severity: "mild",
+    habits: [] as string[],
+    goal: "clear_acne",
+  });
   const totalSteps = 5;
   const step = steps[currentStep - 1];
 
+  const handleRadioChange = (name: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCheckboxToggle = (value: string) => {
+    setAnswers((prev) => ({
+      ...prev,
+      habits: prev.habits.includes(value)
+        ? prev.habits.filter((h) => h !== value)
+        : [...prev.habits, value],
+    }));
+  };
+
+  const handleFinish = async () => {
+    setLoading(true);
+    try {
+      await fetch("/api/user", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          skin_type: answers.skin_type,
+          acne_severity: answers.acne_severity,
+          goal: answers.goal,
+        }),
+      });
+    } catch {}
+    setLoading(false);
+    router.push("/dashboard");
+  };
+
   const nextStep = () => {
     if (currentStep < totalSteps) setCurrentStep(currentStep + 1);
-    else router.push("/dashboard");
+    else handleFinish();
   };
 
   const prevStep = () => {
@@ -116,7 +153,17 @@ export default function OnboardingPage() {
           <div className="space-y-3">
             {step.options.map((opt) => (
               <label key={opt.value} className="btn-press flex items-center gap-4 p-4 bg-white border-2 border-border-subtle rounded-2xl cursor-pointer hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary-light/30">
-                <input type="radio" name={step.name} className="hidden peer" value={opt.value} />
+                <input
+                  type="radio"
+                  name={step.name}
+                  className="hidden peer"
+                  value={opt.value}
+                  checked={step.name === "skin-type" ? answers.skin_type === opt.value : step.name === "acne-severity" ? answers.acne_severity === opt.value : answers.goal === opt.value}
+                  onChange={() => {
+                    const key = step.name === "skin-type" ? "skin_type" : step.name === "acne-severity" ? "acne_severity" : "goal";
+                    handleRadioChange(key, opt.value);
+                  }}
+                />
                 <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-xl">{opt.emoji}</div>
                 <div className="flex-1">
                   <span className="font-bold text-slate-800 block">{opt.label}</span>
@@ -134,7 +181,13 @@ export default function OnboardingPage() {
           <div className="space-y-3">
             {step.options.map((opt) => (
               <label key={opt.value} className="btn-press flex items-center gap-4 p-4 bg-white border-2 border-border-subtle rounded-2xl cursor-pointer hover:border-primary/30 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary-light/30">
-                <input type="checkbox" className="hidden peer" value={opt.value} />
+                <input
+                  type="checkbox"
+                  className="hidden peer"
+                  value={opt.value}
+                  checked={answers.habits.includes(opt.value)}
+                  onChange={() => handleCheckboxToggle(opt.value)}
+                />
                 <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-xl">{opt.emoji}</div>
                 <div className="flex-1">
                   <span className="font-bold text-slate-800 block">{opt.label}</span>
@@ -172,8 +225,12 @@ export default function OnboardingPage() {
       </div>
 
       <div className="px-6 pb-6 pt-2 bg-white border-t border-border-subtle">
-        <button onClick={nextStep} className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
-          {currentStep === totalSteps ? "Selesai" : "Lanjutkan"}
+        <button
+          onClick={nextStep}
+          disabled={loading}
+          className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50"
+        >
+          {loading ? "Menyimpan..." : currentStep === totalSteps ? "Selesai" : "Lanjutkan"}
         </button>
       </div>
     </div>

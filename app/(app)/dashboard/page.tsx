@@ -173,8 +173,10 @@ export default function DashboardPage() {
     { icon: "directions_run", color: "emerald" as const, label: "Olahraga", value: dailyLog.exercise_minutes.toString(), unit: "mnt", pct: Math.round((dailyLog.exercise_minutes / 30) * 100), target: dailyLog.exercise_minutes >= 30 ? "target tercapai" : `kurang ${30 - dailyLog.exercise_minutes} mnt`, status: dailyLog.exercise_minutes >= 20 ? "emerald" as const : "amber" as const },
     { icon: "spa", color: "violet" as const, label: "Skincare", value: [dailyLog.skincare_morning && "Pagi", dailyLog.skincare_evening && "Malam"].filter(Boolean).join("+") || "0x", unit: "", pct: [dailyLog.skincare_morning, dailyLog.skincare_evening].filter(Boolean).length * 50, target: "2x rutinitas", status: dailyLog.skincare_morning || dailyLog.skincare_evening ? "emerald" as const : "amber" as const, text: true as const },
   ] : [
-    { icon: "edit_calendar", color: "indigo" as const, label: "Tracker", value: "Kosong", unit: "", pct: 0, target: "isi tracker dulu", status: "amber" as const, text: true as const },
+    { icon: "edit_calendar", color: "indigo" as const, label: "Belum ada data", value: "Tracker", unit: "", pct: 0, target: "isi tracker dulu", status: "amber" as const, text: true as const },
   ];
+
+  const showEmptyCTA = !dailyLog;
 
   const photoDates = data.photos.length > 0 ? data.photos.map((p, i) => ({
     label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
@@ -192,7 +194,7 @@ export default function DashboardPage() {
             <h1 className="text-xl font-bold text-slate-900">Halo, {data.userName || "User"}</h1>
             <span className="text-lg">👋</span>
           </div>
-          <p className="text-sm text-muted">Yuk, jaga konsistensi hari ini.</p>
+          <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
         </div>
         <div className="flex gap-2 animate-fade-in-up delay-100">
           <button
@@ -227,6 +229,23 @@ export default function DashboardPage() {
           </span>
         </div>
       </section>
+
+      {showEmptyCTA && (
+      <section className="px-6 mb-6 animate-fade-in-up delay-150">
+        <Link href="/tracker" className="block bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-xl">edit_calendar</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold">Isi Tracker Pertamamu</p>
+              <p className="text-xs text-white/70">Catat kebiasaan harian untuk mulai dapat insight personal →</p>
+            </div>
+            <span className="material-symbols-outlined">arrow_forward</span>
+          </div>
+        </Link>
+      </section>
+      )}
 
       <section className="px-6 mb-6 animate-fade-in-up delay-200">
         <div className="bg-white border border-border-subtle rounded-3xl p-6 relative overflow-hidden" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 20px -2px rgba(53, 37, 205, 0.06)" }}>
