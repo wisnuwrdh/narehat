@@ -29,18 +29,26 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   const today = new Date().toISOString().split("T")[0];
 
+  const sleep_hours = Math.min(24, Math.max(0, Number(body.sleep_hours) || 0));
+  const water_ml = Math.min(10000, Math.max(0, Number(body.water_ml) || 0));
+  const exercise_minutes = Math.min(480, Math.max(0, Number(body.exercise_minutes) || 0));
+  const stress_level = Math.min(5, Math.max(1, Math.round(Number(body.stress_level)) || 5));
+  const skincare_morning = Boolean(body.skincare_morning ?? false);
+  const skincare_evening = Boolean(body.skincare_evening ?? false);
+  const notes = String(body.notes ?? "").slice(0, 500);
+
   const { error } = await supabase.from("daily_logs").upsert({
     user_id: user.id,
     date: today,
-    sleep_hours: body.sleep_hours ?? 0,
-    water_ml: body.water_ml ?? 0,
-    exercise_minutes: body.exercise_minutes ?? 0,
-    stress_level: body.stress_level ?? 5,
-    skincare_morning: body.skincare_morning ?? false,
-    skincare_evening: body.skincare_evening ?? false,
-    touched_face: body.touched_face ?? false,
-    junk_food: body.junk_food ?? false,
-    notes: body.notes ?? "",
+    sleep_hours,
+    water_ml,
+    exercise_minutes,
+    stress_level,
+    skincare_morning,
+    skincare_evening,
+    touched_face: Boolean(body.touched_face ?? false),
+    junk_food: Boolean(body.junk_food ?? false),
+    notes,
   }, { onConflict: "user_id,date" });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -31,9 +31,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const filePath = `${user.id}/${Date.now()}-${file.name}`;
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+  const MAX_SIZE = 10 * 1024 * 1024;
+
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json({ error: "Ukuran file maksimal 10MB" }, { status: 400 });
+  }
+
+  const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return NextResponse.json({ error: "Format file tidak didukung. Gunakan JPG, PNG, atau WebP." }, { status: 400 });
+  }
+
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: "Tipe file tidak valid." }, { status: 400 });
+  }
+
+  const safeName = file.name
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .replace(/\.\./g, "_")
+    .slice(0, 100);
+
   const arrayBuffer = await file.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
+
+  if (buffer.length < 4) {
+    return NextResponse.json({ error: "File terlalu kecil." }, { status: 400 });
+  }
+
+  const isValidMagic =
+    (buffer[0] === 0xFF && buffer[1] === 0xD8) ||
+    (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) ||
+    (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46);
+
+  if (!isValidMagic) {
+    return NextResponse.json({ error: "File bukan gambar yang valid." }, { status: 400 });
+  }
+
+  const filePath = `${user.id}/${Date.now()}-${safeName}`;
 
   const { error: uploadError } = await supabase.storage
     .from("skin_photos")
