@@ -37,7 +37,7 @@ export default function AhaMoment() {
             &quot;Akhirnya Aku Tahu<br className="hidden sm:block" /> Kenapa Jerawatku Balik&quot;
           </h2>
           <p className="text-sm lg:text-base text-white/70 leading-relaxed max-w-md mx-auto mb-8 lg:max-w-lg">
-            Bukan karena produknya salah. Bukan karena skincare-nya mahal atau murah. Tapi karena aku tidak pernah melihat polaku sendiri.
+            Bukan karena produknya salah. Bukan karena skincare-nya mahal atau murah. Tapi karena selama ini kamu tidak punya tools untuk membaca polamu sendiri.
           </p>
           <Link
             href="/register"

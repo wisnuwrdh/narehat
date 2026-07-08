@@ -5,7 +5,7 @@ const footerLinks = {
   produk: [
     { label: "Fitur", href: "#features" },
     { label: "Harga", href: "#pricing" },
-    { label: "Download App", href: "#" },
+    { label: "Cara Kerja", href: "#how-it-works" },
   ],
   perusahaan: [
     { label: "Tentang Kami", href: "/about" },
@@ -29,7 +29,7 @@ export default function Footer() {
               <Logo size={32} className="text-white" />
             </div>
             <p className="text-xs lg:text-sm text-white/50 leading-relaxed max-w-xs">
-              Jurnal jerawat cerdas yang membantumu memahami pemicu personal jerawatmu.
+              Platform AI yang membantumu mendeteksi pemicu jerawat, analisis rutinitas, dan bangun skincare routine yang beneran cocok.
             </p>
           </div>
 

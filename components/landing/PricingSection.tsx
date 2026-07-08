@@ -6,14 +6,16 @@ import { useEffect, useRef, useState } from "react";
 const plans = [
   {
     name: "Free",
-    subtitle: "Untuk memulai perjalananmu",
+    subtitle: "Kenali kulitmu, mulai dari sini",
     price: "Rp0",
     period: "selamanya",
     features: [
-      "Tracker kebiasaan harian",
-      "Progress foto & perbandingan",
-      "Insight dasar",
-      "Rekomendasi produk",
+      "Skin type quiz + profil personal",
+      "Tracker ringan (tidur, air, stress, foto)",
+      "Progress foto mingguan",
+      "Rekomendasi produk + affiliate",
+      "AI Consult — 3x (lifetime)",
+      "Purging Checker — 1x (lifetime)",
     ],
     cta: "Mulai Gratis",
     href: "/register",
@@ -21,34 +23,39 @@ const plans = [
   },
   {
     name: "Premium",
-    subtitle: "Bulanan, batalkan kapan saja",
+    subtitle: "AI sepuasnya, kapan saja",
     price: "Rp19.000",
     period: "/bulan",
     features: [
-      "Semua fitur Free",
-      "Deteksi jerawat AI",
-      "Konsultasi AI (RAG)",
-      "Insight & grafik mendalam",
-      "Tema UI custom",
+      "Semua fitur Free (unlimited)",
+      "AI Consult UNLIMITED",
+      "AI Deteksi jerawat dari foto",
+      "Progress foto unlimited (harian)",
+      "Deep insight & grafik korelasi",
+      "Tema UI custom (4 tema)",
     ],
-    cta: "Upgrade ke Premium",
+    cta: "Upgrade Premium",
     href: "/register?plan=premium_monthly",
     featured: true,
     badge: "PALING POPULER",
   },
   {
-    name: "Premium Tahunan",
-    subtitle: "Hemat ~35%",
-    price: "Rp149.000",
-    period: "/tahun",
+    name: "Pro",
+    subtitle: "AI urus semuanya untukmu",
+    price: "Rp49.000",
+    period: "/bulan",
     features: [
-      "Semua fitur Premium Bulanan",
+      "Semua fitur Premium",
+      "AI Analisis rutinitas skincare",
+      "Personalized routine builder",
+      "Purging checker UNLIMITED",
+      "Weekly skin report + export PDF",
       "Akses fitur baru lebih awal",
     ],
-    savings: "Hemat Rp79.000 dibanding bulanan",
-    cta: "Pilih Tahunan",
-    href: "/register?plan=premium_yearly",
-    featured: false,
+    cta: "Coba Pro",
+    href: "/register?plan=pro_monthly",
+    featured: true,
+    badge: "FITUR LENGKAP",
   },
 ];
 
@@ -79,9 +86,9 @@ export default function PricingSection() {
             Harga
           </span>
           <h2 className="section-title font-extrabold text-slate-900 leading-tight">
-            Pilih Plan yang Cocok
+            Pilih yang Cocok Buat Kamu
           </h2>
-          <p className="text-sm lg:text-base text-muted mt-3">Mulai gratis. Upgrade kapan saja.</p>
+          <p className="text-sm lg:text-base text-muted mt-3">Mulai gratis. Upgrade kapan saja. Gak perlu kartu kredit.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-start">
@@ -90,14 +97,18 @@ export default function PricingSection() {
               key={plan.name}
               className={`relative rounded-2xl p-6 lg:p-8 pricing-card transition-all duration-300 hover:-translate-y-1.5 ${
                 plan.featured
-                  ? "bg-white border-2 border-primary shadow-xl shadow-primary/10 md:scale-105"
+                  ? i === 2
+                    ? "bg-white border-2 border-primary shadow-xl shadow-primary/10"
+                    : "bg-white border-2 border-primary shadow-xl shadow-primary/10 md:scale-105"
                   : "bg-white border border-border-subtle shadow-sm"
               } ${visible ? "reveal visible" : "reveal"}`}
               style={{ transitionDelay: `${i * 0.1}s` }}
             >
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full shadow-lg shadow-primary/20">
+                  <span className={`px-3 py-1 text-white text-[10px] font-bold rounded-full shadow-lg ${
+                    i === 2 ? "bg-slate-800 shadow-slate-800/20" : "bg-primary shadow-primary/20"
+                  }`}>
                     {plan.badge}
                   </span>
                 </div>
@@ -105,7 +116,10 @@ export default function PricingSection() {
 
               <div className="flex items-center justify-between mb-4 mt-1">
                 <div>
-                  <h3 className="font-bold text-slate-800 text-base lg:text-lg">{plan.name}</h3>
+                  <h3 className="font-bold text-slate-800 text-base lg:text-lg flex items-center gap-2">
+                    {plan.name}
+                    {i === 2 && <span className="text-lg">👑</span>}
+                  </h3>
                   <p className="text-xs lg:text-sm text-muted">{plan.subtitle}</p>
                 </div>
                 <div className="text-right">
@@ -116,20 +130,13 @@ export default function PricingSection() {
                 </div>
               </div>
 
-              {"savings" in plan && (
-                <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-success-light/50 rounded-xl">
-                  <span className="material-symbols-outlined text-success text-sm">savings</span>
-                  <span className="text-xs text-success font-semibold">{plan.savings}</span>
-                </div>
-              )}
-
               <ul className="space-y-2.5 mb-6">
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-center gap-2 text-xs lg:text-sm text-slate-600">
                     <span className={`material-symbols-outlined text-sm ${plan.featured ? "text-primary" : "text-success"}`}>
                       check_circle
                     </span>
-                    <span className={j === 0 && plan.featured ? "font-semibold" : ""}>{f}</span>
+                    <span>{f}</span>
                   </li>
                 ))}
               </ul>
@@ -138,7 +145,9 @@ export default function PricingSection() {
                 href={plan.href}
                 className={`btn-press block text-center w-full py-3.5 rounded-2xl font-bold text-sm transition-all ${
                   plan.featured
-                    ? "bg-primary text-white shadow-xl shadow-primary/25"
+                    ? i === 2
+                      ? "bg-slate-800 text-white shadow-xl shadow-slate-800/25"
+                      : "bg-primary text-white shadow-xl shadow-primary/25"
                     : "bg-white border-2 border-border-light text-slate-700 hover:border-primary/30 hover:text-primary"
                 }`}
               >

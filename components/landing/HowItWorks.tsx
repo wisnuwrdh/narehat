@@ -29,7 +29,7 @@ export default function HowItWorks() {
             Cara Kerja
           </span>
           <h2 className="section-title font-extrabold text-slate-900 leading-tight">
-            Cukup 3 Langkah
+            Dari Bingung ke &quot;Oh Ini Toh&quot;
           </h2>
         </div>
 
@@ -41,15 +41,15 @@ export default function HowItWorks() {
               1
             </div>
             <div className="pt-1 lg:pt-2">
-              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Catat kebiasaan harianmu</h3>
+              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Kenali tipe kulitmu</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                Input tidur, makanan, stres level, olahraga, dan produk skincare yang dipakai hari itu. Cuma 30 detik.
+                Quiz 1 menit: tipe kulit, kebiasaan, produk yang dipakai. Langsung dapat insight personal — ingredients yang cocok &amp; yang harus dihindari.
               </p>
               <div className="mt-3 bg-slate-50 rounded-xl p-3 border border-border-subtle inline-block">
-                <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-muted text-sm">schedule</span>
-                  <span className="text-[11px] text-muted">Tidur: 5 jam</span>
-                  <span className="text-[11px] text-warning">● Stres: Tinggi</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🌀</span>
+                  <span className="text-[11px] font-semibold text-primary">Kombinasi</span>
+                  <span className="text-[10px] text-muted-light">• terdeteksi</span>
                 </div>
               </div>
             </div>
@@ -62,20 +62,13 @@ export default function HowItWorks() {
               2
             </div>
             <div className="pt-1 lg:pt-2">
-              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Upload foto progress</h3>
+              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">AI analisis kulitmu</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                Ambil foto kondisi kulitmu setiap hari. AI akan menganalisis dan melacak perubahan secara otomatis.
+                Upload foto jerawat atau kirim pertanyaan. AI deteksi jenis jerawat, cek purging vs breakout, dan analisis rutinitas skincare-mu — instan.
               </p>
-              <div className="mt-3 flex gap-2 md:justify-center">
-                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-slate-100 rounded-xl border border-border-subtle flex items-center justify-center">
-                  <span className="material-symbols-outlined text-muted-light text-lg">image</span>
-                </div>
-                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-slate-100 rounded-xl border border-border-subtle flex items-center justify-center">
-                  <span className="material-symbols-outlined text-muted-light text-lg">image</span>
-                </div>
-                <div className="w-12 h-12 lg:w-14 lg:h-14 bg-primary-light rounded-xl border border-primary/20 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-lg">add</span>
-                </div>
+              <div className="mt-3 flex items-center gap-2 bg-slate-50 rounded-xl p-3 border border-border-subtle">
+                <span className="material-symbols-outlined text-primary text-sm">auto_awesome</span>
+                <span className="text-[11px] text-slate-700">Papules — Pipi Kiri</span>
               </div>
             </div>
           </div>
@@ -86,15 +79,15 @@ export default function HowItWorks() {
               3
             </div>
             <div className="pt-1 lg:pt-2">
-              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Dapatkan insight personal</h3>
+              <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Dapatkan insight + rutinitas</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                Lihat korelasi yang hanya berlaku untukmu. &quot;Jerawatmu sering muncul setelah begadang dan makan gorengan.&quot;
+                AI bangun rutinitas yang beneran cocok buat kulitmu — lengkap dengan produk rekomendasi. Laporan mingguan biar kamu tahu progresmu.
               </p>
               <div className="mt-3 bg-gradient-to-r from-primary-light/60 to-white rounded-xl p-3 border border-primary/10 inline-block max-w-sm">
                 <div className="flex items-start gap-2">
-                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">lightbulb</span>
+                  <span className="material-symbols-outlined text-primary text-sm mt-0.5">verified</span>
                   <p className="text-[11px] lg:text-xs text-slate-700 leading-relaxed">
-                    <strong>Insight:</strong> 3 hari terakhir tidur &lt; 6 jam = muncul jerawat baru di pipi. Coba tidur lebih awal! 💤
+                    <strong>Rutinitas kamu:</strong> Cleanser → Niacinamide → Moisturizer → Sunscreen. Aman untuk kulit kombinasi. ✅
                   </p>
                 </div>
               </div>

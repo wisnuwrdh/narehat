@@ -1,0 +1,5 @@
+# https://narehat.vercel.app
+User-agent: *
+Allow: /
+
+Sitemap: https://narehat.vercel.app/sitemap.xml

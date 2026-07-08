@@ -31,20 +31,20 @@ export default function CTASection() {
       <div className="container-narrow relative text-center">
         <div className={visible ? "reveal visible" : "reveal"}>
           <h2 className="text-3xl lg:text-5xl font-extrabold text-white leading-tight mb-4">
-            Siap Pahami<br className="hidden sm:block" /> Jerawatmu?
+            Siap Kenali Pemicu<br className="hidden sm:block" /> Jerawatmu?
           </h2>
           <p className="text-sm lg:text-lg text-white/70 leading-relaxed max-w-md mx-auto mb-8 lg:max-w-lg">
-            Daftar gratis hari ini dan mulai jurnal pertamamu. Tidak perlu kartu kredit.
+            Cukup upload foto atau tanya ke AI. Tidak perlu isi jurnal dulu. Hasil instan — gratis.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
             <Link
               href="/register"
               className="btn-press w-full py-4 bg-white text-primary font-bold rounded-2xl shadow-xl shadow-black/10 text-base lg:text-lg"
             >
-              Buat Jurnal Gratis
+              Analisis Jerawatku Gratis
             </Link>
           </div>
-          <p className="text-[11px] lg:text-xs text-white/50 mt-4">Butuh waktu kurang dari 1 menit</p>
+          <p className="text-[11px] lg:text-xs text-white/50 mt-4">Hasil dalam hitungan detik • Tanpa kartu kredit</p>
         </div>
       </div>
     </section>

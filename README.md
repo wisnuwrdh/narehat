@@ -1,7 +1,6 @@
-# Product Requirements Document (PRD)
-## Narehat — Jurnal Jerawat Cerdas
-**Versi:** 0.1 (Draft)
-**Status:** In Progress
+# Narehat — Jurnal Jerawat Cerdas
+
+**Versi:** 0.2 (MVP Built — pending deployment & user validation)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -11,7 +10,7 @@
 ### Visi
 Menjadi platform kesehatan kulit #1 di Indonesia yang membantu user memahami pemicu personal jerawat mereka — bukan sekadar merekomendasikan produk, tapi mengubah data kebiasaan harian menjadi insight yang actionable.
 
-### Tagline (Sementara)
+### Tagline
 > "Pahami pemicu jerawatmu, lacak progresmu, dan temukan rutinitas yang benar-benar cocok."
 
 ### Problem Statement
@@ -47,39 +46,45 @@ Pertama kali app memberikan insight seperti:
 
 ---
 
-## 3. FITUR PRODUK
+## 3. FITUR PRODUK (3-Tier Pricing)
 
-### 3.1 Fitur Gratis
+### 🆓 Free — Rp0
 
-| Fitur | Deskripsi |
-|---|---|
-| Tracker kebiasaan harian | Input tidur, makan, stres, olahraga, minum air, dll |
-| Tracker produk skincare | Catat produk yang sedang dipakai & reaksi kulit |
-| Progress foto | Upload foto kondisi kulit, tersimpan per tanggal |
-| Insight dasar | Korelasi sederhana antara kebiasaan & kondisi kulit |
-| Rekomendasi produk | Saran produk + affiliate link ke Shopee/Tokopedia |
+| Fitur | Deskripsi | Status |
+|-------|-----------|--------|
+| Skin Type Quiz (Onboarding) | 5-step quiz: tipe kulit, kondisi jerawat, kebiasaan, produk yang dipakai, goal | ✅ Done |
+| Tracker Ringan | Tidur, minum air, tingkat stress, foto kulit — 30 detik isi | ✅ Done |
+| Progress Foto Mingguan | Upload 1x/minggu, timeline view, side-by-side comparison | ✅ Done |
+| Rekomendasi Produk | Produk cocok skin type + affiliate link Shopee/Tokopedia | ✅ Done |
+| AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
+| Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | 🔜 Planned |
 
-### 3.2 Fitur Premium
+### ⭐ Premium — Rp19.000/bulan
 
-| Fitur | Deskripsi |
-|---|---|
-| Deteksi jerawat AI | Analisis foto kulit menggunakan AI (per upload) |
-| Konsultasi AI (RAG) | Chat dengan AI berbasis jurnal dermatologi valid |
-| Insight mendalam | Grafik tren + analisis pola lebih detail |
-| Tema UI custom | Pilihan warna & tone-of-voice teks (feminine / dark / nature / default) |
+| Fitur | Deskripsi | Status |
+|-------|-----------|--------|
+| Semua fitur Free (unlimited) | — | ✅ |
+| AI Consult UNLIMITED | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
+| AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu | 🔜 Placeholder → real (GPT-4o-mini) |
+| Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
+| Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
+| Tema UI Custom | 4 tema: Default, Feminine, Dark/Sleek, Nature | ✅ Done |
 
-### 3.3 Fitur yang Ditunda (Future Release)
-- Ingredient checker (scan produk)
-- Komunitas / forum user
-- Konsultasi dengan dokter kulit manusia
-- Versi multi-bahasa (ekspansi luar Indonesia)
-- **Karakter/maskot coach per tema (Ara, Nara, Rex, Sage)** — ditunda sampai ada validasi user asli bahwa konsep ini menambah value emosional, bukan sekadar dekorasi. Lihat catatan di section 6.
+### 👑 Pro — Rp49.000/bulan
+
+| Fitur | Deskripsi | Status |
+|-------|-----------|--------|
+| Semua fitur Premium | — | — |
+| AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan | 🔜 Planned |
+| Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, affiliate link | 🔜 Planned |
+| Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | 🔜 Planned |
+| Weekly Skin Report | Auto-generate laporan mingguan: skin score, foto banding, trigger terdeteksi, rekomendasi → export PDF | 🔜 Planned |
 
 ---
 
 ## 4. USER FLOW
 
-### 4.1 Flow Utama
+### Flow Utama
 ```
 Landing Page
     ↓
@@ -92,7 +97,7 @@ Dashboard (home utama)
 [Tracker / Progress / AI Consult / Rekomendasi / Settings]
 ```
 
-### 4.2 Onboarding Flow
+### Onboarding Flow
 Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. Tujuannya agar dashboard langsung terasa personal dari hari pertama.
 
 **Step 1 — Tipe Kulit**
@@ -128,26 +133,26 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 
 ### Public Pages
 ```
-/                    → Landing page
-/pricing             → Harga & perbandingan plan
-/about               → Tentang produk
+/           → Landing page (Hero, Problem, How It Works, Stats, Testimonials, Pricing)
+/pricing    → Harga & 3-tier plan comparison
+/about      → Tentang produk
 ```
 
 ### Auth Pages
 ```
-/login               → Masuk
-/register            → Daftar akun baru
-/onboarding          → Setup awal (hanya muncul sekali)
+/login       → Masuk
+/register    → Daftar akun baru
+/onboarding  → Setup awal (hanya muncul sekali)
 ```
 
 ### App Pages (Setelah Login)
 ```
-/dashboard           → Overview kondisi kulit + insight hari ini
-/tracker             → Input harian (kebiasaan, produk, foto)
-/progress            → Grafik tren + perbandingan foto side-by-side
-/ai-consult          → Chat AI berbasis RAG jurnal dermatologi [PREMIUM]
-/recommendations     → Rekomendasi produk + affiliate link
-/settings            → Profil, tema, subscription, notifikasi
+/dashboard        → Overview kondisi kulit + skin score + insight harian
+/tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes)
+/progress         → Grafik tren + timeline foto + perbandingan side-by-side
+/ai-consult       → Chat AI berbasis RAG jurnal dermatologi [PREMIUM/PRO]
+/recommendations  → Rekomendasi produk + filter + affiliate link
+/settings         → Profil, tema, subscription management
 ```
 
 ---
@@ -160,311 +165,239 @@ Web App + PWA (bisa di-install di HP seperti native app)
 ### Design Direction
 - **Style:** Minimalis modern dengan kepribadian — bukan template-y
 - **Background:** Pure white (#FFFFFF) — bukan cream/off-white
-- **Animasi (MVP):** Micro-animation sederhana (transisi angka, progress ring, subtle motion di background/loading state) — cukup untuk kasih "rasa hidup" tanpa beban desain karakter penuh
+- **Animasi (MVP):** Micro-animation sederhana (transisi angka, progress ring, subtle motion di background/loading state)
 
-### Sistem Tema (Premium, MVP)
-Untuk MVP, tema premium dibedakan lewat **warna & tone-of-voice teks saja**, tanpa karakter/maskot visual.
+### Sistem Tema (Premium/Pro)
 
 | Tema | Accent Color | Tone of Voice |
-|---|---|---|
+|------|-------------|---------------|
 | Default (Minimalis) | Soft navy / slate | Informatif, bersih |
 | Feminine | Dusty rose / mauve | Supportif, encouraging |
 | Dark / Sleek | Charcoal + electric blue | To the point, data-driven |
 | Nature | Sage green + earth | Holistic, calming |
 
-### Catatan — Konsep Karakter/Maskot Coach (Ditunda)
-Konsep awal: animasi abstrak Lottie (bukan kartun, bukan realistis, terinspirasi Headspace — fluid shapes, smooth, calming) dengan 4 karakter berbeda per tema:
-
-| Tema | Nama | Bentuk Visual | Gerakan Khas |
-|---|---|---|---|
-| Default | Ara | Sphere / droplet halus | Breathing pelan |
-| Feminine | Nara | Kelopak / kuncup majemuk | Mekar-menutup lembut |
-| Dark / Sleek | Rex | Geometris tajam (kristal abstrak) | Cepat, snappy, pulse cahaya |
-| Nature | Sage | Organik seperti daun / ranting | Mengalir lambat |
-
-**Keputusan (Juli 2026):** konsep ini ditunda ke *future release*, bukan dibatalkan. Alasan:
-- Karakter/maskot bukan bagian dari milestone MVP (lihat section 10 — MVP fokus ke tracker, onboarding, dashboard, RAG dasar)
-- Butuh validasi dulu apakah maskot benar-benar menambah pengalaman emosional user, atau sekadar dekorasi yang menambah kompleksitas desain & development tanpa terbukti dibutuhkan
-- Uji coba render pertama (bentuk blob abstrak untuk Ara) menunjukkan eksekusi visual abstrak tanpa wajah ini butuh effort desain serius supaya tidak terasa random — bukan sesuatu yang bisa cepat divalidasi lewat AI image generation biasa
-- Rencana validasi: setelah soft launch, uji 1 karakter (Ara) dulu ke sebagian user nyata sebelum memutuskan lanjut ke 4 karakter atau drop konsep ini sepenuhnya
-
 ---
 
 ## 7. AI & TEKNOLOGI
 
-### Arsitektur AI (RAG)
-Untuk menghemat biaya token dan meningkatkan akurasi:
+### Arsitektur RAG (AI Consult)
+```
+User Query → Xenova Embedding (local, all-MiniLM-L6-v2)
+    → pgvector Similarity Search (Supabase match_documents)
+    → Top 3-5 chunks (similarity ≥ 0.75)
+    → SumoPod LLM (deepseek-v4-flash, temp 0.5, max 800 token)
+    → Jawaban terstruktur + sitasi jurnal + disclaimer
+```
 
-1. Kumpulkan jurnal dermatologi valid (PubMed, AAD, Journal of Investigative Dermatology)
-2. Proses menjadi vector embeddings → simpan di Supabase pgvector
-3. Saat user bertanya:
-   - **Cari dulu di knowledge base jurnal** → AI summarize (murah)
-   - **Jika tidak ditemukan** → panggil full AI (jarang terjadi)
-
-**Keunggulan marketing:**
-> *"Rekomendasi kami berbasis jurnal dermatologi peer-reviewed, bukan tebak-tebakan."*
-
-### Deteksi Jerawat AI (Premium)
-- Hanya dipanggil untuk user premium
-- Analisis foto kulit yang diupload user
-- Output: identifikasi jenis jerawat + saran awal
+### AI Deteksi Jerawat (Premium — pending implementasi)
+```
+Upload foto → GPT-4o-mini Vision API → analisis:
+  - Jenis jerawat (papule, pustule, nodule, cystic, comedonal)
+  - Severity (mild / moderate / informative, no medical claim)
+  - Area wajah
+  - Estimasi faktor pemicu
+```
 
 ### Tech Stack
+
 | Layer | Teknologi |
-|---|---|
-| Frontend | Next.js + TypeScript + Tailwind CSS |
+|-------|-----------|
+| Frontend | Next.js 15 App Router + TypeScript + Tailwind CSS |
 | Backend | Next.js API Routes |
-| Database | Supabase (PostgreSQL) |
-| Vector DB | Supabase pgvector (untuk RAG) |
-| Animasi | Lottie |
+| Auth | Supabase Auth (email/password) |
+| Database | Supabase (PostgreSQL + RLS) |
+| Vector DB | Supabase pgvector |
+| Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
+| LLM Provider | SumoPod AI (deepseek-v4-flash) |
+| Vision (planned) | OpenAI GPT-4o-mini |
+| Payment | Xendit (invoice-based, HMAC-SHA256 verified webhook) |
+| Animasi | Framer Motion |
 | Hosting | Vercel |
-| Payment | Xendit |
-| Auth | Supabase Auth |
 
 ---
 
-## 7.1 STRUKTUR FOLDER (PROJECT STRUCTURE)
-
-Struktur folder Next.js berikut mengikuti routes di section 5 dan memisahkan kode berdasarkan tingkat risiko — kode yang menyentuh auth, database policy, dan payment dipisah jelas dari UI/komponen agar lebih mudah direview dengan hati-hati (relevan terutama saat development dibantu AI/vibe coding).
+## 7.1 STRUKTUR FOLDER
 
 ```
 narehat/
-├── app/                          # Next.js App Router
-│   ├── (public)/                 # Public pages
+├── app/
+│   ├── (public)/
 │   │   ├── page.tsx               → /
 │   │   ├── pricing/page.tsx       → /pricing
 │   │   └── about/page.tsx         → /about
-│   │
-│   ├── (auth)/                   # Auth pages
+│   ├── (auth)/
 │   │   ├── login/page.tsx         → /login
 │   │   ├── register/page.tsx      → /register
 │   │   └── onboarding/page.tsx    → /onboarding
-│   │
-│   ├── (app)/                    # Protected pages (setelah login)
+│   ├── (app)/
 │   │   ├── dashboard/page.tsx     → /dashboard
 │   │   ├── tracker/page.tsx       → /tracker
 │   │   ├── progress/page.tsx      → /progress
-│   │   ├── ai-consult/page.tsx    → /ai-consult [PREMIUM]
+│   │   ├── ai-consult/page.tsx    → /ai-consult
 │   │   ├── recommendations/page.tsx → /recommendations
 │   │   ├── settings/page.tsx      → /settings
-│   │   └── layout.tsx             # Auth guard + shared app shell
-│   │
-│   └── api/                      # API Routes (backend)
-│       ├── auth/                  # ⚠️ High-risk — extra review
-│       ├── tracker/                # CRUD daily logs
-│       ├── photos/                 # ⚠️ Upload, akses Storage — cek RLS & ownership
+│   │   └── layout.tsx             # Auth guard + bottom nav
+│   └── api/
+│       ├── auth/                  # ⚠️ Auth callback
+│       ├── tracker/               # CRUD daily_logs
+│       ├── photos/                # ⚠️ Upload Supabase Storage
+│       ├── user/                  # Profile read/update
 │       ├── ai/
-│       │   ├── detect/             # ⚠️ Deteksi jerawat (premium, panggil vision model)
-│       │   └── consult/            # ⚠️ RAG chat (panggil pgvector + LLM)
-│       ├── recommendations/        # Produk + affiliate link
-│       └── payment/                # ⚠️ Webhook Xendit — validasi signature wajib
+│       │   ├── detect/            # ⚠️ AI deteksi jerawat (premium, GPT-4o-mini)
+│       │   └── consult/           # ⚠️ RAG chat (pgvector + SumoPod LLM)
+│       ├── recommendations/       # Produk rekomendasi
+│       └── payment/               # ⚠️ Webhook Xendit + create invoice
 │
-├── components/                   # Komponen UI (aman untuk vibe coding bebas)
-│   ├── ui/                        # Base components (button, card, dll)
-│   ├── onboarding/                # Step wizard components
-│   ├── tracker/                   # Form input harian
-│   ├── dashboard/                 # Insight card, greeting, dll
-│   ├── progress/                  # Chart, photo comparison
-│   ├── motion/                    # Micro-animation (progress ring, transisi, dll)
-│   └── theme/                     # Theme switcher & tokens (warna + tone-of-voice teks)
+├── components/landing/            # Landing page sections
+├── components/ui/                 # Base components
+├── components/onboarding/         # Step wizard
 │
-├── lib/                          # Logic inti — review lebih ketat
-│   ├── supabase/
-│   │   ├── client.ts               # Client-side (anon key SAJA)
-│   │   ├── server.ts               # Server-side (service role — never expose ke client)
-│   │   └── middleware.ts           # Session refresh
+├── lib/
+│   ├── supabase/                  # client.ts, server.ts
 │   ├── ai/
-│   │   ├── embeddings.ts           # Generate & query pgvector
-│   │   ├── rag.ts                  # Retrieval logic (jurnal dermatologi)
-│   │   └── vision.ts               # Deteksi jerawat dari foto
-│   ├── insights/
-│   │   └── correlation.ts          # Logic korelasi kebiasaan ↔ kondisi kulit
-│   └── payment/
-│       └── xendit.ts               # ⚠️ Payment logic — signature verification, dll
+│   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
+│   │   ├── rag.ts                 # RAG pipeline + SumoPod call
+│   │   └── vision.ts              # AI foto deteksi (GPT-4o-mini)
+│   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
+│   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
+│   └── security/                  # Rate limiter, file validation
 │
-├── types/                        # TypeScript types (schema database, dll)
-│
-├── supabase/                     # ⚠️ Paling kritis untuk keamanan data
-│   ├── migrations/                # Schema + RLS policy (versioned, wajib direview manual)
-│   └── seed.sql                   # Data awal (jurnal dermatologi, dll)
-│
-├── public/                       # Assets statis (ikon, gambar; Lottie menyusul jika maskot dilanjutkan)
-│
-└── middleware.ts                 # Auth guard di level Next.js
+├── supabase/migrations/           # ⚠️ 5 migration files
+├── types/                         # TypeScript types
+├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
+├── middleware.ts                  # Auth guard
+└── public/                        # Static assets
 ```
 
-**Catatan penting:**
-- Folder bertanda ⚠️ adalah area yang menyentuh data sensitif, auth, atau uang — sebaiknya tidak sepenuhnya diserahkan ke AI generation tanpa review manual baris-per-baris, terutama bagian yang berkaitan dengan RLS policy dan validasi kepemilikan data (`user_id` matching).
-- `supabase/migrations/` sebaiknya jadi satu-satunya sumber kebenaran untuk skema database & RLS — hindari mengubah policy langsung dari dashboard Supabase tanpa dicatat di migration, supaya ada jejak audit.
-- Folder `components/` relatif aman untuk iterasi cepat karena tidak menyentuh data pengguna secara langsung.
+⚠️ = high-risk area, perlu review manual
 
 ---
 
-## 7.2 AI CONSULTANT (RAG) v1.0
+## 7.2 AI CONSULT (RAG) v1.0 — ✅ DONE
 
-### Ringkasan
-Fitur premium yang menggabungkan data tracker pengguna, progress foto, knowledge base jurnal dermatologi, dan AI berbasis RAG.
-
-### Tujuan
-- Insight personal berbasis data tracker & progress foto — bukan jawaban umum
-- Evidence ilmiah terhubung dengan kondisi user
-- Hemat token melalui retrieval-first approach
-
-### Ruang Lingkup MVP
-- Chat AI berbasis RAG
-- Citation sumber jurnal
-- Insight dari tracker
-- Guardrails medis
-- Prompt injection defense dasar
+### Ruang Lingkup
+- Chat AI berbasis RAG dengan citation jurnal dermatologi
+- Insight personal dari data tracker user
+- Guardrails medis (dilarang diagnosis, resep obat, ganti saran dokter)
+- Prompt injection defense (system prompt immutable, input max 500 karakter)
+- Jawaban format 5-section: Jawaban Singkat, Penjelasan, Sumber, Langkah Dicoba, Kapan ke Dokter
+- Rate limiter 5 request/menit per user
 
 ### Knowledge Base
-**Sumber:** PubMed, AAD, Journal of Investigative Dermatology
+**Sumber:** PubMed, AAD, Journal of Investigative Dermatology, British Journal of Dermatology
+**Target:** ≈70-90 jurnal dari 7 domain
 
-**Format:** Teks → vector embeddings → Supabase pgvector
+| Domain | Target |
+|--------|--------|
+| Acne Basics | 8-10 |
+| Acne Treatment | 10-15 |
+| Ingredients | 15-20 |
+| Lifestyle | 10-15 |
+| Skin Barrier | 8-10 |
+| Acne Scar (PIH, PIE) | 8-10 |
+| Brightening / Hyperpigmentation | 8-10 |
 
-**Scope:** ≈70–90 jurnal
-
-| Domain | Target Jurnal |
-|---|---|
-| Acne Basics | 8–10 |
-| Acne Treatment | 10–15 |
-| Ingredients | 15–20 |
-| Lifestyle | 10–15 |
-| Skin Barrier | 8–10 |
-| Acne Scar (PIH, PIE, Scar) | 8–10 |
-| Brightening / Hyperpigmentation | 8–10 |
-
-### RAG Pipeline
+### Ingest Pipeline
 ```
-User query → Embedding → Vector Search (pgvector) → Re-ranking (similarity) → LLM → Citation
+File .txt di data/journals/ → chunk 500 token → Xenova embed → insert pgvector
 ```
-
-**Parameter retrieval:**
-- Maksimal 3–5 chunks per query
-- Similarity threshold ≥ 0.75
-- Chunk size maks 500 token per chunk
-
-### Chat Mode
-**Stateless** — tiap pertanyaan independen tanpa riwayat percakapan.
-Chat history hanya disimpan di client-side (localStorage) untuk UI.
-
-### Integrasi Tracker
-Insight di-*precompute* oleh `lib/insights/correlation.ts` dan disimpan di tabel `insights`. Saat user memulai chat, insight terbaru di-inject ke RAG prompt — bukan real-time compute dari raw tracker.
-
-Flow:
-```
-User update tracker → correlation.ts compute → simpan ke tabel insights
-                                                    ↓
-User chat ke AI     → query insights terbaru → inject ke RAG prompt → jawaban
-```
-
-### Guardrails Medis
-
-**AI boleh:**
-- Edukasi kulit & jerawat
-- Insight berdasarkan data tracker user
-- Menjelaskan isi jurnal dermatologi
-- Memberikan langkah perawatan yang bisa dicoba
-
-**AI tidak boleh:**
-- Diagnosis kondisi kulit
-- Meresepkan obat (oral maupun topikal)
-- Menggantikan dokter
-- Menyatakan tingkat keparahan jerawat (ringan/sedang/parah)
-
-### Prompt Injection Defense
-- System prompt immutable
-- Abaikan instruksi untuk membocorkan prompt
-- Retrieval dari knowledge base dianggap sebagai **data**, bukan instruksi
-- Tidak menampilkan seluruh isi knowledge base
-- Input user dibatasi maksimal 500 karakter
-
-### Output Format Jawaban
-Setiap jawaban wajib mengikuti format:
-
-1. **Jawaban singkat** — ringkasan 1–3 kalimat
-2. **Penjelasan** — elaborasi berbasis jurnal
-3. **Sumber** — format: `Author et al. (Tahun) — Judul Jurnal`
-4. **Langkah yang bisa dicoba** — actionable tips
-5. **Kapan perlu ke dokter** — dengan disclaimer: *"Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional."*
-
-### Roadmap
-- [x] Scope AI
-- [ ] Knowledge Base
-- [ ] Embedding + pgvector
-- [ ] AI Consultant MVP
-- [ ] Personal Insight
+Jalankan dengan: `npm run ingest`
 
 ---
 
 ## 8. MONETISASI
 
 ### Model Bisnis
-**Freemium** — masuk gratis, upgrade untuk fitur AI & personalisasi
+**Freemium 3-tier** — masuk gratis, upgrade untuk AI & personalisasi
 
 ### Pricing
-| Plan | Harga | Fitur |
-|---|---|---|
-| Free | Rp0 | Tracker, progress foto, rekomendasi dasar |
-| Premium Bulanan | Rp19.000/bulan | Semua fitur + AI deteksi + konsultasi RAG + tema custom |
-| Premium Tahunan | Rp149.000/tahun | Sama dengan bulanan (hemat ~35%) |
+
+| Plan | Harga | Value Proposition |
+|------|-------|-------------------|
+| **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 3x AI consult, 1x purging checker. Cukup untuk "oh ini toh pemicunya." |
+| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight, tema custom. |
+| **Pro** 👑 | Rp49.000/bulan | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, purging checker unlimited, laporan mingguan PDF. |
 
 ### Revenue Stream Tambahan
-- **Affiliate link** produk skincare lokal di halaman rekomendasi (pasif, dari fitur gratis)
+- **Affiliate link** produk skincare di halaman rekomendasi (pasif, semua tier)
 - **Future:** Data insight anonim untuk brand skincare lokal (B2B)
 
-### Trigger Upgrade
-User mulai bayar setelah mendapat "aha moment" pertama — biasanya di minggu ke 2–3. Trigger: ingin akses deteksi AI atau insight lebih mendalam.
-
 ### Payment Gateway
-**Xendit** (fokus pasar Indonesia)
+**Xendit** — invoice-based, HMAC-SHA256 webhook verification, plan auto-update
 
 ---
 
-## 9. KEAMANAN & LEGAL
+## 9. KEAMANAN
 
-### Data Sensitif
-- Foto kulit user dienkripsi at-rest
-- Data kesehatan tidak dijual ke pihak ketiga
-- Foto user tidak digunakan untuk training AI tanpa consent eksplisit
+### Sudah Diimplementasikan
+- Supabase RLS di semua tabel (owner-based access)
+- Middleware auth guard (redirect unauthenticated ke /login)
+- Payload validation + file type check (magic bytes, extension, MIME, size, filename)
+- Rate limiter AI endpoints (5 req/menit)
+- Xendit webhook HMAC-SHA256 signature verification
+- Service role key never exposed to client
+- Prompt injection defense di system prompt AI
 
 ### Regulasi
 - Mematuhi UU Perlindungan Data Pribadi (PDP) Indonesia
-- Privacy Policy & Terms of Service wajib ada sebelum launch
+- Privacy Policy & Terms of Service wajib ada sebelum launch publik
 
 ---
 
 ## 10. GO-TO-MARKET
 
 ### Strategi Distribusi
-**Channel utama: TikTok (@pedetanpajera...)**
+**Channel utama: TikTok**
 - Audiens skincare jerawat yang sudah ada = target user pertama
 - Konten behind-the-scenes proses membangun produk
 - Edukasi jerawat → funneling ke waitlist/app
 
 ### Milestone
-| Fase | Target |
-|---|---|
-| Perencanaan (sekarang) | PRD selesai, nama produk final, design system |
-| Design | Moodboard, wireframe, UI final |
-| Development | MVP: tracker + onboarding + dashboard + RAG dasar |
-| Soft Launch | 100 user pertama dari audiens TikTok |
-| Iterasi | Feedback → perbaikan → tambah fitur premium |
 
-### Target Soft Launch
-3–4 bulan dari sekarang
-
----
-
-## 11. YANG MASIH PERLU DIPUTUSKAN
-
-- [x] Nama produk final: **Narehat**
-- [x] Konsep nama & visual karakter coach per tema: **Ara, Nara, Rex, Sage** — didokumentasikan di section 6 sebagai referensi, tapi **ditunda ke future release** (bukan bagian MVP), menunggu validasi user asli
-- [ ] Desain Lottie character final (menyusul jika/setelah konsep maskot divalidasi post-launch)
-- [x] Scope jurnal dermatologi awal: ≈70–90 jurnal dari 7 domain (lihat Section 7.2)
-- [ ] Target tanggal soft launch yang konkret
-- [ ] Struktur affiliate — platform mana yang jadi prioritas (Shopee, Tokopedia, dll)
+| Fase | Status | Target |
+|------|--------|--------|
+| Design & Branding | ✅ Done | Logo, design system, landing page |
+| Core App Development | ✅ Done | Tracker, dashboard, progress, settings, recommendations |
+| AI Pipeline | ✅ Done | RAG consult + journal ingest |
+| Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter |
+| Payment Integration | ✅ Done | Xendit invoice + webhook |
+| AI Detection (real) | 🔜 Next | GPT-4o-mini vision detection |
+| New Pro Features | 🔜 Planned | Purging checker, routine analyzer, builder, weekly report |
+| Soft Launch | 🔜 | 50-100 user pertama dari audiens TikTok |
+| Iterasi | 🔜 | Feedback → perbaikan → monetisasi |
 
 ---
 
-*Dokumen ini akan terus diperbarui seiring perkembangan produk.*
+## 11. YANG MASIH PERLU DISELESAIKAN
+
+### Manual — Pengguna
+- [ ] Set env vars di Vercel (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
+- [ ] Jalankan 3 migration SQL di Supabase (0003_storage, 0004_fix_rls, 0005_add_theme)
+- [ ] Supabase Auth Settings (site URL, redirect, email confirm = off)
+- [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
+- [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
+- [ ] Deploy ke Vercel + testing end-to-end
+
+### Development — Tim
+- [ ] AI Deteksi foto: implement GPT-4o-mini vision (placeholder → real)
+- [ ] Tracker UI: ringankan ke 4 default card + detail toggle
+- [ ] Pricing page: update ke 3-tier (Free/Premium/Pro)
+- [ ] Purging Checker: build AI analyzer (instan, per produk baru)
+- [ ] AI Routine Analyzer: build ingredient conflict detection
+- [ ] Routine Builder: AI generate personalized AM/PM routine
+- [ ] Weekly Skin Report: auto-generate + export PDF
+
+---
+
+## 12. DOKUMEN PENDUKUNG
+
+| Dokumen | Path | Deskripsi |
+|---------|------|-----------|
+| Threat Model | `docs/plans/threat-model/THREAT-MODEL.md` | 6-section security analysis |
+| Gap Analysis | `docs/plans/threat-model/GAP-ANALYSIS.md` | 7 functional gaps + fixes |
+| Business Model Canvas | `docs/plans/BUSINESS-MODEL-CANVAS.md` | 9 building blocks + unit economics |
+| Checklist Teknis | `docs/plans/CHECKLIST-TEKNIS.md` | Manual setup guide (env, migration, testing) |
+
+---
+
+*Dokumen ini diperbarui Juli 2026 — setelah phase 1-3 development selesai, sebelum soft launch.*

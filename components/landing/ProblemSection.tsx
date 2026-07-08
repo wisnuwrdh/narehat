@@ -4,22 +4,22 @@ import { useEffect, useRef, useState } from "react";
 
 const problems = [
   {
-    icon: "help_outline",
+    icon: "question_exchange",
     color: "red",
-    title: "Tidak tahu pemicu personal",
-    desc: "Setiap orang punya pemicu berbeda — tidur, makanan, stres, atau produk. Tapi kamu tidak pernah mencatatnya.",
+    title: "Purging atau Breakout?",
+    desc: "Kamu mulai skincare baru, jerawat makin banyak. Bingung ini pertanda bagus atau makin parah? Tanpa analisis, kamu stop produk yang sebenarnya cocok.",
   },
   {
-    icon: "payments",
+    icon: "layers",
     color: "orange",
-    title: "Buang uang trial & error",
-    desc: "Sudah coba puluhan produk tapi tidak pernah tahu mana yang benar-benar cocok untuk kulitmu.",
+    title: "Skincare 5 langkah — jerawat tetap muncul",
+    desc: "Cleanser, toner, serum, moisturizer, sunscreen — semua lengkap. Tapi ingredients-nya saling konflik dan kamu tidak pernah tahu.",
   },
   {
-    icon: "search_off",
+    icon: "psychology_alt",
     color: "purple",
-    title: "Informasi terlalu overwhelming",
-    desc: "TikTok bilang A, Instagram bilang B. Kamu butuh insight yang personal, bukan general.",
+    title: "Informasi kulitmu tidak personal",
+    desc: "TikTok bilang A, Instagram bilang B, teman bilang C. Kamu butuh jawaban yang spesifik untuk kulitmu, bukan konten generic untuk semua orang.",
   },
 ];
 
@@ -53,10 +53,10 @@ export default function ProblemSection() {
       <div className="container-narrow">
         <div className="text-center mb-10 lg:mb-14">
           <span className="inline-block px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
-            Problem
+            Masalah
           </span>
           <h2 className="section-title font-extrabold text-slate-900 leading-tight">
-            Jerawatmu Balik Terus?<br className="hidden sm:block" /> Ini Kenapa
+            Sudah Coba Segalanya,<br className="hidden sm:block" /> Jerawat Tetap Balik?
           </h2>
         </div>
 

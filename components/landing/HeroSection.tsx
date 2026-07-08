@@ -14,18 +14,18 @@ export default function HeroSection() {
           <div className="text-center lg:text-left">
             <div className="animate-fade-in-up flex justify-center lg:justify-start mb-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-light/60 border border-primary/10 rounded-full">
-                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                <span className="text-xs font-bold text-primary">Beta — Daftar Sekarang</span>
+                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
+                <span className="text-xs font-bold text-primary">Analisis Jerawat Pertamamu Gratis</span>
               </div>
             </div>
 
             <div className="mb-6">
               <h1 className="animate-fade-in-up delay-100 hero-title font-extrabold text-slate-900 tracking-tight">
-                Pahami <span className="shimmer-text">Pemicu</span><br />
-                Jerawatmu
+                Jerawatmu Ada<br />
+                <span className="shimmer-text">Polanya</span>. Kami Temukan.
               </h1>
               <p className="animate-fade-in-up delay-200 hero-subtitle text-muted mt-4 max-w-sm mx-auto lg:mx-0 leading-relaxed lg:max-w-md">
-                Catat kebiasaan harian, lacak progres kulit, dan temukan pola yang sebenarnya memicu jerawatmu — bukan sekadar tebak-tebakan produk.
+                Upload foto atau tanya langsung — AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Semua dalam 1 app.
               </p>
             </div>
 
@@ -34,7 +34,7 @@ export default function HeroSection() {
                 href="/register"
                 className="btn-press w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-2xl text-center shadow-xl shadow-primary/25 text-base whitespace-nowrap"
               >
-                Mulai Jurnal Gratis
+                Analisis Jerawatku Gratis
               </Link>
               <Link
                 href="#how-it-works"
@@ -45,98 +45,120 @@ export default function HeroSection() {
             </div>
           </div>
 
-          {/* Right: App Preview */}
+          {/* Right: App Preview — 1:1 onboarding quiz */}
           <div className="animate-scale-in delay-400 relative max-w-[320px] md:max-w-[380px] lg:max-w-[340px] mx-auto mt-10 lg:mt-0">
             <div className="relative bg-slate-900 rounded-[2.5rem] p-3 shadow-2xl shadow-slate-900/20">
               <div className="bg-white rounded-[2rem] overflow-hidden">
-                <div className="px-5 pt-5 pb-3">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <p className="text-[10px] text-muted font-medium">Selamat pagi,</p>
-                      <p className="text-sm font-bold text-slate-900">Rina 👋</p>
-                    </div>
-                    <div className="w-9 h-9 bg-primary-light rounded-full flex items-center justify-center">
-                      <span className="material-symbols-outlined text-primary text-sm">notifications</span>
+                {/* Status bar area */}
+                <div className="bg-white pt-6 pb-2">
+                  <div className="flex items-center justify-between px-5">
+                    <span className="text-[10px] font-bold text-slate-900">9:41</span>
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-4 rounded-full border border-slate-300" />
+                      <div className="w-4 h-4 rounded-full border border-slate-300" />
+                      <div className="w-4 h-4 rounded-full bg-slate-900" />
                     </div>
                   </div>
+                </div>
 
-                  <div className="bg-gradient-to-br from-indigo-50/80 to-violet-50/40 rounded-2xl border border-indigo-100/80 p-4 mb-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] text-muted font-medium mb-1">Skor Kulit Hari Ini</p>
-                        <p className="text-2xl font-extrabold text-primary">78<span className="text-sm font-semibold text-muted">/100</span></p>
-                      </div>
-                      <div className="relative w-14 h-14">
-                        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="42" fill="none" stroke="#e9e7ff" strokeWidth="10" />
-                          <circle cx="50" cy="50" r="42" fill="none" stroke="#3525cd" strokeWidth="10" strokeLinecap="round" strokeDasharray="264" strokeDashoffset="58" />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-primary text-lg">sentiment_satisfied</span>
+                {/* Onboarding quiz — Step 1 */}
+                <div className="px-5 pt-3 pb-4">
+                  {/* Progress bar */}
+                  <div className="flex gap-1.5 mb-5">
+                    <div className="h-1.5 flex-1 bg-primary rounded-full" />
+                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
+                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
+                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
+                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
+                  </div>
+                  <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">Step 1/5</p>
+                  <h3 className="text-base font-extrabold text-slate-900 mb-1">Tipe kulit kamu apa?</h3>
+                  <p className="text-[10px] text-muted mb-4">Ini membantu kami memberikan insight yang lebih akurat.</p>
+
+                  {/* Options */}
+                  <div className="space-y-2">
+                    {[
+                      { emoji: "🌿", label: "Berminyak", desc: "Wajah sering mengkilap", active: false },
+                      { emoji: "🌀", label: "Kombinasi", desc: "Berminyak di T-zone", active: true },
+                      { emoji: "💧", label: "Kering", desc: "Kulit terasa kencang", active: false },
+                    ].map((opt, i) => (
+                      <div
+                        key={i}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+                          opt.active
+                            ? "bg-primary-light/30 border-primary"
+                            : "bg-slate-50 border-border-light"
+                        }`}
+                      >
+                        <span className="text-sm">{opt.emoji}</span>
+                        <div className="flex-1">
+                          <span className={`text-[11px] font-semibold ${opt.active ? "text-primary" : "text-slate-700"}`}>
+                            {opt.label}
+                          </span>
+                          <span className="text-[9px] text-muted block">{opt.desc}</span>
                         </div>
+                        {opt.active && <span className="material-symbols-outlined text-primary text-sm">check_circle</span>}
                       </div>
-                    </div>
+                    ))}
                   </div>
 
-                  <div className="bg-white border border-border-subtle rounded-2xl p-4 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                        <span className="material-symbols-outlined text-amber-500 text-sm">lightbulb</span>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800 mb-0.5">Insight Hari Ini</p>
-                        <p className="text-[11px] text-muted leading-relaxed">3 hari tidur &lt; 6 jam = munculnya jerawat baru di pipi. Coba tidur lebih awal malam ini! 💤</p>
-                      </div>
-                    </div>
+                  {/* Next button */}
+                  <div className="mt-4 w-full py-2.5 bg-primary text-white text-[11px] font-bold rounded-xl text-center">
+                    Lanjut
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between px-4 py-2 bg-white/90 border-t border-border-subtle mt-2">
-                  <div className="flex flex-col items-center gap-0.5 text-primary py-1.5 px-3">
-                    <span className="material-symbols-outlined text-lg">home</span>
-                    <span className="text-[9px] font-bold">Beranda</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5 text-muted py-1.5 px-3">
-                    <span className="material-symbols-outlined text-lg">edit_calendar</span>
-                    <span className="text-[9px] font-medium">Tracker</span>
-                  </div>
-                  <div className="relative -top-3">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-primary/25">
-                      <span className="material-symbols-outlined text-xl">add</span>
+                {/* Bottom Nav — from real app layout */}
+                <div className="flex items-center justify-between px-3 py-2 bg-white/95 border-t border-border-subtle">
+                  {[
+                    { icon: "home", label: "Beranda" },
+                    { icon: "edit_calendar", label: "Tracker" },
+                    { icon: "trending_up", label: "Progress" },
+                    { icon: "smart_toy", label: "AI", pro: true },
+                    { icon: "person", label: "Akun" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex flex-col items-center gap-0.5 py-1 px-2 relative">
+                      <span className={`material-symbols-outlined text-lg ${i === 0 ? "text-primary" : "text-muted"}`}>
+                        {item.icon}
+                      </span>
+                      <span className={`text-[8px] ${i === 0 ? "font-bold text-primary" : "font-medium text-muted"}`}>
+                        {item.label}
+                      </span>
+                      {item.pro && (
+                        <span className="absolute -top-1 -right-0 px-1 py-0.5 bg-primary text-white text-[6px] font-bold rounded leading-none">
+                          PRO
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5 text-muted py-1.5 px-3">
-                    <span className="material-symbols-outlined text-lg">trending_up</span>
-                    <span className="text-[9px] font-medium">Progress</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-0.5 text-muted py-1.5 px-3">
-                    <span className="material-symbols-outlined text-lg">person</span>
-                    <span className="text-[9px] font-medium">Akun</span>
-                  </div>
+                  ))}
+                </div>
+                <div className="flex justify-center pb-1.5">
+                  <div className="w-20 h-1 bg-slate-300 rounded-full" />
                 </div>
               </div>
             </div>
 
-            <div className="absolute -top-4 -right-4 bg-white rounded-2xl shadow-lg shadow-primary/10 p-3 animate-float">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-success-light rounded-lg flex items-center justify-center">
-                  <span className="material-symbols-outlined text-success text-sm">trending_up</span>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted">Progres Minggu Ini</p>
-                  <p className="text-xs font-bold text-slate-900">+12% lebih baik</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="absolute -bottom-2 -left-6 bg-white rounded-2xl shadow-lg shadow-primary/10 p-3 animate-float" style={{ animationDelay: "-2s" }}>
+            {/* Floating card — AI detection preview */}
+            <div className="absolute -top-3 -right-4 bg-white rounded-2xl shadow-lg shadow-primary/15 p-3 animate-float">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary text-sm">auto_awesome</span>
                 </div>
                 <div>
-                  <p className="text-[10px] text-muted">AI Terdeteksi</p>
-                  <p className="text-xs font-bold text-slate-900">2 jerawat aktif</p>
+                  <p className="text-[10px] text-muted">AI Deteksi</p>
+                  <p className="text-xs font-bold text-slate-900">Papules — Pipi Kiri</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute -bottom-2 -left-6 bg-white rounded-2xl shadow-lg shadow-primary/15 p-3 animate-float" style={{ animationDelay: "-2s" }}>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-success-light rounded-lg flex items-center justify-center">
+                  <span className="material-symbols-outlined text-success text-sm">psychology</span>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted">Purging Checker</p>
+                  <p className="text-xs font-bold text-slate-900">Kemungkinan Purging</p>
                 </div>
               </div>
             </div>

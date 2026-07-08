@@ -4,9 +4,9 @@ import StatsBar from "@/components/landing/StatsBar";
 import ProblemSection from "@/components/landing/ProblemSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import HowItWorks from "@/components/landing/HowItWorks";
-import AhaMoment from "@/components/landing/AhaMoment";
-import Testimonials from "@/components/landing/Testimonials";
+import WhyNarehat from "@/components/landing/WhyNarehat";
 import PricingSection from "@/components/landing/PricingSection";
+import AhaMoment from "@/components/landing/AhaMoment";
 import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
@@ -21,9 +21,9 @@ export default function LandingPage() {
         <ProblemSection />
         <FeaturesSection />
         <HowItWorks />
-        <AhaMoment />
-        <Testimonials />
+        <WhyNarehat />
         <PricingSection />
+        <AhaMoment />
         <FAQSection />
         <CTASection />
       </main>
