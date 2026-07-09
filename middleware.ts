@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
-  const isAppRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/tracker") || pathname.startsWith("/progress") || pathname.startsWith("/ai-consult") || pathname.startsWith("/recommendations") || pathname.startsWith("/settings");
+  const isAppRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/tracker") || pathname.startsWith("/progress") || pathname.startsWith("/ai-consult") || pathname.startsWith("/recommendations") || pathname.startsWith("/settings") || pathname.startsWith("/notifications");
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/onboarding");
 
   if (!user && isAppRoute) {

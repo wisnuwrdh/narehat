@@ -98,6 +98,11 @@ export default function SettingsPage() {
           });
           setName(u.name || "");
           setEmail(u.email || "");
+          setNotifications([
+            u.notif_reminder ?? true,
+            u.notif_insight ?? true,
+            u.notif_promo ?? false,
+          ]);
         }
       })
       .catch(() => {})
@@ -378,7 +383,20 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" checked={notifications[i]} onChange={() => setNotifications((prev) => { const next = [...prev]; next[i] = !next[i]; return next; })} className="sr-only peer" />
+                  <input type="checkbox" checked={notifications[i]} onChange={() => {
+                    const idx = i;
+                    setNotifications((prev) => {
+                      const next = [...prev];
+                      next[idx] = !next[idx];
+                      const keys = ["notif_reminder", "notif_insight", "notif_promo"];
+                      fetch("/api/user", {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ [keys[idx]]: next[idx] }),
+                      }).catch(() => {});
+                      return next;
+                    });
+                  }} className="sr-only peer" />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                 </label>
               </div>
