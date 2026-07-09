@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { ThemeSwitcher } from "@/components/theme";
 
 interface UserProfile {
   name: string;
@@ -48,13 +49,6 @@ const planFeatures: Record<string, string> = {
 
 const notificationDefaults = [true, true, false];
 
-const themeList = [
-  { name: "Default", sub: "Soft navy", gradient: "from-[#3525cd] to-[#6366f1]" },
-  { name: "Feminine", sub: "Dusty rose", gradient: "from-[#be185d] to-[#f472b6]" },
-  { name: "Dark", sub: "Sleek", gradient: "from-[#1e293b] to-[#3b82f6]" },
-  { name: "Nature", sub: "Sage green", gradient: "from-[#059669] to-[#84cc16]" },
-];
-
 export default function SettingsPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
@@ -69,10 +63,6 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [activeTheme, setActiveTheme] = useState(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("narehat-theme") || "Default";
-    return "Default";
-  });
   const [notifications, setNotifications] = useState(notificationDefaults);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
@@ -112,17 +102,6 @@ export default function SettingsPage() {
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
-  };
-
-  const handleThemeChange = (name: string) => {
-    setActiveTheme(name);
-    localStorage.setItem("narehat-theme", name);
-    fetch("/api/user", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme: name }),
-    }).catch(() => {});
-    showToast(`Tema diubah ke ${name}`);
   };
 
   const handleSaveProfile = async () => {
@@ -341,24 +320,7 @@ export default function SettingsPage() {
         <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Tema UI</h3>
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <p className="text-xs text-muted mb-3">Pilih tampilan yang paling nyaman untukmu</p>
-          <div className="grid grid-cols-2 gap-3">
-            {themeList.map((t) => (
-              <button
-                key={t.name}
-                onClick={() => handleThemeChange(t.name)}
-                className={`btn-press relative p-4 border-2 rounded-2xl cursor-pointer transition-all text-left ${activeTheme === t.name ? "border-primary bg-primary-light/20" : "border-border-subtle hover:border-slate-300"}`}
-              >
-                <div className={`w-full h-8 bg-gradient-to-r ${t.gradient} rounded-lg mb-2`} />
-                <span className="text-xs font-bold text-slate-800 block">{t.name}</span>
-                <span className="text-[10px] text-muted">{t.sub}</span>
-                {activeTheme === t.name && (
-                  <span className="absolute top-2 right-2 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          <ThemeSwitcher />
         </div>
       </section>
 

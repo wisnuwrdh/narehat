@@ -3,6 +3,46 @@
 @tailwind utilities;
 
 @layer base {
+  :root, [data-theme="default"] {
+    --primary-rgb: 53 37 205;
+    --primary-light-rgb: 233 231 255;
+    --primary-muted-rgb: 139 133 232;
+    --accent-rgb: 99 102 241;
+    --bg-rgb: 255 255 255;
+    --text-rgb: 15 23 42;
+    --muted-rgb: 100 116 139;
+  }
+
+  [data-theme="feminine"] {
+    --primary-rgb: 190 24 93;
+    --primary-light-rgb: 252 231 243;
+    --primary-muted-rgb: 244 114 182;
+    --accent-rgb: 244 114 182;
+    --bg-rgb: 255 255 255;
+    --text-rgb: 15 23 42;
+    --muted-rgb: 100 116 139;
+  }
+
+  [data-theme="dark"] {
+    --primary-rgb: 59 130 246;
+    --primary-light-rgb: 30 41 59;
+    --primary-muted-rgb: 96 165 250;
+    --accent-rgb: 96 165 250;
+    --bg-rgb: 15 23 42;
+    --text-rgb: 248 250 252;
+    --muted-rgb: 148 163 184;
+  }
+
+  [data-theme="nature"] {
+    --primary-rgb: 5 150 105;
+    --primary-light-rgb: 209 250 229;
+    --primary-muted-rgb: 52 211 153;
+    --accent-rgb: 132 204 22;
+    --bg-rgb: 255 255 255;
+    --text-rgb: 15 23 42;
+    --muted-rgb: 100 116 139;
+  }
+
   body {
     @apply bg-white text-slate-900 font-sans antialiased;
   }
@@ -71,7 +111,7 @@
   }
 
   .shimmer-text {
-    background: linear-gradient(90deg, #3525cd 0%, #8b85e8 50%, #3525cd 100%);
+    background: linear-gradient(90deg, rgb(var(--primary-rgb)) 0%, rgb(var(--primary-muted-rgb)) 50%, rgb(var(--primary-rgb)) 100%);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -81,9 +121,9 @@
 
   .gradient-mesh {
     background:
-      radial-gradient(ellipse at 20% 20%, rgba(53, 37, 205, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 80%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(139, 133, 232, 0.04) 0%, transparent 60%);
+      radial-gradient(ellipse at 20% 20%, rgb(var(--primary-rgb) / 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgb(var(--accent-rgb) / 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgb(var(--primary-muted-rgb) / 0.04) 0%, transparent 60%);
   }
 
   .nav-blur {
