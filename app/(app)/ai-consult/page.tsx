@@ -207,6 +207,7 @@ export default function AIConsultPage() {
               PRO
             </span>
           )}
+        </div>
       </header>
 
       <div
