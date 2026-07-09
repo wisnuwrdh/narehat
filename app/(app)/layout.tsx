@@ -14,7 +14,7 @@ const navItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult");
+  const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult") || pathname.startsWith("/notifications");
   const [userPlan, setUserPlan] = useState<string>("free");
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface NotificationItem {
@@ -48,6 +49,7 @@ function groupByDate(notifications: NotificationItem[]): Record<string, Notifica
 }
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,10 @@ export default function NotificationsPage() {
   if (loading) {
     return (
       <main className="max-w-md mx-auto">
-        <header className="px-6 pt-6 pb-4">
+        <header className="px-6 pt-6 pb-4 flex items-center gap-3">
+          <button onClick={() => router.back()} className="btn-press p-2 -ml-2 rounded-xl hover:bg-slate-100 transition-colors">
+            <span className="material-symbols-outlined text-xl text-slate-600">arrow_back</span>
+          </button>
           <h1 className="text-xl font-bold text-slate-900">Notifikasi</h1>
         </header>
         <div className="px-6 space-y-3">
@@ -98,8 +103,11 @@ export default function NotificationsPage() {
 
   return (
     <main className="max-w-md mx-auto">
-      <header className="px-6 pt-6 pb-4 flex items-center justify-between">
-        <div>
+      <header className="px-6 pt-6 pb-4 flex items-center gap-3">
+        <button onClick={() => router.back()} className="btn-press p-2 -ml-2 rounded-xl hover:bg-slate-100 transition-colors">
+          <span className="material-symbols-outlined text-xl text-slate-600">arrow_back</span>
+        </button>
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-slate-900">Notifikasi</h1>
           <p className="text-xs text-muted">
             {notifications.length > 0
