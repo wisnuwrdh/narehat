@@ -9,12 +9,12 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "rgb(var(--primary-rgb) / <alpha-value>)",
-          light: "rgb(var(--primary-light-rgb) / <alpha-value>)",
-          muted: "rgb(var(--primary-muted-rgb) / <alpha-value>)",
+          DEFAULT: "#3525cd",
+          light: "#e9e7ff",
+          muted: "#8b85e8",
         },
         accent: {
-          DEFAULT: "rgb(var(--accent-rgb) / <alpha-value>)",
+          DEFAULT: "#6366f1",
         },
         success: {
           DEFAULT: "#10b981",
@@ -25,15 +25,13 @@ const config: Config = {
           light: "#fef3c7",
         },
         muted: {
-          DEFAULT: "rgb(var(--muted-rgb) / <alpha-value>)",
-          light: "rgb(var(--muted-rgb) / 0.6)",
+          DEFAULT: "#64748b",
+          light: "#94a3b8",
         },
         border: {
           subtle: "#f1f5f9",
           light: "#e2e8f0",
         },
-        "bg-theme": "rgb(var(--bg-rgb) / <alpha-value>)",
-        "text-theme": "rgb(var(--text-rgb) / <alpha-value>)",
       },
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],

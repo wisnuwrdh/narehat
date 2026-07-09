@@ -68,7 +68,7 @@ Pertama kali app memberikan insight seperti:
 | AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu | 🔜 Placeholder → real (GPT-4o-mini) |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
-| Tema UI Custom | 4 tema: Default, Feminine, Dark/Sleek, Nature | ✅ Done |
+| Notifikasi & Pengingat | Reminder tracker harian, insight baru, promo | ✅ Done |
 
 ### 👑 Pro — Rp49.000/bulan
 
@@ -152,7 +152,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /progress         → Grafik tren + timeline foto + perbandingan side-by-side
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi [PREMIUM/PRO]
 /recommendations  → Rekomendasi produk + filter + affiliate link
-/settings         → Profil, tema, subscription management
+/settings         → Profil, notifikasi, subscription management
 ```
 
 ---
@@ -315,7 +315,7 @@ Jalankan dengan: `npm run ingest`
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
 | **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 3x AI consult, 1x purging checker. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight, tema custom. |
+| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight, notifikasi. |
 | **Pro** 👑 | Rp49.000/bulan | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, purging checker unlimited, laporan mingguan PDF. |
 
 ### Revenue Stream Tambahan

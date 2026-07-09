@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ThemeSwitcher } from "@/components/theme";
 
 interface UserProfile {
   name: string;
@@ -43,7 +42,7 @@ const planPrices: Record<string, string> = {
 
 const planFeatures: Record<string, string> = {
   free: "Tracker ringan, progress foto, 3x AI Consult, rekomendasi produk",
-  premium: "AI Consult unlimited, deteksi jerawat dari foto, deep insight, tema custom",
+  premium: "AI Consult unlimited, deteksi jerawat dari foto, deep insight, notifikasi",
   pro: "Semua fitur Premium + analisis rutinitas, routine builder, purging checker unlimited, laporan mingguan PDF",
 };
 
@@ -313,14 +312,6 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-        </div>
-      </section>
-
-      <section className="px-6 mb-6">
-        <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Tema UI</h3>
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          <p className="text-xs text-muted mb-3">Pilih tampilan yang paling nyaman untukmu</p>
-          <ThemeSwitcher />
         </div>
       </section>
 

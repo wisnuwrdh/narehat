@@ -32,7 +32,7 @@ const plans = [
       "AI Deteksi jerawat dari foto",
       "Progress foto unlimited (harian)",
       "Deep insight & grafik korelasi",
-      "Tema UI custom (4 tema)",
+      "Notifikasi & pengingat tracker",
     ],
     cta: "Upgrade Premium",
     href: "/register?plan=premium_monthly",
