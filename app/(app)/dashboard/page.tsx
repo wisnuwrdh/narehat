@@ -120,10 +120,7 @@ export default function DashboardPage() {
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
   const [insightExpanded, setInsightExpanded] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [previewNotifs, setPreviewNotifs] = useState<{ id: string; title: string; type: string; created_at: string }[]>([]);
-  const notifRef = useRef<HTMLDivElement>(null);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -162,7 +159,6 @@ export default function DashboardPage() {
         const notifData = await notifRes.json();
 
         setUnreadCount(notifData.unread_count || 0);
-        setPreviewNotifs((notifData.notifications || []).slice(0, 5));
 
         const log = tracker.logs?.[0] || null;
         const weekLogs = weekData.logs || [];
@@ -211,18 +207,6 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
-        setNotifOpen(false);
-      }
-    }
-    if (notifOpen) {
-      document.addEventListener("mousedown", handleClick);
-      return () => document.removeEventListener("mousedown", handleClick);
-    }
-  }, [notifOpen]);
-
   const score = animatedScore;
   const scoreMeta = getScoreLabel(animatedScore);
   const segments = Math.max(1, Math.ceil(animatedScore / 20));
@@ -238,22 +222,6 @@ export default function DashboardPage() {
     setShowInfo(next);
     if (next) setTimeout(() => setShowInfo(false), 4000);
   }, [showInfo]);
-
-  const toggleNotif = useCallback(async () => {
-    const next = !notifOpen;
-    setNotifOpen(next);
-    if (next && unreadCount > 0) {
-      const unreadIds = previewNotifs.filter((n) => !("is_read" in n) || true).map((n) => n.id);
-      if (unreadIds.length > 0) {
-        await fetch("/api/notifications", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids: unreadIds }),
-        });
-      }
-      setUnreadCount(0);
-    }
-  }, [notifOpen, unreadCount, previewNotifs]);
 
   const { dailyLog, insights } = data;
 
@@ -289,83 +257,17 @@ export default function DashboardPage() {
           <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
         </div>
         <div className="flex gap-2 animate-fade-in-up delay-100">
-          <div className="relative" ref={notifRef}>
-            <button
-              onClick={toggleNotif}
-              className="btn-press p-2.5 bg-slate-50 border border-border-light rounded-2xl hover:bg-slate-100 transition-colors relative"
-            >
-              <span className="material-symbols-outlined text-xl text-slate-600">notifications</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center px-1">
-                  <span className="text-white text-[10px] font-bold leading-none">{unreadCount > 9 ? "9+" : unreadCount}</span>
-                </span>
-              )}
-            </button>
-            {notifOpen && (
-              <div className="absolute right-0 top-12 w-72 bg-white border border-border-subtle rounded-2xl shadow-xl z-50 overflow-hidden animate-scale-in">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle">
-                  <span className="text-sm font-bold text-slate-800">Notifikasi</span>
-                  {unreadCount > 0 && (
-                    <span className="text-[10px] text-primary font-bold">{unreadCount} baru</span>
-                  )}
-                </div>
-                <div className="max-h-72 overflow-y-auto">
-                  {previewNotifs.length === 0 ? (
-                    <div className="px-4 py-8 text-center">
-                      <p className="text-sm text-muted">Belum ada notifikasi</p>
-                    </div>
-                  ) : (
-                    previewNotifs.map((n) => (
-                      <Link
-                        key={n.id}
-                        href={
-                          n.type === "reminder" ? "/tracker" :
-                          n.type === "insight" ? "/dashboard" :
-                          "/notifications"
-                        }
-                        onClick={() => setNotifOpen(false)}
-                        className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-border-subtle last:border-none"
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                          n.type === "reminder" ? "bg-indigo-50" :
-                          n.type === "promo" ? "bg-rose-50" : "bg-amber-50"
-                        }`}>
-                          <span className={`material-symbols-outlined text-sm ${
-                            n.type === "reminder" ? "text-indigo-500" :
-                            n.type === "promo" ? "text-rose-500" : "text-amber-500"
-                          }`}>
-                            {n.type === "reminder" ? "notifications" : n.type === "promo" ? "campaign" : "lightbulb"}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-800 line-clamp-2">{n.title}</p>
-                          <p className="text-[10px] text-muted-light mt-0.5">
-                            {(() => {
-                              const d = new Date(n.created_at);
-                              const mins = Math.floor((Date.now() - d.getTime()) / 60000);
-                              if (mins < 1) return "Baru saja";
-                              if (mins < 60) return `${mins}m`;
-                              const h = Math.floor(mins / 60);
-                              if (h < 24) return `${h}j`;
-                              return `${Math.floor(h / 24)}h`;
-                            })()}
-                          </p>
-                        </div>
-                        <div className="w-2 h-2 bg-primary rounded-full shrink-0 mt-1.5" />
-                      </Link>
-                    ))
-                  )}
-                </div>
-                <Link
-                  href="/notifications"
-                  onClick={() => setNotifOpen(false)}
-                  className="block text-center py-3 text-xs font-bold text-primary border-t border-border-subtle hover:bg-primary-light/30 transition-colors"
-                >
-                  Lihat semua
-                </Link>
-              </div>
+          <Link
+            href="/notifications"
+            className="btn-press p-2.5 bg-slate-50 border border-border-light rounded-2xl hover:bg-slate-100 transition-colors relative"
+          >
+            <span className="material-symbols-outlined text-xl text-slate-600">notifications</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center px-1">
+                <span className="text-white text-[10px] font-bold leading-none">{unreadCount > 9 ? "9+" : unreadCount}</span>
+              </span>
             )}
-          </div>
+          </Link>
           <Link href="/settings" className="btn-press p-2.5 bg-slate-50 border border-border-light rounded-2xl hover:bg-slate-100 transition-colors">
             <span className="material-symbols-outlined text-xl text-slate-600">person</span>
           </Link>
