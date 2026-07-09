@@ -26,5 +26,3 @@ data/journals/*
 # vercel
 .vercel
 
-# plans & patches (local only, not pushed)
-docs/plans/
