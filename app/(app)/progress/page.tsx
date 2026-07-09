@@ -158,6 +158,113 @@ export default function ProgressPage() {
   const scoreChange = data.scores.length > 1 ? data.scores[data.scores.length - 1] - data.scores[0] : 0;
   const changePct = data.scores.length > 1 && data.scores[0] > 0 ? Math.round((scoreChange / data.scores[0]) * 100) : 0;
 
+  const handleGenerateReport = async () => {
+    const res = await fetch("/api/report");
+    const report = await res.json();
+    if (!report || report.error) return;
+
+    const html = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Laporan Mingguan Narehat</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; line-height:1.6; padding:2rem; max-width:600px; margin:0 auto; }
+  .header { text-align:center; margin-bottom:2rem; padding-bottom:1.5rem; border-bottom:2px solid #e2e8f0; }
+  .header h1 { font-size:1.5rem; color:#3525cd; }
+  .header p { color:#64748b; font-size:0.875rem; margin-top:0.25rem; }
+  .card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:1rem; padding:1rem; margin-bottom:1rem; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem; }
+  .stat { text-align:center; padding:0.75rem; background:#fff; border-radius:0.75rem; border:1px solid #e2e8f0; }
+  .stat .value { font-size:1.5rem; font-weight:800; color:#3525cd; }
+  .stat .label { font-size:0.75rem; color:#64748b; }
+  .insight { padding:0.75rem; background:#fff; border-radius:0.75rem; border:1px solid #e2e8f0; margin-bottom:0.5rem; }
+  .insight .title { font-weight:600; font-size:0.875rem; }
+  .insight .desc { font-size:0.8rem; color:#64748b; margin-top:0.25rem; }
+  .section-title { font-weight:700; font-size:1rem; margin:1.25rem 0 0.75rem; color:#3525cd; }
+  .photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+  .photo { border-radius:0.75rem; overflow:hidden; border:1px solid #e2e8f0; }
+  .photo img { width:100%; height:120px; object-fit:cover; display:block; }
+  .photo .date { font-size:0.7rem; color:#64748b; padding:0.25rem 0.5rem; text-align:center; }
+  .footer { margin-top:2rem; padding-top:1rem; border-top:1px solid #e2e8f0; font-size:0.7rem; color:#94a3b8; text-align:center; }
+  .ai-result { background:#f0f9ff; border:1px solid #bae6fd; border-radius:0.75rem; padding:0.75rem; margin-bottom:0.5rem; font-size:0.8rem; }
+  .badge { display:inline-block; padding:0.25rem 0.5rem; border-radius:0.5rem; font-size:0.7rem; font-weight:600; }
+  .badge-green { background:#dcfce7; color:#166534; }
+  .badge-amber { background:#fef3c7; color:#92400e; }
+  .badge-red { background:#fee2e2; color:#991b1b; }
+  @media print { body { padding:0; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Laporan Mingguan Narehat</h1>
+  <p>${report.userName} &bull; ${report.skinType} &bull; ${report.rangeLabel}</p>
+</div>
+
+<div class="card">
+  <div class="section-title" style="margin-top:0">Skin Score Mingguan</div>
+  <div style="text-align:center;margin:0.5rem 0;">
+    <span style="font-size:3rem;font-weight:800;color:#3525cd;">${report.avgScore}</span>
+    <span style="font-size:1rem;color:#64748b;">/100</span>
+  </div>
+  <div class="grid">
+    <div class="stat"><div class="value">${report.avgSleep}j</div><div class="label">Rata-rata Tidur</div></div>
+    <div class="stat"><div class="value">${(report.avgWater / 1000).toFixed(1)}L</div><div class="label">Rata-rata Air</div></div>
+    <div class="stat"><div class="value">${report.avgStress}</div><div class="label">Stress Level</div></div>
+    <div class="stat"><div class="value">${report.skincareConsistency}%</div><div class="label">Konsistensi</div></div>
+  </div>
+  <p style="font-size:0.75rem;color:#94a3b8;">${report.loggingDays}/7 hari terisi tracker</p>
+</div>
+
+${report.photos.length > 0 ? `
+<div class="section-title">Perbandingan Foto</div>
+<div class="photo-grid">
+  ${report.photos.map((p: { url: string; date: string }, i: number) => `
+  <div class="photo">
+    <img src="${p.url}" alt="Foto ${i + 1}" />
+    <div class="date">${p.date}</div>
+  </div>
+  `).join("")}
+</div>
+` : ""}
+
+${report.aiResults.length > 0 ? `
+<div class="section-title">Hasil Analisis AI</div>
+${report.aiResults.map((r: { analysis: Record<string, unknown>; date: string }) => `
+<div class="ai-result">
+  <p><strong>${r.date}</strong></p>
+  <p>${(r.analysis as { description?: string }).description || "Analisis AI"}</p>
+  ${(r.analysis as { type?: string }).type ? `<span class="badge badge-green">${(r.analysis as { type: string }).type}</span>` : ""}
+</div>
+`).join("")}
+` : ""}
+
+${report.insights.length > 0 ? `
+<div class="section-title">Insight</div>
+${report.insights.map((i: { title: string; description: string; type: string }) => `
+<div class="insight">
+  <div class="title">${i.type === "warning" ? "⚠️" : i.type === "positive" ? "✅" : "📊"} ${i.title}</div>
+  <div class="desc">${i.description}</div>
+</div>
+`).join("")}
+` : ""}
+
+<div class="footer">
+  <p>Dibuat oleh Narehat &bull; ${new Date(report.generatedAt).toLocaleDateString("id-ID", { day:"numeric", month:"long", year:"numeric" })}</p>
+  <p>Laporan ini bersifat informatif. Bukan pengganti diagnosis medis profesional.</p>
+</div>
+<script>window.onload=function(){window.print();}</script>
+</body>
+</html>`;
+
+    const w = window.open("", "_blank");
+    if (w) {
+      w.document.write(html);
+      w.document.close();
+    }
+  };
+
   return (
     <main className="max-w-md mx-auto">
       <header className="px-6 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-white z-10">
@@ -465,6 +572,17 @@ export default function ProgressPage() {
             </div>
           )}
         </div>
+      </section>
+
+      <section className="px-6 mb-8">
+        <button
+          onClick={handleGenerateReport}
+          className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined">description</span>
+          Export Laporan Mingguan
+        </button>
+        <p className="text-center text-[10px] text-muted mt-2">Laporan akan terbuka di tab baru untuk di-print atau disimpan sebagai PDF</p>
       </section>
     </main>
   );
