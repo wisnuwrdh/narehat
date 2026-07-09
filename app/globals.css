@@ -11,6 +11,10 @@
     --bg-rgb: 255 255 255;
     --text-rgb: 15 23 42;
     --muted-rgb: 100 116 139;
+    --primary: rgb(var(--primary-rgb));
+    --primary-light: rgb(var(--primary-light-rgb));
+    --primary-muted: rgb(var(--primary-muted-rgb));
+    --accent: rgb(var(--accent-rgb));
   }
 
   [data-theme="feminine"] {
@@ -21,6 +25,10 @@
     --bg-rgb: 255 255 255;
     --text-rgb: 15 23 42;
     --muted-rgb: 100 116 139;
+    --primary: rgb(var(--primary-rgb));
+    --primary-light: rgb(var(--primary-light-rgb));
+    --primary-muted: rgb(var(--primary-muted-rgb));
+    --accent: rgb(var(--accent-rgb));
   }
 
   [data-theme="dark"] {
@@ -31,6 +39,10 @@
     --bg-rgb: 15 23 42;
     --text-rgb: 248 250 252;
     --muted-rgb: 148 163 184;
+    --primary: rgb(var(--primary-rgb));
+    --primary-light: rgb(var(--primary-light-rgb));
+    --primary-muted: rgb(var(--primary-muted-rgb));
+    --accent: rgb(var(--accent-rgb));
   }
 
   [data-theme="nature"] {
@@ -41,6 +53,10 @@
     --bg-rgb: 255 255 255;
     --text-rgb: 15 23 42;
     --muted-rgb: 100 116 139;
+    --primary: rgb(var(--primary-rgb));
+    --primary-light: rgb(var(--primary-light-rgb));
+    --primary-muted: rgb(var(--primary-muted-rgb));
+    --accent: rgb(var(--accent-rgb));
   }
 
   body {

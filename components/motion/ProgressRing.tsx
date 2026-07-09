@@ -27,7 +27,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#f1f5f9"
+          stroke="var(--primary-light)"
           strokeWidth={strokeWidth}
         />
         <motion.circle
@@ -35,7 +35,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#3525cd"
+          stroke="var(--primary)"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}

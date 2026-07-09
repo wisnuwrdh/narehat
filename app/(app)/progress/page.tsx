@@ -206,8 +206,8 @@ export default function ProgressPage() {
             <svg className="w-full h-full" viewBox={`0 0 ${chartW} ${chartH}`} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(53,37,205,0.15)" />
-                  <stop offset="100%" stopColor="rgba(53,37,205,0.01)" />
+                  <stop offset="0%" stopColor="var(--primary-light)" />
+                  <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.05} />
                 </linearGradient>
               </defs>
               {[40, 55, 70, 85, 100].map((v) => {
@@ -220,7 +220,7 @@ export default function ProgressPage() {
                 );
               })}
               <path d={`${polyline} L ${pts[pts.length - 1].x} ${chartH - padding} L ${pts[0].x} ${chartH - padding} Z`} fill="url(#scoreGrad)" opacity={chartAnimated ? 1 : 0} style={{ transition: "opacity 0.5s ease" }} />
-              <path d={polyline} fill="none" stroke="#3525cd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              <path d={polyline} fill="none" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                 style={{
                   strokeDasharray: chartAnimated ? "none" : "1000",
                   strokeDashoffset: chartAnimated ? 0 : 1000,
@@ -229,7 +229,7 @@ export default function ProgressPage() {
               />
               {pts.map((p, i) => (
                 <g key={i}>
-                  <circle cx={p.x} cy={p.y} r="4" fill="#3525cd" stroke="#ffffff" strokeWidth="2"
+                  <circle cx={p.x} cy={p.y} r="4" fill="var(--primary)" stroke="#ffffff" strokeWidth="2"
                     opacity={chartAnimated ? 1 : 0}
                     style={{ transition: `opacity 0.3s ease ${i * 0.05 + 0.5}s` }}
                   />
