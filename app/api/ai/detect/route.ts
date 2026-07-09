@@ -37,6 +37,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
 
+  await supabase.from("skin_photos").insert({
+    user_id: user.id,
+    url: imageBase64,
+    date: new Date().toISOString().split("T")[0],
+    notes: "AI Detection",
+    analysis_type: "detect",
+    ai_analysis: {
+      types: result.types,
+      severity: result.severity,
+      confidence: result.confidence,
+      location: result.location,
+      triggers: result.triggers,
+      analyzed_at: new Date().toISOString(),
+    },
+  });
+
   const severityLabels: Record<string, string> = {
     mild: "Ringan",
     moderate: "Sedang",
