@@ -234,6 +234,7 @@ narehat/
 │   │   ├── tracker/page.tsx       → /tracker
 │   │   ├── progress/page.tsx      → /progress
 │   │   ├── ai-consult/page.tsx    → /ai-consult
+│   │   ├── notifications/page.tsx → /notifications
 │   │   ├── recommendations/page.tsx → /recommendations
 │   │   ├── settings/page.tsx      → /settings
 │   │   └── layout.tsx             # Auth guard + bottom nav
@@ -246,11 +247,13 @@ narehat/
 │       │   ├── detect/            # ⚠️ AI deteksi jerawat (premium, GPT-4o-mini)
 │       │   └── consult/           # ⚠️ RAG chat (pgvector + SumoPod LLM)
 │       ├── recommendations/       # Produk rekomendasi
+│       ├── notifications/          # CRUD notifikasi user
 │       └── payment/               # ⚠️ Webhook Xendit + create invoice
 │
 ├── components/landing/            # Landing page sections
 ├── components/ui/                 # Base components
 ├── components/onboarding/         # Step wizard
+├── contexts/                      # React Context providers
 │
 ├── lib/
 │   ├── supabase/                  # client.ts, server.ts
@@ -262,7 +265,7 @@ narehat/
 │   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
 │   └── security/                  # Rate limiter, file validation
 │
-├── supabase/migrations/           # ⚠️ 5 migration files
+├── supabase/migrations/           # 6 migration files
 ├── types/                         # TypeScript types
 ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
 ├── middleware.ts                  # Auth guard
@@ -372,16 +375,17 @@ Jalankan dengan: `npm run ingest`
 
 ### Manual — Pengguna
 - [ ] Set env vars di Vercel (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
-- [ ] Jalankan 3 migration SQL di Supabase (0003_storage, 0004_fix_rls, 0005_add_theme)
+- [x] Jalankan migration SQL di Supabase (0001-0006)
 - [ ] Supabase Auth Settings (site URL, redirect, email confirm = off)
 - [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
 - [ ] Deploy ke Vercel + testing end-to-end
 
 ### Development — Tim
+- [x] Notifikasi & pengingat (in-app notification center)
+- [x] Pricing page: 3-tier (Free/Premium/Pro)
 - [ ] AI Deteksi foto: implement GPT-4o-mini vision (placeholder → real)
 - [ ] Tracker UI: ringankan ke 4 default card + detail toggle
-- [ ] Pricing page: update ke 3-tier (Free/Premium/Pro)
 - [ ] Purging Checker: build AI analyzer (instan, per produk baru)
 - [ ] AI Routine Analyzer: build ingredient conflict detection
 - [ ] Routine Builder: AI generate personalized AM/PM routine
