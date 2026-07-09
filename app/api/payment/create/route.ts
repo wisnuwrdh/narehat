@@ -10,8 +10,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const plan = (body.plan as string) || "premium_monthly";
 
-    const validPlans = ["premium_monthly", "premium_yearly", "pro_monthly", "pro_yearly"];
-    if (!validPlans.includes(plan)) {
+    const validPlans = ["premium_monthly", "premium_yearly", "pro_monthly", "pro_yearly"] as const;
+    type PlanType = (typeof validPlans)[number];
+    if (!validPlans.includes(plan as PlanType)) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
   try {
-    const { invoice_url } = await createInvoice(user.id, plan);
+    const { invoice_url } = await createInvoice(user.id, plan as PlanType);
     return NextResponse.json({ invoice_url });
   } catch (err) {
     return NextResponse.json({ error: "Gagal membuat invoice. Periksa konfigurasi payment." }, { status: 500 });
