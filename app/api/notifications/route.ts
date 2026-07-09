@@ -67,7 +67,7 @@ export async function POST() {
     if (recentKeys.has(key)) return;
     recentKeys.add(key);
     generated.push({ type, title });
-    return supabase.from("notifications").insert({
+    supabase.from("notifications").insert({
       user_id: user.id,
       type,
       title,
@@ -75,8 +75,6 @@ export async function POST() {
       related_link: link,
     });
   };
-
-  const inserts: Promise<unknown>[] = [];
 
   if (profile.notif_reminder && hour >= 9 && hour <= 21) {
     const { data: todayLog } = await supabase
@@ -87,12 +85,12 @@ export async function POST() {
       .maybeSingle();
 
     if (!todayLog) {
-      inserts.push(logInsert(
+      logInsert(
         "reminder",
         "Jangan lupa isi tracker hari ini!",
         "Tracker harian membantumu melihat pola pemicu jerawat. Isi sekarang — cuma 30 detik.",
         "/tracker"
-      )!);
+      );
     }
   }
 
@@ -118,60 +116,58 @@ export async function POST() {
       const streakDays = weekLogs.filter(l => l.skincare_morning && l.skincare_evening).length;
 
       if (avgSleep < 6) {
-        inserts.push(logInsert(
+        logInsert(
           "insight",
           "Tidur kurang dari 6 jam rata-rata pekan ini",
           "Kurang tidur memicu hormon kortisol yang bisa memperparah jerawat. Targetkan 7-8 jam mulai malam ini.",
           "/dashboard"
-        )!);
+        );
       } else if (avgSleep >= 7) {
-        inserts.push(logInsert(
+        logInsert(
           "insight",
           "Kualitas tidur bagus pekan ini!",
           "Tidur cukup membantu regenerasi sel kulit dan mengurangi inflamasi jerawat. Pertahankan!",
           "/dashboard"
-        )!);
+        );
       }
 
       if (avgWater < 1500) {
-        inserts.push(logInsert(
+        logInsert(
           "insight",
           "Hidrasi masih di bawah target",
           "Minum minimal 2L/hari membantu kulit tetap lembap dan mendukung proses penyembuhan jerawat.",
           "/dashboard"
-        )!);
+        );
       }
 
       if (avgStress > 3) {
-        inserts.push(logInsert(
+        logInsert(
           "insight",
           "Tingkat stress cukup tinggi pekan ini",
           "Stress memicu jerawat hormonal. Coba teknik relaksasi 5 menit sebelum tidur.",
           "/dashboard"
-        )!);
+        );
       }
 
       if (streakDays >= 5) {
-        inserts.push(logInsert(
+        logInsert(
           "insight",
           "Rutinitas skincare konsisten!",
           "Kamu rutin melakukan skincare pagi & malam. Konsistensi ini kunci progress kulit yang baik.",
           "/dashboard"
-        )!);
+        );
       }
     }
   }
 
   if (profile.notif_promo) {
-    inserts.push(logInsert(
+    logInsert(
       "promo",
       "Coba AI Deteksi Jerawat dari Foto!",
       "Upload foto kulitmu dan biarkan AI menganalisis jenis jerawat, severity, dan estimasi pemicu.",
       "/ai-consult"
-    )!);
+    );
   }
-
-  await Promise.all(inserts);
 
   return NextResponse.json({ generated: generated.length });
 }
