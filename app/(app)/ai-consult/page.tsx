@@ -172,7 +172,7 @@ export default function AIConsultPage() {
   };
 
   return (
-    <div className="h-dvh bg-white flex flex-col">
+    <div className="h-dvh overflow-hidden flex flex-col bg-white">
       <header className="px-6 pt-6 pb-3 flex items-center gap-3 bg-white sticky top-0 z-10 border-b border-border-subtle">
         <Link
           href="/dashboard"
@@ -212,7 +212,7 @@ export default function AIConsultPage() {
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4 no-scrollbar"
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-4 no-scrollbar"
       >
         {messages.map((msg, idx) => {
           const isUser = msg.role === "user";
@@ -312,43 +312,43 @@ export default function AIConsultPage() {
             </div>
           </div>
         )}
+
+        {messages.length <= 1 && !loading && (
+          <div className="pt-2">
+            <p className="text-[10px] text-muted font-semibold mb-2 px-1">
+              Pertanyaan yang mungkin kamu punya:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SAMPLE_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  className="btn-press px-3 py-2 bg-white border border-border-light rounded-xl text-xs text-slate-600 hover:border-primary/30 hover:text-primary transition-all text-left"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {limitReached && (
+          <div className="pt-2">
+            <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white">
+              <p className="text-sm font-bold mb-1">Batas konsultasi gratis tercapai</p>
+              <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
+              <Link
+                href="/pricing"
+                className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"
+              >
+                Lihat Harga Upgrade
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
 
-      {messages.length <= 1 && !loading && (
-        <div className="px-4 pb-2">
-          <p className="text-[10px] text-muted font-semibold mb-2 px-1">
-            Pertanyaan yang mungkin kamu punya:
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {SAMPLE_QUESTIONS.map((q) => (
-              <button
-                key={q}
-                onClick={() => sendMessage(q)}
-                className="btn-press px-3 py-2 bg-white border border-border-light rounded-xl text-xs text-slate-600 hover:border-primary/30 hover:text-primary transition-all text-left"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-      {limitReached && (
-        <div className="px-4 pb-2">
-          <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white">
-            <p className="text-sm font-bold mb-1">Batas konsultasi gratis tercapai</p>
-            <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
-            <Link
-              href="/pricing"
-              className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"
-            >
-              Lihat Harga Upgrade
-            </Link>
-          </div>
-        </div>
-      )}
-
       <div
-        className="px-4 py-3 bg-white border-t border-border-subtle"
+        className="px-4 py-3 bg-white border-t border-border-subtle shrink-0"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
         {limitReached ? (
@@ -364,10 +364,9 @@ export default function AIConsultPage() {
               onChange={handleInput}
               onKeyDown={handleKeyDown}
               placeholder="Tanyakan sesuatu..."
-              className="flex-1 bg-transparent text-sm resize-none outline-none max-h-[120px] py-1"
+              className="flex-1 bg-transparent text-sm resize-none outline-none max-h-[120px] py-1.5 leading-relaxed"
               rows={1}
               disabled={loading}
-              style={{ minHeight: "24px" }}
             />
             <button
               onClick={() => setInput("")}
