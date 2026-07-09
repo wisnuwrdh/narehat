@@ -47,12 +47,15 @@ export default function TrackerPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loadedDates, setLoadedDates] = useState<Set<string>>(new Set());
+  const [showDetail, setShowDetail] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const selectedDateStr = days[activeDate].dateStr;
+
   useEffect(() => {
-    if (loaded) return;
-    fetch(`/api/tracker?date=${todayStr}`)
+    if (loadedDates.has(selectedDateStr)) return;
+    fetch(`/api/tracker?date=${selectedDateStr}`)
       .then((r) => r.json())
       .then((data) => {
         const log = data.logs?.[0];
@@ -64,11 +67,14 @@ export default function TrackerPage() {
           setSkincareMorning(log.skincare_morning ?? false);
           setSkincareEvening(log.skincare_evening ?? false);
           setNotes(log.notes ?? "");
+        } else {
+          handleReset();
         }
+        setPhotoPreview(null);
       })
       .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, [loaded, todayStr]);
+      .finally(() => setLoadedDates((s) => new Set(s).add(selectedDateStr)));
+  }, [selectedDateStr]);
 
   const adjSleep = (delta: number) => setSleep((s) => Math.min(12, Math.max(0, Math.round((s + delta) * 10) / 10)));
   const adjExercise = (delta: number) => setExercise((e) => Math.min(120, Math.max(0, e + delta)));
@@ -113,7 +119,7 @@ export default function TrackerPage() {
         const photoForm = new FormData();
         photoForm.append("file", fileRef.current.files[0]);
         photoForm.append("date", days[activeDate].dateStr);
-        fetch("/api/photos", { method: "POST", body: photoForm }).catch(() => {});
+        await fetch("/api/photos", { method: "POST", body: photoForm });
         setPhotoPreview(null);
       }
     } catch {
@@ -268,6 +274,21 @@ export default function TrackerPage() {
         </div>
       </section>
 
+      {/* Detail toggle */}
+      <section className="px-6 mb-6">
+        <button
+          onClick={() => setShowDetail(!showDetail)}
+          className="btn-press w-full py-3 bg-white border border-border-light rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary hover:border-primary/20 transition-colors"
+        >
+          <span className="material-symbols-outlined text-sm">{showDetail ? "expand_less" : "expand_more"}</span>
+          {showDetail ? "Sembunyikan Detail" : "Lihat Detail Lainnya"}
+          <span className="text-[10px] text-muted-light">(Olahraga, Skincare, Catatan)</span>
+        </button>
+      </section>
+
+      {showDetail && (
+      <>
+
       {/* Exercise */}
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
@@ -336,6 +357,9 @@ export default function TrackerPage() {
         </div>
       </section>
 
+      </>
+      )}
+
       {/* Photo */}
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
@@ -368,6 +392,8 @@ export default function TrackerPage() {
         </div>
       </section>
 
+      {showDetail && (
+      <>
       {/* Notes */}
       <section className="px-6 mb-8">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
@@ -388,6 +414,8 @@ export default function TrackerPage() {
           />
         </div>
       </section>
+      </>
+      )}
 
       {/* Actions */}
       <div className="px-6 pb-8 space-y-3">

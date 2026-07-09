@@ -44,11 +44,12 @@ export default function ProgressPage() {
   const [rightPhoto, setRightPhoto] = useState<string | null>(null);
   const [rightLabel, setRightLabel] = useState("");
   const [chartAnimated, setChartAnimated] = useState(false);
+  const [detectResult, setDetectResult] = useState<null | { typesDisplay: string[]; severityDisplay: string; location: string; triggers: string[]; disclaimer: string }>(null);
+  const [detectLoading, setDetectLoading] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (loaded) return;
     async function load() {
       const today = new Date();
       const ranges: { key: Range; days: number }[] = [
@@ -67,7 +68,7 @@ export default function ProgressPage() {
           dates.push(d.toISOString().split("T")[0]);
         }
         const logsByDate: Record<string, Record<string, number>> = {};
-        for (const date of dates.slice(0, 10)) {
+        for (const date of dates) {
           try {
             const res = await fetch(`/api/tracker?date=${date}`);
             const j = await res.json();
@@ -89,7 +90,7 @@ export default function ProgressPage() {
       setLoaded(true);
     }
     load();
-  }, [loaded]);
+  }, []);
 
   useEffect(() => {
     fetch("/api/photos")
@@ -307,6 +308,34 @@ export default function ProgressPage() {
               <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
                 <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
               </div>
+              <button
+                onClick={async () => {
+                  setDetectLoading(true);
+                  setDetectResult(null);
+                  try {
+                    const res = await fetch("/api/ai/detect", {
+                      method: "POST",
+                      body: (() => {
+                        const fd = new FormData();
+                        fd.append("image", p.url);
+                        return fd;
+                      })(),
+                    });
+                    const data = await res.json();
+                    if (data.error) {
+                      setDetectResult({ typesDisplay: [], severityDisplay: "", location: "", triggers: [], disclaimer: data.error });
+                    } else {
+                      setDetectResult(data);
+                    }
+                  } catch { setDetectResult({ typesDisplay: [], severityDisplay: "", location: "", triggers: [], disclaimer: "Gagal terhubung ke server." }); }
+                  setDetectLoading(false);
+                }}
+                disabled={detectLoading}
+                className="btn-press mt-2 w-full py-1.5 bg-primary/10 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                {detectLoading ? "Menganalisis..." : "Deteksi AI"}
+              </button>
             </div>
           )) : (
             <div className="w-full py-8 text-center">
@@ -315,6 +344,55 @@ export default function ProgressPage() {
           )}
         </div>
       </section>
+
+      {detectResult && (
+        <section className="px-6 mb-6">
+          <div className="bg-white border border-primary/20 rounded-3xl p-5 shadow-sm animate-scale-in">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-primary">auto_awesome</span>
+              <h3 className="font-bold text-slate-800 text-sm">Hasil Deteksi AI</h3>
+              <button onClick={() => setDetectResult(null)} className="btn-press ml-auto p-1 text-muted hover:text-slate-600 rounded-lg">
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+            {detectResult.typesDisplay && detectResult.typesDisplay.length > 0 ? (
+              <>
+                <div className="space-y-2 mb-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[10px] text-muted-light font-semibold">Jenis:</span>
+                    {detectResult.typesDisplay.map((t, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">{t}</span>
+                    ))}
+                  </div>
+                  {detectResult.severityDisplay && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-light font-semibold">Kondisi:</span>
+                      <span className="text-xs font-bold text-slate-700">{detectResult.severityDisplay}</span>
+                    </div>
+                  )}
+                  {detectResult.location && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted-light font-semibold">Lokasi:</span>
+                      <span className="text-xs text-slate-700">{detectResult.location}</span>
+                    </div>
+                  )}
+                  {detectResult.triggers && detectResult.triggers.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] text-muted-light font-semibold">Estimasi:</span>
+                      {detectResult.triggers.map((t, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-light italic">{detectResult.disclaimer}</p>
+              </>
+            ) : (
+              <p className="text-xs text-muted">{detectResult.disclaimer}</p>
+            )}
+          </div>
+        </section>
+      )}
 
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">

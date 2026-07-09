@@ -8,9 +8,16 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
+  const datesParam = searchParams.get("dates");
 
   let query = supabase.from("daily_logs").select("*").eq("user_id", user.id);
-  if (date) {
+
+  if (datesParam) {
+    const dates = datesParam.split(",").map((d) => d.trim()).filter(Boolean);
+    if (dates.length > 0) {
+      query = query.in("date", dates);
+    }
+  } else if (date) {
     query = query.eq("date", date);
   }
   query = query.order("date", { ascending: false });
@@ -53,4 +60,27 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ message: "Log saved" }, { status: 201 });
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+
+  if (id) {
+    const { error } = await supabase
+      .from("daily_logs")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  } else {
+    const { error } = await supabase.from("daily_logs").delete().eq("user_id", user.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ message: "Log deleted" });
 }

@@ -7,12 +7,23 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json();
-  const plan = (body.plan as string) || "premium_monthly";
+    const body = await request.json();
+    const plan = (body.plan as string) || "premium_monthly";
 
-  if (plan !== "premium_monthly" && plan !== "premium_yearly") {
-    return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
-  }
+    const validPlans = ["premium_monthly", "premium_yearly", "pro_monthly", "pro_yearly"];
+    if (!validPlans.includes(plan)) {
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    }
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("plan")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile && profile.plan !== "free" && profile.plan === plan) {
+      return NextResponse.json({ error: "Kamu sudah ada di plan ini." }, { status: 409 });
+    }
 
   try {
     const { invoice_url } = await createInvoice(user.id, plan);

@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
     });
 
   if (insertError) {
+    await supabase.storage.from("skin_photos").remove([filePath]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
@@ -103,4 +104,37 @@ export async function POST(request: NextRequest) {
     message: "Photo uploaded",
     url: urlData.publicUrl,
   }, { status: 201 });
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "Photo ID required" }, { status: 400 });
+
+  const { data: photo } = await supabase
+    .from("skin_photos")
+    .select("url")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!photo) return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+
+  const urlPath = photo.url.split("/").slice(-2).join("/");
+  if (urlPath) {
+    await supabase.storage.from("skin_photos").remove([urlPath]);
+  }
+
+  const { error } = await supabase
+    .from("skin_photos")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ message: "Photo deleted" });
 }

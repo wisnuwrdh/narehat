@@ -16,6 +16,13 @@ function checkRateLimit(userId: string): boolean {
   return true;
 }
 
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of rateLimitMap) {
+    if (now > entry.resetAt + 60_000) rateLimitMap.delete(key);
+  }
+}, 60_000);
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -31,7 +38,7 @@ export async function POST(request: NextRequest) {
       .from("users")
       .select("plan")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     if (!profile || profile.plan === "free") {
       return NextResponse.json(

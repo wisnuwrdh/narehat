@@ -2,18 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/dashboard", icon: "home", label: "Beranda" },
   { href: "/tracker", icon: "edit_calendar", label: "Tracker" },
   { href: "/progress", icon: "trending_up", label: "Progress" },
-  { href: "/ai-consult", icon: "smart_toy", label: "AI", pro: true },
+  { href: "/ai-consult", icon: "smart_toy", label: "AI" },
   { href: "/settings", icon: "person", label: "Akun" },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult");
+  const [userPlan, setUserPlan] = useState<string>("free");
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data) => { if (data.user?.plan) setUserPlan(data.user.plan); })
+      .catch(() => {});
+  }, []);
+
+  const isPremium = userPlan !== "free";
 
   return (
     <div className={`min-h-screen bg-white ${hideNav ? "" : "pb-32"}`}>
@@ -47,7 +58,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 >
                   {item.label}
                 </span>
-                {item.pro && (
+                {item.href === "/ai-consult" && !isPremium && (
                   <span className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-primary text-white text-[7px] font-bold rounded-md leading-none">
                     PRO
                   </span>

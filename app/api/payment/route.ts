@@ -24,24 +24,44 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Not a paid invoice" });
   }
 
-  const userId = externalId.split("-")[0];
-  if (!userId) {
+  const parts = externalId.split("-");
+  const timestampIdx = parts.findIndex((p, i) => i >= 1 && /^\d{13,}$/.test(p));
+  if (timestampIdx === -1 || timestampIdx < 2) {
+    return NextResponse.json({ error: "Invalid external_id format" }, { status: 400 });
+  }
+  const userId = parts.slice(0, timestampIdx - 1).join("-");
+  const rawPlan = parts[timestampIdx - 1];
+  const validPlans = ["premium_monthly", "premium_yearly", "pro_monthly", "pro_yearly"];
+  const plan = validPlans.includes(rawPlan) ? rawPlan : null;
+
+  if (!userId || !plan) {
     return NextResponse.json({ error: "Invalid external_id" }, { status: 400 });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-  if (!serviceKey) {
+  if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ error: "Server config error" }, { status: 500 });
   }
 
-  const supabase = createClient(supabaseUrl, serviceKey);
+  const supabaseAuth = createClient(supabaseUrl, serviceKey);
 
-  const isMonthly = externalId.includes("premium_monthly");
-  const plan = isMonthly ? "premium_monthly" : "premium_yearly";
+  const { data: existing } = await supabaseAuth
+    .from("users")
+    .select("plan")
+    .eq("id", userId)
+    .maybeSingle();
 
-  const { error } = await supabase
+  if (!existing) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (existing.plan === plan) {
+    return NextResponse.json({ message: "Plan already set", userId, plan });
+  }
+
+  const { error } = await supabaseAuth
     .from("users")
     .update({ plan })
     .eq("id", userId);

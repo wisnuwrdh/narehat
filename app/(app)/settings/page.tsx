@@ -27,8 +27,23 @@ const severityLabels: Record<string, string> = {
 };
 const planLabels: Record<string, string> = {
   free: "Gratis",
-  premium_monthly: "Bulanan",
-  premium_yearly: "Tahunan",
+  premium_monthly: "Premium Bulanan",
+  premium_yearly: "Premium Tahunan",
+  pro_monthly: "Pro Bulanan",
+  pro_yearly: "Pro Tahunan",
+};
+
+const planPrices: Record<string, string> = {
+  premium_monthly: "Rp19.000/bulan",
+  premium_yearly: "Rp149.000/tahun",
+  pro_monthly: "Rp49.000/bulan",
+  pro_yearly: "Rp399.000/tahun",
+};
+
+const planFeatures: Record<string, string> = {
+  free: "Tracker ringan, progress foto, 3x AI Consult, rekomendasi produk",
+  premium: "AI Consult unlimited, deteksi jerawat dari foto, deep insight, tema custom",
+  pro: "Semua fitur Premium + analisis rutinitas, routine builder, purging checker unlimited, laporan mingguan PDF",
 };
 
 const notificationDefaults = [true, true, false];
@@ -97,6 +112,11 @@ export default function SettingsPage() {
   const handleThemeChange = (name: string) => {
     setActiveTheme(name);
     localStorage.setItem("narehat-theme", name);
+    fetch("/api/user", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: name }),
+    }).catch(() => {});
     showToast(`Tema diubah ke ${name}`);
   };
 
@@ -121,11 +141,13 @@ export default function SettingsPage() {
     showToast("Data sedang disiapkan... akan dikirim ke email kamu dalam 24 jam");
   };
 
-  const handleDelete = () => {
-    if (deleteInput === "HAPUS") {
-      showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
-      setTimeout(() => router.push("/"), 2000);
-    }
+  const handleDelete = async () => {
+    if (deleteInput !== "HAPUS") return;
+    try {
+      await fetch("/api/user", { method: "DELETE" });
+    } catch {}
+    showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
+    setTimeout(() => router.push("/"), 2000);
   };
 
   const handleLogout = async () => {
@@ -205,10 +227,14 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="material-symbols-outlined text-primary text-sm">diamond</span>
-                  <span className="text-xs font-bold text-primary">{profile.plan !== "free" ? "Premium Aktif" : "Gratis"}</span>
+                  <span className="text-xs font-bold text-primary">
+                    {profile.plan === "free" ? "Gratis" : profile.plan.includes("pro") ? "Pro Aktif" : "Premium Aktif"}
+                  </span>
                 </div>
                 <p className="text-sm font-bold text-slate-800">Plan {planLabels[profile.plan] || "Gratis"}</p>
-                <p className="text-xs text-muted mt-0.5">{profile.plan !== "free" ? "Nikmati semua fitur premium" : "Upgrade untuk fitur lengkap"}</p>
+                <p className="text-xs text-muted mt-0.5">
+                  {profile.plan !== "free" ? (profile.plan.includes("pro") ? "Semua fitur Pro tersedia" : "Nikmati semua fitur premium") : "Upgrade untuk fitur lengkap"}
+                </p>
               </div>
               <button
                 onClick={() => setShowSubDetail(!showSubDetail)}
@@ -222,10 +248,31 @@ export default function SettingsPage() {
                 {profile.plan !== "free" ? (
                   <>
                     <p className="text-xs text-slate-600 mb-2"><strong>Plan:</strong> {planLabels[profile.plan]}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {profile.plan === "premium_monthly" ? "Rp19.000/bulan" : "Rp149.000/tahun"}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> AI Deteksi Jerawat, Konsultasi RAG, Insight Mendalam, Tema Custom</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {planPrices[profile.plan] || (profile.plan.includes("yearly") ? "Rp149.000/tahun" : "Rp19.000/bulan")}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> {profile.plan.includes("pro") ? planFeatures.pro : planFeatures.premium}</p>
                     <div className="flex gap-2 mt-3">
-                      <button onClick={() => showToast("Kamu sudah di plan terbaik!")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-slate-600 rounded-xl border border-border-light hover:bg-slate-50 transition-colors">Upgrade</button>
+                      {!profile.plan.includes("pro") && (
+                        <button
+                          onClick={async () => {
+                            setSaving(true);
+                            try {
+                              const res = await fetch("/api/payment/create", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ plan: "pro_monthly" }),
+                              });
+                              const data = await res.json();
+                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
+                              else showToast("Gagal membuat invoice");
+                            } catch { showToast("Gagal terhubung ke server."); }
+                            setSaving(false);
+                          }}
+                          disabled={saving}
+                          className="btn-press flex-1 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-colors disabled:opacity-50"
+                        >
+                          Upgrade ke Pro 👑
+                        </button>
+                      )}
                       <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
                     </div>
                   </>
@@ -233,47 +280,49 @@ export default function SettingsPage() {
                   <>
                     <p className="text-xs text-slate-600 mb-2"><strong>Plan saat ini:</strong> Gratis</p>
                     <p className="text-xs text-slate-600 mb-2">Upgrade untuk akses AI Deteksi, Konsultasi RAG, Insight Mendalam, dan Tema Custom.</p>
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={async () => {
-                          setSaving(true);
-                          try {
-                            const res = await fetch("/api/payment/create", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ plan: "premium_monthly" }),
-                            });
-                            const data = await res.json();
-                            if (data.invoice_url) window.open(data.invoice_url, "_blank");
-                            else showToast("Gagal membuat invoice. Coba lagi nanti.");
-                          } catch { showToast("Gagal terhubung ke server."); }
-                          setSaving(false);
-                        }}
-                        disabled={saving}
-                        className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
-                      >
-                        {saving ? "Memproses..." : "Upgrade Bulanan"}
-                      </button>
-                      <button
-                        onClick={async () => {
-                          setSaving(true);
-                          try {
-                            const res = await fetch("/api/payment/create", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ plan: "premium_yearly" }),
-                            });
-                            const data = await res.json();
-                            if (data.invoice_url) window.open(data.invoice_url, "_blank");
-                            else showToast("Gagal membuat invoice. Coba lagi nanti.");
-                          } catch { showToast("Gagal terhubung ke server."); }
-                          setSaving(false);
-                        }}
-                        disabled={saving}
-                        className="btn-press flex-1 py-2 bg-white text-primary text-xs font-bold rounded-xl border border-primary/20 hover:bg-primary-light/20 transition-colors disabled:opacity-50"
-                      >
-                        {saving ? "..." : "Tahunan"}
-                      </button>
+                    <div className="flex flex-col gap-2 mt-3">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={async () => {
+                            setSaving(true);
+                            try {
+                              const res = await fetch("/api/payment/create", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ plan: "premium_monthly" }),
+                              });
+                              const data = await res.json();
+                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
+                              else showToast("Gagal membuat invoice. Coba lagi nanti.");
+                            } catch { showToast("Gagal terhubung ke server."); }
+                            setSaving(false);
+                          }}
+                          disabled={saving}
+                          className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        >
+                          Premium Rp19rb
+                        </button>
+                        <button
+                          onClick={async () => {
+                            setSaving(true);
+                            try {
+                              const res = await fetch("/api/payment/create", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ plan: "pro_monthly" }),
+                              });
+                              const data = await res.json();
+                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
+                              else showToast("Gagal membuat invoice. Coba lagi nanti.");
+                            } catch { showToast("Gagal terhubung ke server."); }
+                            setSaving(false);
+                          }}
+                          disabled={saving}
+                          className="btn-press flex-1 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-colors disabled:opacity-50"
+                        >
+                          Pro Rp49rb 👑
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
@@ -412,7 +461,7 @@ export default function SettingsPage() {
           <span className="material-symbols-outlined">logout</span>
           Keluar
         </button>
-        <p className="text-center text-[10px] text-muted mt-4">Narehat v0.1 &bull; &copy; 2026</p>
+        <p className="text-center text-[10px] text-muted mt-4">Narehat v0.2 &bull; &copy; {new Date().getFullYear()}</p>
       </section>
     </main>
   );

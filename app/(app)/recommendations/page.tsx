@@ -228,10 +228,12 @@ export default function RecommendationsPage() {
                 className="bg-white border border-border-subtle rounded-3xl p-4 shadow-sm card-hover"
               >
                 <div className="flex gap-4">
-                  <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-3xl text-slate-300">
-                      inventory_2
-                    </span>
+                  <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-3xl text-slate-300">inventory_2</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

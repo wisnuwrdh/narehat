@@ -40,14 +40,6 @@ const getScoreLabel = (s: number) => {
   return { label: "Sangat Baik", emoji: "sentiment_very_satisfied", color: "text-emerald-500" };
 };
 
-const summaryItems = [
-  { icon: "bedtime", color: "indigo", label: "Tidur", value: "6.2", unit: "jam", pct: 78, target: "8 jam", status: "emerald" },
-  { icon: "water_drop", color: "blue", label: "Air", value: "1.5", unit: "L", pct: 60, target: "2.5 L", status: "emerald" },
-  { icon: "psychology", color: "amber", label: "Stress", value: "Sedang", unit: "", pct: 55, target: "6/10 level", status: "amber", text: true },
-  { icon: "directions_run", color: "emerald", label: "Olahraga", value: "30", unit: "mnt", pct: 100, target: "target tercapai", status: "emerald" },
-  { icon: "spa", color: "violet", label: "Skincare", value: "2x", unit: "", pct: 100, target: "target tercapai", status: "emerald", text: true },
-];
-
 const colorMap: Record<string, string> = {
   indigo: "bg-indigo-50 text-indigo-500", blue: "bg-blue-50 text-blue-500",
   amber: "bg-amber-50 text-amber-500", emerald: "bg-emerald-50 text-emerald-500",
@@ -66,6 +58,53 @@ const quickActions = [
   { href: "/tracker", icon: "edit_note", label: "Catatan" },
   { href: "/settings", icon: "notifications_active", label: "Pengingat" },
 ];
+
+function computeStreak(logs: { date: string }[]): number {
+  if (logs.length === 0) return 0;
+  const dates = logs.map((l) => l.date).sort().reverse();
+  let streak = 0;
+  const checkDate = new Date();
+  for (const dateStr of dates) {
+    const d = checkDate.toISOString().split("T")[0];
+    if (dateStr === d) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (streak === 0 && dateStr < d) {
+      continue;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_level: number; exercise_minutes: number; skincare_morning: boolean; skincare_evening: boolean; date: string }[]): DashboardData["insights"] {
+  if (logs.length < 3) return [];
+  const insights: DashboardData["insights"] = [];
+  const avgSleep = logs.reduce((s, l) => s + l.sleep_hours, 0) / logs.length;
+  const avgWater = logs.reduce((s, l) => s + l.water_ml, 0) / logs.length;
+  const avgStress = logs.reduce((s, l) => s + l.stress_level, 0) / logs.length;
+  const skincareDays = logs.filter(l => l.skincare_morning && l.skincare_evening).length;
+
+  if (avgSleep < 6) {
+    insights.push({ title: "Tidur kurang dari 6 jam rata-rata pekan ini", description: "Kurang tidur memicu hormon kortisol yang bisa memperparah jerawat. Targetkan 7-8 jam mulai malam ini.", type: "warning" });
+  } else if (avgSleep >= 7) {
+    insights.push({ title: "Kualitas tidur bagus pekan ini!", description: "Tidur cukup membantu regenerasi sel kulit dan mengurangi inflamasi jerawat. Pertahankan!", type: "positive" });
+  }
+  if (avgWater < 1500) {
+    insights.push({ title: "Hidrasi masih di bawah target", description: "Minum minimal 2L/hari membantu kulit tetap lembap dan mendukung proses penyembuhan jerawat.", type: "warning" });
+  }
+  if (avgStress > 3) {
+    insights.push({ title: "Tingkat stress cukup tinggi pekan ini", description: "Stress memicu jerawat hormonal. Coba teknik relaksasi 5 menit sebelum tidur.", type: "warning" });
+  }
+  if (skincareDays >= 5) {
+    insights.push({ title: "Rutinitas skincare konsisten!", description: "Kamu rutin melakukan skincare pagi & malam. Konsistensi ini kunci progress kulit yang baik.", type: "positive" });
+  }
+  if (insights.length === 0) {
+    insights.push({ title: "Data pekan ini terlihat stabil", description: "Belum ada pola menonjol dari data tracker. Terus tracking untuk insight yang lebih personal.", type: "neutral" });
+  }
+  return insights;
+}
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData>({
@@ -90,46 +129,54 @@ export default function DashboardPage() {
     async function load() {
       try {
         const today = new Date().toISOString().split("T")[0];
-        const [sessionRes, trackerRes] = await Promise.all([
+        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+        const dates = [];
+        const d = new Date();
+        for (let i = 0; i < 7; i++) {
+          dates.push(d.toISOString().split("T")[0]);
+          d.setDate(d.getDate() - 1);
+        }
+
+        const params = new URLSearchParams();
+        params.set("dates", dates.join(","));
+
+        const [sessionRes, trackerRes, photosRes, weekRes] = await Promise.all([
           fetch("/api/auth/session"),
           fetch(`/api/tracker?date=${today}`),
+          fetch("/api/photos"),
+          fetch(`/api/tracker?dates=${dates.join(",")}`),
         ]);
 
         const session = await sessionRes.json();
         const tracker = await trackerRes.json();
+        const photosData = await photosRes.json();
+        const weekData = await weekRes.json();
+
         const log = tracker.logs?.[0] || null;
+        const weekLogs = weekData.logs || [];
+        const photos = (photosData.photos || []).slice(0, 4);
 
         const skinScore = computeSkinScore(log);
-        const userName = session.user?.user_metadata?.name || session.user?.email?.split("@")[0] || "User";
+        let skinScoreDelta = 0;
 
-        let streak = 0;
-        const checkDate = new Date();
-        for (let i = 0; i < 365; i++) {
-          const d = checkDate.toISOString().split("T")[0];
-          const r = await fetch(`/api/tracker?date=${d}`);
-          const j = await r.json();
-          if (j.logs?.[0]) {
-            streak++;
-            checkDate.setDate(checkDate.getDate() - 1);
-          } else if (i === 0) {
-            break;
-          } else {
-            break;
-          }
+        const yesterdayLog = weekLogs.find((l: { date: string }) => l.date === yesterdayStr);
+        if (yesterdayLog) {
+          skinScoreDelta = skinScore - computeSkinScore(yesterdayLog);
+        } else if (weekLogs.length > 1) {
+          skinScoreDelta = skinScore - computeSkinScore(weekLogs[0] === log ? weekLogs[1] : weekLogs[0]);
         }
 
-        let insights: DashboardData["insights"] = [];
-        try {
-          const iRes = await fetch("/api/ai/consult?q=insights");
-          const iData = await iRes.json();
-          if (iData.insights) insights = iData.insights;
-        } catch {}
+        const streak = computeStreak(weekLogs);
+        const insights = generateInsights(weekLogs);
 
-        setData({ userName, dailyLog: log, insights, photos: [], streak, skinScore, skinScoreDelta: 0 });
+        const userName = session.user?.user_metadata?.name || session.user?.email?.split("@")[0] || "User";
+
+        setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta });
 
         let s = 0;
         const duration = 1200;
-        const stepTime = Math.max(Math.floor(duration / skinScore), 16);
+        const stepTime = Math.max(Math.floor(duration / (skinScore || 1)), 16);
         const timer = setInterval(() => {
           s += 1;
           setAnimatedScore(s);
@@ -137,11 +184,12 @@ export default function DashboardPage() {
         }, stepTime);
 
         let st = 0;
-        const streakDuration = 200;
+        const _streak = streak;
+        const streakDuration = 80;
         const streakTimer = setInterval(() => {
           st += 1;
           setAnimatedStreak(st);
-          if (st >= streak) clearInterval(streakTimer);
+          if (st >= _streak) clearInterval(streakTimer);
         }, streakDuration);
 
         return () => { clearInterval(timer); clearInterval(streakTimer); };
@@ -155,8 +203,12 @@ export default function DashboardPage() {
   const score = animatedScore;
   const scoreMeta = getScoreLabel(animatedScore);
   const segments = Math.max(1, Math.ceil(animatedScore / 20));
-  const delta = 2;
+  const delta = data.skinScoreDelta;
   const streak = animatedStreak;
+
+  const deltaSign = delta > 0 ? "+" : "";
+  const deltaColor = delta >= 0 ? "text-emerald-600 bg-emerald-50" : "text-amber-600 bg-amber-50";
+  const deltaIcon = delta >= 0 ? "trending_up" : "trending_down";
 
   const toggleInfo = useCallback(() => {
     const next = !showInfo;
@@ -178,12 +230,13 @@ export default function DashboardPage() {
 
   const showEmptyCTA = !dailyLog;
 
-  const photoDates = data.photos.length > 0 ? data.photos.map((p, i) => ({
-    label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
+  const photoDates = data.photos.length > 0 ? data.photos.map((p) => ({
+    url: p.url,
+    label: "",
     date: p.date,
-    active: i === 0,
+    active: false,
   })) : [
-    { label: "Belum ada", date: "", active: true },
+    { url: "", label: "Belum ada", date: "", active: true },
   ];
 
   return (
@@ -224,9 +277,9 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-          <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded-lg border border-orange-100">
-            7 hari target
-          </span>
+              <span className="text-[10px] font-bold text-orange-600 bg-white px-2 py-1 rounded-lg border border-orange-100">
+                {streak >= 7 ? `${streak} hari` : "7 hari target"}
+              </span>
         </div>
       </section>
 
@@ -274,9 +327,9 @@ export default function DashboardPage() {
                 <span className="inline-flex items-center px-3 py-1.5 bg-primary-light text-primary rounded-full text-xs font-bold uppercase tracking-wider">
                   {scoreMeta.label}
                 </span>
-                <span className="flex items-center gap-1 text-emerald-600 text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-full">
-                  <span className="material-symbols-outlined text-sm">trending_up</span>
-                  {delta > 0 ? "+" : ""}{delta} dari kemarin
+                <span className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${deltaColor}`}>
+                  <span className="material-symbols-outlined text-sm">{deltaIcon}</span>
+                  {deltaSign}{delta} dari kemarin
                 </span>
               </div>
               <div className="flex gap-1 pt-1">
@@ -437,19 +490,23 @@ export default function DashboardPage() {
         <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory">
           {photoDates.map((item, i) => (
             <Link
-              key={item.date}
+              key={item.date || i}
               href="/progress"
-              className={`min-w-[140px] snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm cursor-pointer ${item.active ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10" : "bg-white border-border-subtle"}`}
+              className={`min-w-[140px] snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm cursor-pointer ${"bg-white border-border-subtle"}`}
             >
               <div className="mb-2 px-1 flex justify-between items-center">
                 <div>
-                  <span className={`text-[10px] block font-bold ${item.active ? "text-primary" : "text-slate-500"}`}>{item.label}</span>
+                  <span className="text-[10px] block text-slate-500">{item.label || (i === 0 && item.url ? "Terbaru" : `Foto ${i + 1}`)}</span>
                   <span className="text-[10px] text-muted-light">{item.date}</span>
                 </div>
-                {i === 0 && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
+                {i === 0 && item.url && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
               </div>
-              <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
+              <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
+                {item.url ? (
+                  <img src={item.url} alt={`Foto ${item.date}`} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
+                )}
               </div>
             </Link>
           ))}
@@ -468,7 +525,11 @@ export default function DashboardPage() {
               <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded">PRO</span>
             </div>
             <p className="text-xs leading-relaxed text-slate-600">
-              Fokus pada <span className="font-bold text-slate-800">kualitas tidur dan hidrasi</span>. Kulitmu butuh pemulihan setelah 3 hari kurang istirahat.
+              {dailyLog ? (
+                <>Kulitmu butuh konsistensi. Tetap tracking dan AI akan memberikan rekomendasi yang lebih personal berdasarkan data-mu.</>
+              ) : (
+                <>Isi tracker harianmu dan upload foto progress secara rutin. AI Narehat akan menganalisis polamu dan memberikan rekomendasi yang dipersonalisasi.</>
+              )}
             </p>
             <Link href="/recommendations" className="btn-press text-[10px] font-bold text-primary flex items-center gap-1 bg-white/80 hover:bg-white px-3 py-2 rounded-xl transition-colors border border-primary/10 w-fit">
               Lihat rencana lengkap <span className="material-symbols-outlined text-sm">chevron_right</span>

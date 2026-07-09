@@ -10,7 +10,11 @@ export async function GET() {
     .from("users")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
+
+  if (!profile) {
+    return NextResponse.json({ user: { id: user.id, email: user.email } });
+  }
 
   return NextResponse.json({ user: { ...profile, email: user.email } });
 }
@@ -41,4 +45,35 @@ export async function PATCH(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ message: "Profile updated" });
+}
+
+export async function DELETE() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { error } = await supabase.from("daily_logs").delete().eq("user_id", user.id);
+  if (error) console.error("Failed to delete logs:", error.message);
+
+  const { error: photosError } = await supabase.from("skin_photos").delete().eq("user_id", user.id);
+  if (photosError) console.error("Failed to delete photo records:", photosError.message);
+
+  const { error: insightsError } = await supabase.from("insights").delete().eq("user_id", user.id);
+  if (insightsError) console.error("Failed to delete insights:", insightsError.message);
+
+  const { error: productsError } = await supabase.from("skincare_products").delete().eq("user_id", user.id);
+  if (productsError) console.error("Failed to delete products:", productsError.message);
+
+  const { error: userError } = await supabase.from("users").delete().eq("id", user.id);
+  if (userError) console.error("Failed to delete user profile:", userError.message);
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (serviceKey) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const adminClient = (await import("@supabase/supabase-js")).createClient(supabaseUrl, serviceKey);
+    const { error: authError } = await adminClient.auth.admin.deleteUser(user.id);
+    if (authError) console.error("Failed to delete auth user:", authError.message);
+  }
+
+  return NextResponse.json({ message: "Account deleted" });
 }

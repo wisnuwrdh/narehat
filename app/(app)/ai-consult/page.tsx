@@ -40,8 +40,24 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>("free");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const FREE_LIMIT = 3;
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const remaining = FREE_LIMIT - userMessageCount;
+  const isPremium = userPlan !== "free";
+  const limitReached = !isPremium && remaining <= 0;
+
+  useEffect(() => {
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user?.plan) setUserPlan(data.user.plan);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));
@@ -57,7 +73,7 @@ export default function AIConsultPage() {
   const sendMessage = useCallback(
     async (text?: string) => {
       const question = (text || input).trim();
-      if (!question || loading) return;
+      if (!question || loading || limitReached) return;
 
       const userMsg: Message = {
         id: crypto.randomUUID(),
@@ -148,6 +164,13 @@ export default function AIConsultPage() {
 
   const formatSimilarity = (s: number) => `${Math.round(s * 100)}%`;
 
+  const renderContent = (text: string) => {
+    const html = text
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "<br />");
+    return <span dangerouslySetInnerHTML={{ __html: html }} />;
+  };
+
   return (
     <div className="h-dvh bg-white flex flex-col">
       <header className="px-6 pt-6 pb-3 flex items-center gap-3 bg-white sticky top-0 z-10 border-b border-border-subtle">
@@ -168,16 +191,22 @@ export default function AIConsultPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {!isPremium && !limitReached && (
+            <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-200">
+              {remaining}/{FREE_LIMIT}
+            </span>
+          )}
           <button
             onClick={clearChat}
             className="btn-press p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
           >
             <span className="material-symbols-outlined text-lg">delete_sweep</span>
           </button>
-          <span className="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded-lg">
-            PRO
-          </span>
-        </div>
+          {isPremium && (
+            <span className="px-2 py-1 bg-primary text-white text-[10px] font-bold rounded-lg">
+              PRO
+            </span>
+          )}
       </header>
 
       <div
@@ -216,7 +245,7 @@ export default function AIConsultPage() {
                   }
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {msg.content}
+                    {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
                   </p>
                 </div>
                 {isUser && (
@@ -302,11 +331,30 @@ export default function AIConsultPage() {
           </div>
         </div>
       )}
+      {limitReached && (
+        <div className="px-4 pb-2">
+          <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white">
+            <p className="text-sm font-bold mb-1">Batas konsultasi gratis tercapai</p>
+            <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
+            <Link
+              href="/pricing"
+              className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"
+            >
+              Lihat Harga Upgrade
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div
         className="px-4 py-3 bg-white border-t border-border-subtle"
         style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
       >
+        {limitReached ? (
+          <div className="flex items-center justify-center py-2">
+            <span className="text-sm text-muted">Kamu telah menggunakan semua kouta gratis</span>
+          </div>
+        ) : (
         <div className="flex items-end gap-2">
           <div className="flex-1 bg-slate-50 rounded-2xl border border-border-light flex items-end px-3 py-2">
             <textarea
@@ -341,6 +389,7 @@ export default function AIConsultPage() {
             <span className="material-symbols-outlined text-lg">send</span>
           </button>
         </div>
+        )}
       </div>
     </div>
   );
