@@ -1,17 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-
-interface UserProfile {
-  name: string;
-  email: string;
-  skin_type: string;
-  acne_severity: string;
-  goal: string;
-  plan: string;
-}
+import { useUser } from "@/contexts/UserContext";
 
 const skinLabels: Record<string, string> = {
   oily: "Berminyak",
@@ -46,57 +38,23 @@ const planFeatures: Record<string, string> = {
   pro: "Semua fitur Premium + analisis rutinitas, routine builder, purging checker unlimited, laporan mingguan PDF",
 };
 
-const notificationDefaults = [true, true, false];
-
 export default function SettingsPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile>({
-    name: "",
-    email: "",
-    skin_type: "combination",
-    acne_severity: "mild",
-    goal: "clear_acne",
-    plan: "free",
-  });
-  const [loaded, setLoaded] = useState(false);
+  const { user, updateUser } = useUser();
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [notifications, setNotifications] = useState(notificationDefaults);
+  const [name, setName] = useState(user.name);
+  const [email, setEmail] = useState(user.email);
+  const [notifications, setNotifications] = useState([
+    user.notif_reminder,
+    user.notif_insight,
+    user.notif_promo,
+  ]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteInput, setDeleteInput] = useState("");
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showSubDetail, setShowSubDetail] = useState(false);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (loaded) return;
-    fetch("/api/user")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user) {
-          const u = data.user;
-          setProfile({
-            name: u.name || u.email?.split("@")[0] || "User",
-            email: u.email || "",
-            skin_type: u.skin_type || "combination",
-            acne_severity: u.acne_severity || "mild",
-            goal: u.goal || "clear_acne",
-            plan: u.plan || "free",
-          });
-          setName(u.name || "");
-          setEmail(u.email || "");
-          setNotifications([
-            u.notif_reminder ?? true,
-            u.notif_insight ?? true,
-            u.notif_promo ?? false,
-          ]);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoaded(true));
-  }, [loaded]);
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -105,18 +63,9 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async () => {
     setSaving(true);
-    try {
-      const res = await fetch("/api/user", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      if (res.ok) {
-        setProfile((p) => ({ ...p, name }));
-        setEditing(false);
-        showToast("Profil berhasil diperbarui");
-      }
-    } catch {}
+    await updateUser({ name });
+    setEditing(false);
+    showToast("Profil berhasil diperbarui");
     setSaving(false);
   };
 
@@ -136,7 +85,6 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    localStorage.removeItem("narehat-theme");
     router.push("/login");
   };
 
@@ -180,18 +128,18 @@ export default function SettingsPage() {
                 <button onClick={handleSaveProfile} disabled={saving} className="btn-press flex-1 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50">
                   {saving ? "Menyimpan..." : "Simpan"}
                 </button>
-                <button onClick={() => { setName(profile.name); setEmail(profile.email); setEditing(false); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
+                <button onClick={() => { setName(user.name); setEmail(user.email); setEditing(false); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
               </div>
             </div>
           ) : (
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center text-2xl">👤</div>
               <div className="flex-1">
-                <h2 className="font-bold text-slate-900">{profile.name}</h2>
-                <p className="text-xs text-muted">{profile.email}</p>
+                <h2 className="font-bold text-slate-900">{user.name}</h2>
+                <p className="text-xs text-muted">{user.email}</p>
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">{skinLabels[profile.skin_type] || "Kombinasi"}</span>
-                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">{severityLabels[profile.acne_severity] || "Sedang"}</span>
+                  <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">{skinLabels[user.skin_type] || "Kombinasi"}</span>
+                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">{severityLabels[user.acne_severity] || "Sedang"}</span>
                 </div>
               </div>
               <button onClick={() => setEditing(true)} className="btn-press p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
@@ -211,30 +159,30 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="material-symbols-outlined text-primary text-sm">diamond</span>
                   <span className="text-xs font-bold text-primary">
-                    {profile.plan === "free" ? "Gratis" : profile.plan.includes("pro") ? "Pro Aktif" : "Premium Aktif"}
+                    {user.plan === "free" ? "Gratis" : user.plan.includes("pro") ? "Pro Aktif" : "Premium Aktif"}
                   </span>
                 </div>
-                <p className="text-sm font-bold text-slate-800">Plan {planLabels[profile.plan] || "Gratis"}</p>
+                <p className="text-sm font-bold text-slate-800">Plan {planLabels[user.plan] || "Gratis"}</p>
                 <p className="text-xs text-muted mt-0.5">
-                  {profile.plan !== "free" ? (profile.plan.includes("pro") ? "Semua fitur Pro tersedia" : "Nikmati semua fitur premium") : "Upgrade untuk fitur lengkap"}
+                  {user.plan !== "free" ? (user.plan.includes("pro") ? "Semua fitur Pro tersedia" : "Nikmati semua fitur premium") : "Upgrade untuk fitur lengkap"}
                 </p>
               </div>
               <button
                 onClick={() => setShowSubDetail(!showSubDetail)}
-                className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors ${profile.plan !== "free" ? "bg-primary text-white hover:bg-primary/90" : "bg-primary text-white hover:bg-primary/90"}`}
+                className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors ${user.plan !== "free" ? "bg-primary text-white hover:bg-primary/90" : "bg-primary text-white hover:bg-primary/90"}`}
               >
-                {showSubDetail ? "Tutup" : profile.plan !== "free" ? "Kelola" : "Upgrade"}
+                {showSubDetail ? "Tutup" : user.plan !== "free" ? "Kelola" : "Upgrade"}
               </button>
             </div>
               {showSubDetail && (
               <div className="mt-4 pt-4 border-t border-primary/10 animate-scale-in">
-                {profile.plan !== "free" ? (
+                {user.plan !== "free" ? (
                   <>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Plan:</strong> {planLabels[profile.plan]}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {planPrices[profile.plan] || (profile.plan.includes("yearly") ? "Rp149.000/tahun" : "Rp19.000/bulan")}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> {profile.plan.includes("pro") ? planFeatures.pro : planFeatures.premium}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Plan:</strong> {planLabels[user.plan]}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {planPrices[user.plan] || (user.plan.includes("yearly") ? "Rp149.000/tahun" : "Rp19.000/bulan")}</p>
+                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> {user.plan.includes("pro") ? planFeatures.pro : planFeatures.premium}</p>
                     <div className="flex gap-2 mt-3">
-                      {!profile.plan.includes("pro") && (
+                      {!user.plan.includes("pro") && (
                         <button
                           onClick={async () => {
                             setSaving(true);
@@ -338,17 +286,10 @@ export default function SettingsPage() {
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input type="checkbox" checked={notifications[i]} onChange={() => {
                     const idx = i;
-                    setNotifications((prev) => {
-                      const next = [...prev];
-                      next[idx] = !next[idx];
-                      const keys = ["notif_reminder", "notif_insight", "notif_promo"];
-                      fetch("/api/user", {
-                        method: "PATCH",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ [keys[idx]]: next[idx] }),
-                      }).catch(() => {});
-                      return next;
-                    });
+                    const keys = ["notif_reminder", "notif_insight", "notif_promo"];
+                    const nextVal = !notifications[idx];
+                    setNotifications((prev) => { const next = [...prev]; next[idx] = nextVal; return next; });
+                    updateUser({ [keys[idx]]: nextVal } as Record<string, unknown>);
                   }} className="sr-only peer" />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                 </label>

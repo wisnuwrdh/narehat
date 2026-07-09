@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ const WELCOME_MESSAGE: Message = {
 };
 
 export default function AIConsultPage() {
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window === "undefined") return [WELCOME_MESSAGE];
     try {
@@ -40,24 +42,14 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userPlan, setUserPlan] = useState<string>("free");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const FREE_LIMIT = 3;
   const userMessageCount = messages.filter((m) => m.role === "user").length;
   const remaining = FREE_LIMIT - userMessageCount;
-  const isPremium = userPlan !== "free";
-  const limitReached = !isPremium && remaining <= 0;
-
-  useEffect(() => {
-    fetch("/api/user")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user?.plan) setUserPlan(data.user.plan);
-      })
-      .catch(() => {});
-  }, []);
+  const isPremium = user.plan !== "free";
+  const limitReached = !isPremium && userMessageCount >= FREE_LIMIT;
 
   useEffect(() => {
     localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));

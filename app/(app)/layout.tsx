@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { UserProvider, useUser } from "@/contexts/UserContext";
 
 const navItems = [
   { href: "/dashboard", icon: "home", label: "Beranda" },
@@ -12,19 +12,11 @@ const navItems = [
   { href: "/settings", icon: "person", label: "Akun" },
 ];
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult") || pathname.startsWith("/notifications");
-  const [userPlan, setUserPlan] = useState<string>("free");
-
-  useEffect(() => {
-    fetch("/api/user")
-      .then((r) => r.json())
-      .then((data) => { if (data.user?.plan) setUserPlan(data.user.plan); })
-      .catch(() => {});
-  }, []);
-
-  const isPremium = userPlan !== "free";
+  const { user } = useUser();
+  const isPremium = user.plan !== "free";
 
   return (
     <div className={`min-h-screen bg-white ${hideNav ? "" : "pb-32"}`}>
@@ -73,5 +65,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
       )}
     </div>
+  );
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <UserProvider>
+      <AppShell>{children}</AppShell>
+    </UserProvider>
   );
 }

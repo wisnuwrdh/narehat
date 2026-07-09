@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useUser } from "@/contexts/UserContext";
 
 interface DashboardData {
   userName: string;
@@ -107,6 +108,7 @@ function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_
 }
 
 export default function DashboardPage() {
+  const { user } = useUser();
   const [data, setData] = useState<DashboardData>({
     userName: "",
     dailyLog: null,
@@ -142,17 +144,13 @@ export default function DashboardPage() {
         const params = new URLSearchParams();
         params.set("dates", dates.join(","));
 
-        const [sessionRes, trackerRes, photosRes, weekRes, notifRes] = await Promise.all([
-          fetch("/api/auth/session"),
+        const [trackerRes, photosRes, weekRes, notifRes] = await Promise.all([
           fetch(`/api/tracker?date=${today}`),
           fetch("/api/photos"),
           fetch(`/api/tracker?dates=${dates.join(",")}`),
           fetch("/api/notifications?unread_only=true&limit=5"),
         ]);
 
-        fetch("/api/notifications", { method: "POST" }).catch(() => {});
-
-        const session = await sessionRes.json();
         const tracker = await trackerRes.json();
         const photosData = await photosRes.json();
         const weekData = await weekRes.json();
@@ -177,7 +175,7 @@ export default function DashboardPage() {
         const streak = computeStreak(weekLogs);
         const insights = generateInsights(weekLogs);
 
-        const userName = session.user?.user_metadata?.name || session.user?.email?.split("@")[0] || "User";
+        const userName = user.name || "User";
 
         setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta });
 
@@ -206,6 +204,12 @@ export default function DashboardPage() {
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (user.name) {
+      setData((d) => ({ ...d, userName: user.name }));
+    }
+  }, [user.name]);
 
   const score = animatedScore;
   const scoreMeta = getScoreLabel(animatedScore);
