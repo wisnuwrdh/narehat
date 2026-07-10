@@ -253,11 +253,8 @@ export default function DashboardPage() {
   return (
     <main className="max-w-md mx-auto">
       <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
-        <div className="animate-fade-in-up">
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-slate-900">Halo, {data.userName || "User"}</h1>
-            <span className="text-lg">👋</span>
-          </div>
+          <div className="animate-fade-in-up">
+            <h1 className="text-xl font-bold text-slate-900 mb-1">Halo, {data.userName || "User"}</h1>
           <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
         </div>
         <div className="flex gap-2 animate-fade-in-up delay-100">
