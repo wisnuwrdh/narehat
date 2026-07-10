@@ -1,10 +1,10 @@
 -- ============================================================
--- Narehat — AI Analysis Storage (self-contained)
+-- Narehat — AI Analysis Storage (self-contained, fallback-safe)
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS public.skin_photos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL,
   url TEXT NOT NULL,
   date DATE NOT NULL DEFAULT CURRENT_DATE,
   notes TEXT DEFAULT '',
@@ -12,6 +12,14 @@ CREATE TABLE IF NOT EXISTS public.skin_photos (
   ai_analysis JSONB,
   analysis_type TEXT CHECK (analysis_type IN ('detect', 'purging'))
 );
+
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users' AND table_schema = 'public') THEN
+    IF NOT EXISTS (SELECT FROM information_schema.table_constraints WHERE constraint_name = 'skin_photos_user_id_fkey' AND table_schema = 'public') THEN
+      ALTER TABLE public.skin_photos ADD CONSTRAINT skin_photos_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+    END IF;
+  END IF;
+END $$;
 
 ALTER TABLE public.skin_photos ENABLE ROW LEVEL SECURITY;
 
