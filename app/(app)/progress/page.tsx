@@ -52,45 +52,81 @@ export default function ProgressPage() {
   useEffect(() => {
     async function load() {
       const today = new Date();
-      const ranges: { key: Range; days: number }[] = [
-        { key: "7", days: 7 },
-        { key: "30", days: 30 },
-        { key: "90", days: 90 },
-      ];
-      const result: Record<Range, ChartData> = { "7": { labels: [], scores: [] }, "30": { labels: [], scores: [] }, "90": { labels: [], scores: [] } };
-      for (const r of ranges) {
-        const start = new Date(today);
-        start.setDate(today.getDate() - r.days + 1);
-        const dates: string[] = [];
-        for (let i = 0; i < r.days; i++) {
-          const d = new Date(start);
-          d.setDate(start.getDate() + i);
-          dates.push(d.toISOString().split("T")[0]);
-        }
+      const days = 30;
+      const start = new Date(today);
+      start.setDate(today.getDate() - days + 1);
+      const dates: string[] = [];
+      for (let i = 0; i < days; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        dates.push(d.toISOString().split("T")[0]);
+      }
+
+      try {
+        const res = await fetch(`/api/tracker?dates=${dates.join(",")}`);
+        const j = await res.json();
+        const logs = (j.logs || []) as Record<string, unknown>[];
         const logsByDate: Record<string, Record<string, number>> = {};
-        for (const date of dates) {
-          try {
-            const res = await fetch(`/api/tracker?date=${date}`);
-            const j = await res.json();
-            if (j.logs?.[0]) logsByDate[date] = j.logs[0];
-          } catch {}
+        for (const log of logs) {
+          logsByDate[log.date as string] = log as unknown as Record<string, number>;
         }
+
         const labels: string[] = [];
         const scores: number[] = [];
         for (const date of dates) {
           const log = logsByDate[date];
           if (log) {
-            labels.push(formatDateLabel(date, r.key));
+            labels.push(formatDateLabel(date, "30"));
             scores.push(computeSkinScore(log));
           }
         }
-        result[r.key] = { labels, scores };
-      }
-      setChartData(result);
+
+        setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
+      } catch {}
+
       setLoaded(true);
     }
     load();
   }, []);
+
+  useEffect(() => {
+    if (!loaded || chartData[range].labels.length > 0) return;
+    async function load() {
+      const today = new Date();
+      const days = range === "7" ? 7 : range === "30" ? 30 : 90;
+      const start = new Date(today);
+      start.setDate(today.getDate() - days + 1);
+      const dates: string[] = [];
+      for (let i = 0; i < days; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        dates.push(d.toISOString().split("T")[0]);
+      }
+
+      try {
+        const res = await fetch(`/api/tracker?dates=${dates.join(",")}`);
+        const j = await res.json();
+        const logs = (j.logs || []) as Record<string, unknown>[];
+        const logsByDate: Record<string, Record<string, number>> = {};
+        for (const log of logs) {
+          logsByDate[log.date as string] = log as unknown as Record<string, number>;
+        }
+
+        const labels: string[] = [];
+        const scores: number[] = [];
+        for (const date of dates) {
+          const log = logsByDate[date];
+          if (log) {
+            labels.push(formatDateLabel(date, range));
+            scores.push(computeSkinScore(log));
+          }
+        }
+
+        setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
+      } catch {}
+    }
+    load();
+  }, [range, loaded]);
 
   useEffect(() => {
     fetch("/api/photos")

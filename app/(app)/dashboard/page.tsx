@@ -141,25 +141,20 @@ export default function DashboardPage() {
           d.setDate(d.getDate() - 1);
         }
 
-        const params = new URLSearchParams();
-        params.set("dates", dates.join(","));
-
-        const [trackerRes, photosRes, weekRes, notifRes] = await Promise.all([
-          fetch(`/api/tracker?date=${today}`),
-          fetch("/api/photos"),
+        const [weekRes, photosRes, notifRes] = await Promise.all([
           fetch(`/api/tracker?dates=${dates.join(",")}`),
+          fetch("/api/photos"),
           fetch("/api/notifications?unread_only=true&limit=5"),
         ]);
 
-        const tracker = await trackerRes.json();
-        const photosData = await photosRes.json();
         const weekData = await weekRes.json();
+        const photosData = await photosRes.json();
         const notifData = await notifRes.json();
 
         setUnreadCount(notifData.unread_count || 0);
 
-        const log = tracker.logs?.[0] || null;
         const weekLogs = weekData.logs || [];
+        const log = weekLogs.find((l: { date: string }) => l.date === today) || null;
         const photos = (photosData.photos || []).slice(0, 4);
 
         const skinScore = computeSkinScore(log);
