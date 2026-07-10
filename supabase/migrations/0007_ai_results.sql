@@ -13,6 +13,17 @@ CREATE TABLE IF NOT EXISTS public.skin_photos (
   analysis_type TEXT CHECK (analysis_type IN ('detect', 'purging'))
 );
 
+ALTER TABLE public.skin_photos ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT FROM pg_policies WHERE tablename = 'skin_photos' AND policyname = 'Users can manage own photos') THEN
+    CREATE POLICY "Users can manage own photos" ON public.skin_photos
+      FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_skin_photos_user_date ON public.skin_photos(user_id, date DESC);
+
 DO $$ BEGIN
   IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'skin_photos' AND table_schema = 'public') THEN
     BEGIN
