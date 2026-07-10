@@ -44,13 +44,13 @@ export async function POST(request: NextRequest) {
     const FREE_LIMIT = 3;
 
     if (!isPaying) {
-      const { count } = await supabase
+      const { data: usageRows } = await supabase
         .from("ai_usage")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("user_id", user.id)
         .eq("feature", "consult");
 
-      if (count !== null && count >= FREE_LIMIT) {
+      if ((usageRows || []).length >= FREE_LIMIT) {
         return NextResponse.json(
           {
             error: "Batas konsultasi gratis tercapai",
@@ -118,18 +118,19 @@ export async function POST(request: NextRequest) {
     const result = await consult(question, insightContext);
 
     if (!isPaying) {
-      await supabase.from("ai_usage").insert({
+      const { error: insertErr } = await supabase.from("ai_usage").insert({
         user_id: user.id,
         feature: "consult",
       });
+      if (insertErr) console.error("ai_usage insert failed:", insertErr);
 
-      const { count: afterCount } = await supabase
+      const { data: afterRows } = await supabase
         .from("ai_usage")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("user_id", user.id)
         .eq("feature", "consult");
 
-      const freeRemaining = Math.max(0, FREE_LIMIT - (afterCount || 0));
+      const freeRemaining = Math.max(0, FREE_LIMIT - (afterRows || []).length);
 
       return NextResponse.json({
         question,

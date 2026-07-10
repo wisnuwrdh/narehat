@@ -18,13 +18,13 @@ export async function POST(request: NextRequest) {
   const isPro = profile.plan.includes("pro");
 
   if (!isPro) {
-    const { count } = await supabase
+    const { data: usageRows } = await supabase
       .from("ai_usage")
-      .select("*", { count: "exact", head: true })
+      .select("id")
       .eq("user_id", user.id)
       .eq("feature", "purging");
 
-    if (count && count >= 1) {
+    if ((usageRows || []).length >= 1) {
       return NextResponse.json(
         { error: "Batas purging checker gratis tercapai (1x). Upgrade ke Pro untuk unlimited." },
         { status: 402 }
@@ -83,10 +83,11 @@ export async function POST(request: NextRequest) {
   }
 
   if (!isPro) {
-    await supabase.from("ai_usage").insert({
+    const { error: insertErr } = await supabase.from("ai_usage").insert({
       user_id: user.id,
       feature: "purging",
     });
+    if (insertErr) console.error("ai_usage insert failed:", insertErr);
   }
 
   return NextResponse.json({
