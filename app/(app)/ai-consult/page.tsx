@@ -42,14 +42,25 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [freeRemaining, setFreeRemaining] = useState(3);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const FREE_LIMIT = 3;
-  const userMessageCount = messages.filter((m) => m.role === "user").length;
-  const remaining = FREE_LIMIT - userMessageCount;
   const isPremium = user.plan !== "free";
-  const limitReached = !isPremium && userMessageCount >= FREE_LIMIT;
+  const limitReached = !isPremium && freeRemaining <= 0;
+  const FREE_LIMIT = 3;
+
+  useEffect(() => {
+    if (isPremium) return;
+    fetch("/api/ai/quota")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.consult) {
+          setFreeRemaining(data.consult.limit - data.consult.used);
+        }
+      })
+      .catch(() => {});
+  }, [isPremium]);
 
   useEffect(() => {
     localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));
@@ -91,6 +102,9 @@ export default function AIConsultPage() {
 
         if (!res.ok) {
           const err = await res.json();
+          if (res.status === 402) {
+            setFreeRemaining(0);
+          }
           const errMsg: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
@@ -103,6 +117,10 @@ export default function AIConsultPage() {
         }
 
         const data = await res.json();
+
+        if (typeof data.free_remaining === "number") {
+          setFreeRemaining(data.free_remaining);
+        }
 
         const assistantMsg: Message = {
           id: crypto.randomUUID(),
@@ -126,7 +144,7 @@ export default function AIConsultPage() {
         setLoading(false);
       }
     },
-    [input, loading]
+    [input, loading, limitReached]
   );
 
   const clearChat = useCallback(() => {
@@ -185,7 +203,7 @@ export default function AIConsultPage() {
         <div className="flex items-center gap-2">
           {!isPremium && !limitReached && (
             <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-200">
-              {remaining}/{FREE_LIMIT}
+              {freeRemaining}/{FREE_LIMIT}
             </span>
           )}
           <button

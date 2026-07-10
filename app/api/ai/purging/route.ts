@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
 
   if (!isPro) {
     const { count } = await supabase
-      .from("skin_photos")
+      .from("ai_usage")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .eq("analysis_type", "purging");
+      .eq("feature", "purging");
 
     if (count && count >= 1) {
       return NextResponse.json(
@@ -80,6 +80,13 @@ export async function POST(request: NextRequest) {
 
   if (insertErr) {
     return NextResponse.json({ error: "Gagal menyimpan hasil analisis" }, { status: 500 });
+  }
+
+  if (!isPro) {
+    await supabase.from("ai_usage").insert({
+      user_id: user.id,
+      feature: "purging",
+    });
   }
 
   return NextResponse.json({

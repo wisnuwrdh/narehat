@@ -40,15 +40,26 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (!profile || profile.plan === "free") {
-      return NextResponse.json(
-        {
-          error: "Premium required",
-          message:
-            "AI Consultant adalah fitur premium. Upgrade plan kamu untuk mengakses konsultasi AI berbasis jurnal dermatologi.",
-        },
-        { status: 403 }
-      );
+    const isPaying = profile && profile.plan !== "free";
+    const FREE_LIMIT = 3;
+
+    if (!isPaying) {
+      const { count } = await supabase
+        .from("ai_usage")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("feature", "consult");
+
+      if (count !== null && count >= FREE_LIMIT) {
+        return NextResponse.json(
+          {
+            error: "Batas konsultasi gratis tercapai",
+            message: "Kamu sudah menggunakan 3x AI Consult gratis. Upgrade ke Premium untuk konsultasi unlimited.",
+            free_remaining: 0,
+          },
+          { status: 402 }
+        );
+      }
     }
 
     if (!checkRateLimit(user.id)) {
@@ -105,6 +116,29 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await consult(question, insightContext);
+
+    if (!isPaying) {
+      await supabase.from("ai_usage").insert({
+        user_id: user.id,
+        feature: "consult",
+      });
+
+      const { count: afterCount } = await supabase
+        .from("ai_usage")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .eq("feature", "consult");
+
+      const freeRemaining = Math.max(0, FREE_LIMIT - (afterCount || 0));
+
+      return NextResponse.json({
+        question,
+        answer: result.answer,
+        sources: result.sources,
+        disclaimer: result.disclaimer,
+        free_remaining: freeRemaining,
+      });
+    }
 
     return NextResponse.json({
       question,
