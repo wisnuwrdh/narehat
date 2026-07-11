@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.2 (MVP Built — pending deployment & user validation)
+**Versi:** 0.3 (All Features Built — pending deployment & user validation)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -57,7 +57,7 @@ Pertama kali app memberikan insight seperti:
 | Progress Foto Mingguan | Upload 1x/minggu, timeline view, side-by-side comparison | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + affiliate link Shopee/Tokopedia | ✅ Done |
 | AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
-| Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | 🔜 Planned |
+| Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
 
 ### ⭐ Premium — Rp19.000/bulan
 
@@ -65,7 +65,7 @@ Pertama kali app memberikan insight seperti:
 |-------|-----------|--------|
 | Semua fitur Free (unlimited) | — | ✅ |
 | AI Consult UNLIMITED | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
-| AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu | 🔜 Placeholder → real (GPT-4o-mini) |
+| AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu (GPT-4o-mini) | ✅ Done |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
 | Notifikasi & Pengingat | Reminder tracker harian, insight baru, promo | ✅ Done |
@@ -75,10 +75,10 @@ Pertama kali app memberikan insight seperti:
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
-| AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan | 🔜 Planned |
-| Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, affiliate link | 🔜 Planned |
-| Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | 🔜 Planned |
-| Weekly Skin Report | Auto-generate laporan mingguan: skin score, foto banding, trigger terdeteksi, rekomendasi → export PDF | 🔜 Planned |
+| AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
+| Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, affiliate link | ✅ Done |
+| Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | ✅ Done |
+| Weekly Skin Report | Auto-generate laporan mingguan: skin score, foto banding, trigger, rekomendasi → export PDF | ✅ Done |
 
 ---
 
@@ -148,9 +148,11 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ### App Pages (Setelah Login)
 ```
 /dashboard        → Overview kondisi kulit + skin score + insight harian
-/tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes)
-/progress         → Grafik tren + timeline foto + perbandingan side-by-side
-/ai-consult       → Chat AI berbasis RAG jurnal dermatologi [PREMIUM/PRO]
+/tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes; AI deteksi + purging checker)
+/progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF
+/ai-consult       → Chat AI berbasis RAG jurnal dermatologi (3x free, unlimited Premium)
+/notifications    → In-app notification center (reminder, insight, promo)
+/routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + affiliate link
 /settings         → Profil, notifikasi, subscription management
 ```
@@ -167,14 +169,9 @@ Web App + PWA (bisa di-install di HP seperti native app)
 - **Background:** Pure white (#FFFFFF) — bukan cream/off-white
 - **Animasi (MVP):** Micro-animation sederhana (transisi angka, progress ring, subtle motion di background/loading state)
 
-### Sistem Tema (Premium/Pro)
-
-| Tema | Accent Color | Tone of Voice |
-|------|-------------|---------------|
-| Default (Minimalis) | Soft navy / slate | Informatif, bersih |
-| Feminine | Dusty rose / mauve | Supportif, encouraging |
-| Dark / Sleek | Charcoal + electric blue | To the point, data-driven |
-| Nature | Sage green + earth | Holistic, calming |
+### Brand Identity
+- **Primary color:** Navy `#3525cd` — bersih, profesional, consistent across all pages
+- **Animasi:** Micro-animation sederhana (transisi angka, progress ring, chart animation)
 
 ---
 
@@ -189,13 +186,40 @@ User Query → Xenova Embedding (local, all-MiniLM-L6-v2)
     → Jawaban terstruktur + sitasi jurnal + disclaimer
 ```
 
-### AI Deteksi Jerawat (Premium — pending implementasi)
+### AI Deteksi Jerawat (Premium — GPT-4o-mini Vision)
 ```
 Upload foto → GPT-4o-mini Vision API → analisis:
   - Jenis jerawat (papule, pustule, nodule, cystic, comedonal)
   - Severity (mild / moderate / informative, no medical claim)
   - Area wajah
   - Estimasi faktor pemicu
+  - Disimpan ke skin_photos.ai_analysis (JSONB)
+```
+
+### AI Purging Checker (Pro — GPT-4o-mini Vision)
+```
+Upload foto + nama produk baru → GPT-4o-mini Vision → klasifikasi:
+  - Purging (reaksi normal, bertahan 4-6 minggu) vs Breakout (reaksi negatif)
+  - Confidence score + rekomendasi tindakan
+```
+
+### AI Routine Analyzer (Pro — SumoPod LLM)
+```
+Input daftar produk → SumoPod deepseek-v4-flash → analisis:
+  - Konflik ingredients, over-exfoliation, urutan pemakaian salah
+  - Missing steps, iritan, duplikasi produk
+```
+
+### AI Routine Builder (Pro — SumoPod LLM)
+```
+Quiz: skin type, goal, budget, preferensi waktu → AI generate:
+  - Rutinitas AM + PM card lengkap dengan rekomendasi produk
+```
+
+### Weekly Skin Report (Pro — Print/PDF)
+```
+GET /api/report → aggregate 7 hari tracker + foto + insight + AI results
+→ HTML report di tab baru → window.print() → simpan sebagai PDF
 ```
 
 ### Tech Stack
@@ -229,47 +253,55 @@ narehat/
 │   │   ├── login/page.tsx         → /login
 │   │   ├── register/page.tsx      → /register
 │   │   └── onboarding/page.tsx    → /onboarding
-│   ├── (app)/
-│   │   ├── dashboard/page.tsx     → /dashboard
-│   │   ├── tracker/page.tsx       → /tracker
-│   │   ├── progress/page.tsx      → /progress
-│   │   ├── ai-consult/page.tsx    → /ai-consult
-│   │   ├── notifications/page.tsx → /notifications
-│   │   ├── recommendations/page.tsx → /recommendations
-│   │   ├── settings/page.tsx      → /settings
-│   │   └── layout.tsx             # Auth guard + bottom nav
-│   └── api/
-│       ├── auth/                  # ⚠️ Auth callback
-│       ├── tracker/               # CRUD daily_logs
-│       ├── photos/                # ⚠️ Upload Supabase Storage
-│       ├── user/                  # Profile read/update
-│       ├── ai/
-│       │   ├── detect/            # ⚠️ AI deteksi jerawat (premium, GPT-4o-mini)
-│       │   └── consult/           # ⚠️ RAG chat (pgvector + SumoPod LLM)
-│       ├── recommendations/       # Produk rekomendasi
-│       ├── notifications/          # CRUD notifikasi user
-│       └── payment/               # ⚠️ Webhook Xendit + create invoice
-│
-├── components/landing/            # Landing page sections
-├── components/ui/                 # Base components
-├── components/onboarding/         # Step wizard
-├── contexts/                      # React Context providers
-│
-├── lib/
-│   ├── supabase/                  # client.ts, server.ts
-│   ├── ai/
-│   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
-│   │   ├── rag.ts                 # RAG pipeline + SumoPod call
-│   │   └── vision.ts              # AI foto deteksi (GPT-4o-mini)
-│   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
-│   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
-│   └── security/                  # Rate limiter, file validation
-│
-├── supabase/migrations/           # 6 migration files
-├── types/                         # TypeScript types
-├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
-├── middleware.ts                  # Auth guard
-└── public/                        # Static assets
+  │   ├── (app)/
+  │   │   ├── dashboard/page.tsx     → /dashboard
+  │   │   ├── tracker/page.tsx       → /tracker
+  │   │   ├── progress/page.tsx      → /progress
+  │   │   ├── ai-consult/page.tsx    → /ai-consult
+  │   │   ├── notifications/page.tsx → /notifications
+  │   │   ├── routine/page.tsx       → /routine [PRO]
+  │   │   ├── recommendations/page.tsx → /recommendations
+  │   │   ├── settings/page.tsx      → /settings
+  │   │   └── layout.tsx             # Auth guard + bottom nav + UserProvider
+  │   └── api/
+  │       ├── auth/                  # ⚠️ Auth callback
+  │       ├── tracker/               # CRUD daily_logs
+  │       ├── photos/                # ⚠️ Upload Supabase Storage
+  │       ├── user/                  # Profile read/update
+  │       ├── ai/
+  │       │   ├── detect/            # ⚠️ AI deteksi jerawat (GPT-4o-mini)
+  │       │   ├── consult/           # ⚠️ RAG chat (pgvector + SumoPod LLM)
+  │       │   ├── purging/           # ⚠️ Purging vs breakout checker (GPT-4o-mini)
+  │       │   ├── routine-analyze/   # ⚠️ AI analisis rutinitas (SumoPod LLM)
+  │       │   ├── routine-build/     # ⚠️ AI builder rutinitas (SumoPod LLM)
+  │       │   └── quota/             # GET remaining AI quota (ai_usage table)
+  │       ├── report/                # Weekly skin report (aggregate + PDF)
+  │       ├── recommendations/       # Produk rekomendasi
+  │       ├── notifications/          # CRUD notifikasi user
+  │       └── payment/               # ⚠️ Webhook Xendit + create invoice
+  │
+  ├── components/landing/            # Landing page sections
+  ├── components/ui/                 # Base components
+  ├── components/onboarding/         # Step wizard
+  ├── contexts/                      # React Context providers (UserContext)
+  │
+  ├── lib/
+  │   ├── supabase/                  # client.ts, server.ts
+  │   ├── ai/
+  │   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
+  │   │   ├── rag.ts                 # RAG pipeline + SumoPod call
+  │   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
+  │   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
+  │   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
+  │   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
+  │   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
+  │   └── security/                  # Rate limiter, file validation
+  │
+  ├── supabase/migrations/           # 9 migration files (0000-0008)
+  ├── types/                         # TypeScript types
+  ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
+  ├── middleware.ts                  # Auth guard
+  └── public/                        # Static assets
 ```
 
 ⚠️ = high-risk area, perlu review manual
@@ -340,6 +372,7 @@ Jalankan dengan: `npm run ingest`
 - Xendit webhook HMAC-SHA256 signature verification
 - Service role key never exposed to client
 - Prompt injection defense di system prompt AI
+- AI quota enforcement server-side (ai_usage table — immutable, append-only — prevents free tier bypass via localStorage/record deletion)
 
 ### Regulasi
 - Mematuhi UU Perlindungan Data Pribadi (PDP) Indonesia
@@ -362,10 +395,12 @@ Jalankan dengan: `npm run ingest`
 | Design & Branding | ✅ Done | Logo, design system, landing page |
 | Core App Development | ✅ Done | Tracker, dashboard, progress, settings, recommendations |
 | AI Pipeline | ✅ Done | RAG consult + journal ingest |
-| Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter |
+| AI Vision Detection | ✅ Done | GPT-4o-mini: acne detection, purging checker |
+| AI Routine Analyzer | ✅ Done | SumoPod LLM: conflict detection, routine builder |
+| Weekly Skin Report | ✅ Done | Aggregate → HTML → print PDF |
+| Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter, quota enforcement |
 | Payment Integration | ✅ Done | Xendit invoice + webhook |
-| AI Detection (real) | 🔜 Next | GPT-4o-mini vision detection |
-| New Pro Features | 🔜 Planned | Purging checker, routine analyzer, builder, weekly report |
+| Perf Optimization | ✅ Done | Batched API calls (127→1), UserContext caching |
 | Soft Launch | 🔜 | 50-100 user pertama dari audiens TikTok |
 | Iterasi | 🔜 | Feedback → perbaikan → monetisasi |
 
@@ -375,7 +410,7 @@ Jalankan dengan: `npm run ingest`
 
 ### Manual — Pengguna
 - [ ] Set env vars di Vercel (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
-- [x] Jalankan migration SQL di Supabase (0001-0006)
+- [x] Jalankan migration SQL di Supabase (`0000_full_schema.sql` + `0008_ai_usage.sql`)
 - [ ] Supabase Auth Settings (site URL, redirect, email confirm = off)
 - [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
@@ -384,12 +419,14 @@ Jalankan dengan: `npm run ingest`
 ### Development — Tim
 - [x] Notifikasi & pengingat (in-app notification center)
 - [x] Pricing page: 3-tier (Free/Premium/Pro)
-- [ ] AI Deteksi foto: implement GPT-4o-mini vision (placeholder → real)
-- [ ] Tracker UI: ringankan ke 4 default card + detail toggle
-- [ ] Purging Checker: build AI analyzer (instan, per produk baru)
-- [ ] AI Routine Analyzer: build ingredient conflict detection
-- [ ] Routine Builder: AI generate personalized AM/PM routine
-- [ ] Weekly Skin Report: auto-generate + export PDF
+- [x] AI Deteksi foto: GPT-4o-mini vision detection
+- [x] Purging Checker: AI analyzer purging vs breakout
+- [x] AI Routine Analyzer: ingredient conflict detection (SumoPod LLM)
+- [x] Routine Builder: AI generate personalized AM/PM routine
+- [x] Weekly Skin Report: auto-generate + export PDF
+- [x] AI Usage Quota: server-side immutable counter (ai_usage table) — prevents free tier bypass
+- [x] Perf Optimization: batched API calls, UserContext caching
+- [ ] Tracker UI: ringankan ke 4 default card + detail toggle (low prio)
 
 ---
 
