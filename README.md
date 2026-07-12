@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.3 (All Features Built — pending deployment & user validation)
+**Versi:** 0.4 (Legal pages + copy fixes — pending deployment)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -55,7 +55,7 @@ Pertama kali app memberikan insight seperti:
 | Skin Type Quiz (Onboarding) | 5-step quiz: tipe kulit, kondisi jerawat, kebiasaan, produk yang dipakai, goal | ✅ Done |
 | Tracker Ringan | Tidur, minum air, tingkat stress, foto kulit — 30 detik isi | ✅ Done |
 | Progress Foto Mingguan | Upload 1x/minggu, timeline view, side-by-side comparison | ✅ Done |
-| Rekomendasi Produk | Produk cocok skin type + affiliate link Shopee/Tokopedia | ✅ Done |
+| Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
 | Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
 
@@ -76,7 +76,7 @@ Pertama kali app memberikan insight seperti:
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
-| Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, affiliate link | ✅ Done |
+| Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
 | Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | ✅ Done |
 | Weekly Skin Report | Auto-generate laporan mingguan: skin score, foto banding, trigger, rekomendasi → export PDF | ✅ Done |
 
@@ -135,7 +135,11 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ```
 /           → Landing page (Hero, Problem, How It Works, Stats, Testimonials, Pricing)
 /pricing    → Harga & 3-tier plan comparison
-/about      → Tentang produk
+/about         → Tentang Narehat — misi, masalah, solusi, proses
+/privacy       → Kebijakan Privasi — UU PDP 2022 compliant
+/terms         → Syarat & Ketentuan — ToS + medical disclaimer
+/contact       → Kontak — email, jam operasional
+/blog          → Blog — coming soon (edukasi jerawat & skincare)
 ```
 
 ### Auth Pages
@@ -153,7 +157,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi (3x free, unlimited Premium)
 /notifications    → In-app notification center (reminder, insight, promo)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
-/recommendations  → Rekomendasi produk + filter + affiliate link
+/recommendations  → Rekomendasi produk + filter + link belanja
 /settings         → Profil, notifikasi, subscription management
 ```
 
@@ -354,7 +358,7 @@ Jalankan dengan: `npm run ingest`
 | **Pro** 👑 | Rp49.000/bulan | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, purging checker unlimited, laporan mingguan PDF. |
 
 ### Revenue Stream Tambahan
-- **Affiliate link** produk skincare di halaman rekomendasi (pasif, semua tier)
+- **Link belanja** produk skincare di halaman rekomendasi (pasif, semua tier)
 - **Future:** Data insight anonim untuk brand skincare lokal (B2B)
 
 ### Payment Gateway
@@ -417,15 +421,15 @@ Jalankan dengan: `npm run ingest`
 - [ ] Deploy ke Vercel + testing end-to-end
 
 ### Development — Tim
-- [x] Notifikasi & pengingat (in-app notification center)
-- [x] Pricing page: 3-tier (Free/Premium/Pro)
-- [x] AI Deteksi foto: GPT-4o-mini vision detection
-- [x] Purging Checker: AI analyzer purging vs breakout
-- [x] AI Routine Analyzer: ingredient conflict detection (SumoPod LLM)
-- [x] Routine Builder: AI generate personalized AM/PM routine
-- [x] Weekly Skin Report: auto-generate + export PDF
-- [x] AI Usage Quota: server-side immutable counter (ai_usage table) — prevents free tier bypass
-- [x] Perf Optimization: batched API calls, UserContext caching
+- [x] Copywriting: hapus em dash (—) di landing + about page
+- [x] Halaman legal: /privacy, /terms, /contact, /blog
+- [x] Ganti "affiliate" jadi "link belanja" di semua copywriting
+- [x] Footer fix: link placeholder + hapus double Privacy/Terms button
+- [ ] Password Reset flow (Supabase Auth)
+- [ ] Cancel Plan API + UI
+- [ ] Insight Korelasi: Pearson correlation habit vs skin score (Premium-gated)
+- [ ] Report PDF gate ke Pro
+- [ ] DB enum: tambah pro_monthly, pro_yearly
 - [ ] Tracker UI: ringankan ke 4 default card + detail toggle (low prio)
 
 ---

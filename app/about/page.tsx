@@ -16,7 +16,7 @@ export default function AboutPage() {
               Misi Kami
             </h2>
             <p className="hero-subtitle text-muted max-w-2xl mx-auto leading-relaxed">
-              Narehat lahir dari frustrasi yang dialami jutaan orang —
+              Narehat lahir dari frustrasi yang dialami jutaan orang,
               terus berganti produk tanpa pernah tahu pemicu jerawatnya sendiri.
             </p>
           </div>
@@ -34,8 +34,8 @@ export default function AboutPage() {
             <div className="bg-white border border-border-subtle rounded-3xl p-8 shadow-sm">
               <h3 className="text-lg font-bold text-slate-900 mb-3">Solusi</h3>
               <p className="text-sm text-muted leading-relaxed">
-                Kami menghubungkan data kebiasaan harianmu — tidur, makanan,
-                stres, skincare — dengan kondisi jerawatmu. Didukung AI
+                Kami menghubungkan data kebiasaan harianmu: tidur, makanan,
+                stres, skincare, dengan kondisi jerawatmu. Didukung AI
                 berbasis jurnal dermatologi peer-reviewed, bukan tebak-tebakan.
               </p>
             </div>

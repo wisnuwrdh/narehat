@@ -9,12 +9,12 @@ const footerLinks = {
   ],
   perusahaan: [
     { label: "Tentang Kami", href: "/about" },
-    { label: "Blog", href: "#" },
-    { label: "Kontak", href: "#" },
+    { label: "Blog", href: "/blog" },
+    { label: "Kontak", href: "/contact" },
   ],
   legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
   ],
 };
 
@@ -54,18 +54,10 @@ export default function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
           <p className="text-[11px] lg:text-xs text-white/40">
             &copy; {new Date().getFullYear()} Narehat. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
-            <Link href="#" className="text-[11px] lg:text-xs text-white/40 hover:text-white/60 transition-colors">
-              Privacy
-            </Link>
-            <Link href="#" className="text-[11px] lg:text-xs text-white/40 hover:text-white/60 transition-colors">
-              Terms
-            </Link>
-          </div>
         </div>
       </div>
     </footer>
