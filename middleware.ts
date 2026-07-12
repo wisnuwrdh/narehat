@@ -28,13 +28,13 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isAppRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/tracker") || pathname.startsWith("/progress") || pathname.startsWith("/ai-consult") || pathname.startsWith("/recommendations") || pathname.startsWith("/settings") || pathname.startsWith("/notifications") || pathname.startsWith("/routine");
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/onboarding") || pathname.startsWith("/reset-password");
+  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/onboarding");
 
   if (!user && isAppRoute) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && isAuthRoute && !pathname.startsWith("/onboarding") && !pathname.startsWith("/reset-password")) {
+  if (user && isAuthRoute && !pathname.startsWith("/onboarding")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

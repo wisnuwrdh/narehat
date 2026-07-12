@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { analyzeCorrelations } from "@/lib/insights/correlation";
 
 type Range = "7" | "30" | "90";
 
@@ -48,8 +47,6 @@ export default function ProgressPage() {
   const [detectResult, setDetectResult] = useState<null | { typesDisplay: string[]; severityDisplay: string; location: string; triggers: string[]; disclaimer: string }>(null);
   const [detectLoading, setDetectLoading] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
-  const [isFree, setIsFree] = useState(true);
-  const [correlationLogs, setCorrelationLogs] = useState<{ sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[]>([]);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,10 +67,8 @@ export default function ProgressPage() {
         const j = await res.json();
         const logs = (j.logs || []) as Record<string, unknown>[];
         const logsByDate: Record<string, Record<string, number>> = {};
-        const cl: { sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[] = [];
         for (const log of logs) {
-          const d = log.date as string;
-          logsByDate[d] = log as unknown as Record<string, number>;
+          logsByDate[log.date as string] = log as unknown as Record<string, number>;
         }
 
         const labels: string[] = [];
@@ -83,32 +78,15 @@ export default function ProgressPage() {
           if (log) {
             labels.push(formatDateLabel(date, "30"));
             scores.push(computeSkinScore(log));
-            cl.push({
-              sleep_hours: log.sleep_hours || 0,
-              water_ml: log.water_ml || 0,
-              exercise_minutes: log.exercise_minutes || 0,
-              stress_level: log.stress_level || 5,
-              skincare_morning: !!log.skincare_morning,
-              skincare_evening: !!log.skincare_evening,
-            });
           }
         }
 
         setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
-        setCorrelationLogs(cl);
       } catch {}
 
       setLoaded(true);
     }
     load();
-
-    fetch("/api/user")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user?.plan === "free") setIsFree(true);
-        else setIsFree(false);
-      })
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -130,10 +108,8 @@ export default function ProgressPage() {
         const j = await res.json();
         const logs = (j.logs || []) as Record<string, unknown>[];
         const logsByDate: Record<string, Record<string, number>> = {};
-        const cl: { sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[] = [];
         for (const log of logs) {
-          const d = log.date as string;
-          logsByDate[d] = log as unknown as Record<string, number>;
+          logsByDate[log.date as string] = log as unknown as Record<string, number>;
         }
 
         const labels: string[] = [];
@@ -143,19 +119,10 @@ export default function ProgressPage() {
           if (log) {
             labels.push(formatDateLabel(date, range));
             scores.push(computeSkinScore(log));
-            cl.push({
-              sleep_hours: log.sleep_hours || 0,
-              water_ml: log.water_ml || 0,
-              exercise_minutes: log.exercise_minutes || 0,
-              stress_level: log.stress_level || 5,
-              skincare_morning: !!log.skincare_morning,
-              skincare_evening: !!log.skincare_evening,
-            });
           }
         }
 
         setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
-        setCorrelationLogs(cl);
       } catch {}
     }
     load();
@@ -180,16 +147,7 @@ export default function ProgressPage() {
 
   const data = chartData[range];
   const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
-
-  const correlations = analyzeCorrelations(
-    correlationLogs,
-    data.scores
-  ).map((c) => ({
-    label: c.factor,
-    points: `${c.correlation > 0 ? "+" : ""}${c.correlation}% korelasi`,
-    color: c.correlation > 0 ? "emerald" : "red",
-    pct: Math.min(100, Math.abs(c.correlation)),
-  }));
+  const correlations: { label: string; points: string; color: string; pct: number }[] = [];
 
   const padding = 10;
   const chartW = 320;
@@ -447,14 +405,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
             </div>
           </div>
           <div className="space-y-3">
-            {isFree ? (
-              <div className="text-center py-4">
-                <p className="text-xs text-muted mb-3">Upgrade ke Premium untuk melihat korelasi kebiasaan dengan kondisi kulitmu.</p>
-                <a href="/pricing" className="inline-block px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
-                  Upgrade Premium Rp19rb
-                </a>
-              </div>
-            ) : correlations.length > 0 ? correlations.map((c) => (
+            {correlations.length > 0 ? correlations.map((c) => (
               <div key={c.label + range}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="font-semibold text-slate-700">{c.label}</span>

@@ -6,11 +6,6 @@ export async function GET() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { data: profile } = await supabase.from("users").select("plan").eq("id", user.id).maybeSingle();
-  if (!profile || !profile.plan?.includes("pro")) {
-    return NextResponse.json({ error: "Fitur Pro. Upgrade plan kamu ke Pro." }, { status: 402 });
-  }
-
   const dates: string[] = [];
   const d = new Date();
   for (let i = 0; i < 7; i++) {

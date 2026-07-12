@@ -33,8 +33,8 @@ const planPrices: Record<string, string> = {
 };
 
 const planFeatures: Record<string, string> = {
-  free: "Tracker harian, progress foto, 3x AI Consult, rekomendasi produk, notifikasi",
-  premium: "AI Consult unlimited, deteksi jerawat dari foto, insight korelasi, history unlimited",
+  free: "Tracker ringan, progress foto, 3x AI Consult, rekomendasi produk",
+  premium: "AI Consult unlimited, deteksi jerawat dari foto, deep insight, notifikasi",
   pro: "Semua fitur Premium + analisis rutinitas, routine builder, purging checker unlimited, laporan mingguan PDF",
 };
 
@@ -69,25 +69,8 @@ export default function SettingsPage() {
     setSaving(false);
   };
 
-  const handleCancelPlan = async () => {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/payment/cancel", { method: "POST" });
-      const data = await res.json();
-      if (data.error) {
-        showToast(data.error);
-      } else {
-        showToast("Subscription berhasil dibatalkan. Plan kembali ke Free.");
-        updateUser({});
-      }
-    } catch {
-      showToast("Gagal terhubung ke server.");
-    }
-    setSaving(false);
-  };
-
   const handleExport = () => {
-    showToast("Fitur export data akan segera hadir");
+    showToast("Data sedang disiapkan... akan dikirim ke email kamu dalam 24 jam");
   };
 
   const handleDelete = async () => {
@@ -221,7 +204,7 @@ export default function SettingsPage() {
                           Upgrade ke Pro 👑
                         </button>
                       )}
-                      <button onClick={handleCancelPlan} disabled={saving} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors disabled:opacity-50">Batalkan</button>
+                      <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
                     </div>
                   </>
                 ) : (
@@ -306,7 +289,7 @@ export default function SettingsPage() {
                     const keys = ["notif_reminder", "notif_insight", "notif_promo"];
                     const nextVal = !notifications[idx];
                     setNotifications((prev) => { const next = [...prev]; next[idx] = nextVal; return next; });
-                    updateUser({ [keys[idx]]: nextVal } as unknown as Partial<{ name: string; email: string; skin_type: string; acne_severity: string; goal: string; plan: string; notif_reminder: boolean; notif_insight: boolean; notif_promo: boolean }>);
+                    updateUser({ [keys[idx]]: nextVal } as Record<string, unknown>);
                   }} className="sr-only peer" />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
                 </label>
