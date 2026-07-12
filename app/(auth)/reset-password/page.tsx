@@ -16,11 +16,12 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
         router.push("/dashboard");
       }
     });
+    return () => { subscription.unsubscribe(); };
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -34,7 +34,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (user && isAuthRoute && !pathname.startsWith("/onboarding")) {
+  if (user && isAuthRoute && !pathname.startsWith("/onboarding") && !pathname.startsWith("/reset-password")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
