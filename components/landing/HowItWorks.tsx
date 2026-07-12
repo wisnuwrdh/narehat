@@ -43,7 +43,7 @@ export default function HowItWorks() {
             <div className="pt-1 lg:pt-2">
               <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Kenali tipe kulitmu</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                Quiz 1 menit: tipe kulit, kebiasaan, produk yang dipakai. Langsung dapat insight personal — ingredients yang cocok &amp; yang harus dihindari.
+                Quiz 1 menit: tipe kulit, kebiasaan, produk yang dipakai. Langsung dapat insight personal, ingredients yang cocok &amp; yang harus dihindari.
               </p>
               <div className="mt-3 bg-slate-50 rounded-xl p-3 border border-border-subtle inline-block">
                 <div className="flex items-center gap-2">
@@ -64,11 +64,11 @@ export default function HowItWorks() {
             <div className="pt-1 lg:pt-2">
               <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">AI analisis kulitmu</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                Upload foto jerawat atau kirim pertanyaan. AI deteksi jenis jerawat, cek purging vs breakout, dan analisis rutinitas skincare-mu — instan.
+                Upload foto jerawat atau kirim pertanyaan. AI deteksi jenis jerawat, cek purging vs breakout, dan analisis rutinitas skincare-mu, instan.
               </p>
               <div className="mt-3 flex items-center gap-2 bg-slate-50 rounded-xl p-3 border border-border-subtle">
                 <span className="material-symbols-outlined text-primary text-sm">auto_awesome</span>
-                <span className="text-[11px] text-slate-700">Papules — Pipi Kiri</span>
+                <span className="text-[11px] text-slate-700">Papules, Pipi Kiri</span>
               </div>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function HowItWorks() {
             <div className="pt-1 lg:pt-2">
               <h3 className="font-bold text-slate-800 text-sm lg:text-base mb-1">Dapatkan insight + rutinitas</h3>
               <p className="text-xs lg:text-sm text-muted leading-relaxed">
-                AI bangun rutinitas yang beneran cocok buat kulitmu — lengkap dengan produk rekomendasi. Laporan mingguan biar kamu tahu progresmu.
+                AI bangun rutinitas yang beneran cocok buat kulitmu, lengkap dengan produk rekomendasi. Laporan mingguan biar kamu tahu progresmu.
               </p>
               <div className="mt-3 bg-gradient-to-r from-primary-light/60 to-white rounded-xl p-3 border border-primary/10 inline-block max-w-sm">
                 <div className="flex items-start gap-2">

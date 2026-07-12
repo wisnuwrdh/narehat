@@ -7,7 +7,7 @@ const features = [
     icon: "person_check",
     tag: null,
     title: "Skin Type Quiz",
-    desc: "Tipe kulitmu, ingredients yang cocok, dan yang harus dihindari — langsung tahu di menit pertama.",
+    desc: "Tipe kulitmu, ingredients yang cocok, dan yang harus dihindari, langsung tahu di menit pertama.",
   },
   {
     icon: "question_exchange",
@@ -25,7 +25,7 @@ const features = [
     icon: "smart_toy",
     tag: "Free 3x",
     title: "Konsultasi AI",
-    desc: "Tanya apa saja tentang jerawat — jawaban berbasis jurnal dermatologi peer-reviewed, bukan asal-asalan.",
+    desc: "Tanya apa saja tentang jerawat, jawaban berbasis jurnal dermatologi peer-reviewed, bukan asal-asalan.",
   },
   {
     icon: "photo_camera",
@@ -37,7 +37,7 @@ const features = [
     icon: "edit_calendar",
     tag: null,
     title: "Tracker Ringan",
-    desc: "Tidur, air, stress, foto — 30 detik isi. Untuk yang ingin insight lebih dalam.",
+    desc: "Tidur, air, stress, foto: 30 detik isi. Untuk yang ingin insight lebih dalam.",
   },
 ];
 
@@ -71,7 +71,7 @@ export default function FeaturesSection() {
             Tidak Perlu Nebak Lagi
           </h2>
           <p className="text-sm lg:text-base text-muted mt-3 max-w-md mx-auto">
-            Mulai dari deteksi instan sampai insight jangka panjang — semua dalam 1 app.
+            Mulai dari deteksi instan sampai insight jangka panjang, semua dalam 1 app.
           </p>
         </div>
 

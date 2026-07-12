@@ -42,7 +42,7 @@ export default function FAQSection() {
             },
             {
               q: "Apakah purging checker bisa dipakai gratis?",
-              a: "Ya, semua user free dapat 1x purging checker seumur hidup — biar kamu bisa cicipin fiturnya. User Pro dapat unlimited.",
+              a: "Ya, semua user free dapat 1x purging checker seumur hidup, biar kamu bisa cicipin fiturnya. User Pro dapat unlimited.",
             },
             {
               q: "Apakah Narehat menggantikan dokter kulit?",
@@ -54,7 +54,7 @@ export default function FAQSection() {
             },
             {
               q: "Berapa lama sampai lihat hasil?",
-              a: "Untuk fitur instan (purging checker, AI detect, skin quiz) — hasil langsung keluar dalam hitungan detik. Untuk insight korelasi jangka panjang, biasanya mulai terlihat setelah 2-4 minggu konsisten tracking.",
+              a: "Untuk fitur instan (purging checker, AI detect, skin quiz), hasil langsung keluar dalam hitungan detik. Untuk insight korelasi jangka panjang, biasanya mulai terlihat setelah 2-4 minggu konsisten tracking.",
             },
             {
               q: "Bisa batalkan subscription kapan saja?",

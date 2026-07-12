@@ -12,8 +12,8 @@ const problems = [
   {
     icon: "layers",
     color: "orange",
-    title: "Skincare 5 langkah — jerawat tetap muncul",
-    desc: "Cleanser, toner, serum, moisturizer, sunscreen — semua lengkap. Tapi ingredients-nya saling konflik dan kamu tidak pernah tahu.",
+    title: "Skincare 5 langkah, jerawat tetap muncul",
+    desc: "Cleanser, toner, serum, moisturizer, sunscreen, semua lengkap. Tapi ingredients-nya saling konflik dan kamu tidak pernah tahu.",
   },
   {
     icon: "psychology_alt",

@@ -34,7 +34,7 @@ export default function CTASection() {
             Siap Kenali Pemicu<br className="hidden sm:block" /> Jerawatmu?
           </h2>
           <p className="text-sm lg:text-lg text-white/70 leading-relaxed max-w-md mx-auto mb-8 lg:max-w-lg">
-            Cukup upload foto atau tanya ke AI. Tidak perlu isi jurnal dulu. Hasil instan — gratis.
+            Cukup upload foto atau tanya ke AI. Tidak perlu isi jurnal dulu. Hasil instan, gratis.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto">
             <Link

@@ -6,19 +6,19 @@ const comparisons = [
   {
     icon: "smart_toy",
     title: "AI berbasis jurnal, bukan opini",
-    desc: "Setiap jawaban AI kami grounded di jurnal dermatologi peer-reviewed — PubMed, AAD, British Journal of Dermatology. Bukan opini influencer atau tebak-tebakan.",
+    desc: "Setiap jawaban AI kami grounded di jurnal dermatologi peer-reviewed: PubMed, AAD, British Journal of Dermatology. Bukan opini influencer atau tebak-tebakan.",
     vs: "Kebanyakan konten skincare cuma general advice yang belum tentu cocok buat kamu.",
   },
   {
     icon: "person_search",
     title: "Analisis personal, bukan template",
-    desc: "AI kami analisis kulitmu, rutinitasmu, dan produkmu secara spesifik. Hasilnya berbeda untuk setiap orang — karena kulitmu unik.",
+    desc: "AI kami analisis kulitmu, rutinitasmu, dan produkmu secara spesifik. Hasilnya berbeda untuk setiap orang, karena kulitmu unik.",
     vs: "Google dan TikTok kasih jawaban yang sama buat semua orang, tanpa tahu kondisi kulitmu.",
   },
   {
     icon: "bolt",
     title: "Instan, tanpa nunggu dokter",
-    desc: "Purging atau breakout? Produkmu konflik ingredients? Dapatkan jawaban dalam hitungan detik — 24/7, tanpa appointment.",
+    desc: "Purging atau breakout? Produkmu konflik ingredients? Dapatkan jawaban dalam hitungan detik, 24/7, tanpa appointment.",
     vs: "Konsultasi dokter: Rp150-350rb, nunggu antrian, dan sering cuma 5-10 menit.",
   },
 ];

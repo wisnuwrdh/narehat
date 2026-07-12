@@ -25,7 +25,7 @@ export default function HeroSection() {
                 <span className="shimmer-text">Polanya</span>. Kami Temukan.
               </h1>
               <p className="animate-fade-in-up delay-200 hero-subtitle text-muted mt-4 max-w-sm mx-auto lg:mx-0 leading-relaxed lg:max-w-md">
-                Upload foto atau tanya langsung — AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Semua dalam 1 app.
+                Upload foto atau tanya langsung, AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Semua dalam 1 app.
               </p>
             </div>
 
@@ -146,7 +146,7 @@ export default function HeroSection() {
                 </div>
                 <div>
                   <p className="text-[10px] text-muted">AI Deteksi</p>
-                  <p className="text-xs font-bold text-slate-900">Papules — Pipi Kiri</p>
+                  <p className="text-xs font-bold text-slate-900">Papules, Pipi Kiri</p>
                 </div>
               </div>
             </div>
