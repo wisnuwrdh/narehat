@@ -1,4 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#3525cd"/>
-  <text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="18" font-family="sans-serif" font-weight="bold" fill="white">N</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none">
+  <rect width="256" height="256" fill="transparent"/>
+  <g transform="translate(-22,0)">
+    <path d="M64 208 V64 C64 44 80 28 100 28 C116 28 126 34 136 46 L188 110" stroke="#3525CD" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M116 108 L176 180 C188 194 204 198 220 190 C230 184 236 172 236 158 V64" stroke="#3525CD" stroke-width="22" stroke-linecap="butt" stroke-linejoin="round"/>
+    <ellipse cx="236" cy="61" rx="11" ry="6" fill="none"/>
+    <circle cx="236" cy="36" r="14" fill="#3525CD"/>
+  </g>
 </svg>
