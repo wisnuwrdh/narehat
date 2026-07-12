@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.4 (Legal pages + copy fixes — pending deployment)
+**Versi:** 0.5 (PWA + Profile + Subscription + Notifikasi removed + Copy fixes)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -53,8 +53,8 @@ Pertama kali app memberikan insight seperti:
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Skin Type Quiz (Onboarding) | 5-step quiz: tipe kulit, kondisi jerawat, kebiasaan, produk yang dipakai, goal | ✅ Done |
-| Tracker Ringan | Tidur, minum air, tingkat stress, foto kulit — 30 detik isi | ✅ Done |
-| Progress Foto Mingguan | Upload 1x/minggu, timeline view, side-by-side comparison | ✅ Done |
+| Tracker Harian | Tidur, minum air, olahraga, tingkat stress, skincare AM/PM — 30 detik isi | ✅ Done |
+| Progress Foto | Upload foto, timeline view, side-by-side comparison | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
 | Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
@@ -68,7 +68,6 @@ Pertama kali app memberikan insight seperti:
 | AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu (GPT-4o-mini) | ✅ Done |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
-| Notifikasi & Pengingat | Reminder tracker harian, insight baru, promo | ✅ Done |
 
 ### 👑 Pro — Rp49.000/bulan
 
@@ -135,11 +134,12 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ```
 /           → Landing page (Hero, Problem, How It Works, Stats, Testimonials, Pricing)
 /pricing    → Harga & 3-tier plan comparison
-/about         → Tentang Narehat — misi, masalah, solusi, proses
-/privacy       → Kebijakan Privasi — UU PDP 2022 compliant
-/terms         → Syarat & Ketentuan — ToS + medical disclaimer
-/contact       → Kontak — email, jam operasional
-/blog          → Blog — coming soon (edukasi jerawat & skincare)
+/about     → Tentang Narehat — misi, masalah, solusi, proses
+/privacy   → Kebijakan Privasi — UU PDP 2022 compliant
+/terms     → Syarat & Ketentuan — ToS + medical disclaimer
+/contact   → Kontak — email, jam operasional
+/blog      → Blog — coming soon (edukasi jerawat & skincare)
+/offline   → Halaman offline saat tidak ada koneksi (PWA)
 ```
 
 ### Auth Pages
@@ -155,10 +155,11 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes; AI deteksi + purging checker)
 /progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi (3x free, unlimited Premium)
-/notifications    → In-app notification center (reminder, insight, promo)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + link belanja
-/settings         → Profil, notifikasi, subscription management
+/settings         → Profil display, kelola plan, privasi & data, logout
+/subscription     → Pilih plan — Free/Premium/Pro, monthly/yearly toggle, upgrade via Xendit
+/profile          → Edit profil — nama, tipe kulit, kondisi jerawat, goal
 ```
 
 ---
@@ -176,6 +177,38 @@ Web App + PWA (bisa di-install di HP seperti native app)
 ### Brand Identity
 - **Primary color:** Navy `#3525cd` — bersih, profesional, consistent across all pages
 - **Animasi:** Micro-animation sederhana (transisi angka, progress ring, chart animation)
+
+---
+
+## 6.1 PWA SUPPORT
+
+Narehat dapat di-install sebagai aplikasi di HP seperti native app.
+
+### Browser Support
+| Browser | Install Full | Keterangan |
+|---|---|---|
+| Chrome Android | ✅ | App drawer |
+| Edge Android | ✅ | App drawer |
+| Brave Android | ✅ | App drawer |
+| Samsung Internet | ✅ | App drawer |
+| Safari iOS | ⚠️ | "Add to Home Screen" (fullscreen) |
+| Firefox Android | ❌ | Hanya shortcut |
+
+### Implementasi
+| Elemen | Detail |
+|---|---|
+| **Manifest** | `public/manifest.json` — `display: standalone`, `theme_color: #3525cd` |
+| **Service Worker** | `app/sw.ts` — Serwist library, precache `/offline` |
+| **Offline Page** | `app/offline/page.tsx` — custom "Kamu Sedang Offline" |
+| **Ikon PWA** | `icon-192x192.png`, `icon-512x512.png`, `favicon.svg` |
+| **iOS Meta** | `apple-mobile-web-app-capable`, `apple-touch-icon` |
+| **Viewport** | `width=device-width, initial-scale=1, theme-color=#3525cd` |
+
+### Yang Perlu Disiapkan (Aset)
+- [ ] `public/icon-192x192.png` — 192×192 PNG
+- [ ] `public/icon-512x512.png` — 512×512 PNG
+- [ ] `public/apple-touch-icon.png` — 180×180 PNG
+- [ ] `public/og-image.png` — 1200×630 PNG (social share)
 
 ---
 
@@ -258,15 +291,16 @@ narehat/
 │   │   ├── register/page.tsx      → /register
 │   │   └── onboarding/page.tsx    → /onboarding
   │   ├── (app)/
-  │   │   ├── dashboard/page.tsx     → /dashboard
-  │   │   ├── tracker/page.tsx       → /tracker
-  │   │   ├── progress/page.tsx      → /progress
-  │   │   ├── ai-consult/page.tsx    → /ai-consult
-  │   │   ├── notifications/page.tsx → /notifications
-  │   │   ├── routine/page.tsx       → /routine [PRO]
+  │   │   ├── dashboard/page.tsx      → /dashboard
+  │   │   ├── tracker/page.tsx        → /tracker
+  │   │   ├── progress/page.tsx       → /progress
+  │   │   ├── ai-consult/page.tsx     → /ai-consult
+  │   │   ├── routine/page.tsx        → /routine [PRO]
   │   │   ├── recommendations/page.tsx → /recommendations
-  │   │   ├── settings/page.tsx      → /settings
-  │   │   └── layout.tsx             # Auth guard + bottom nav + UserProvider
+  │   │   ├── settings/page.tsx       → /settings
+  │   │   ├── subscription/page.tsx   → /subscription
+  │   │   ├── profile/page.tsx        → /profile
+  │   │   └── layout.tsx              # Auth guard + bottom nav + UserProvider
   │   └── api/
   │       ├── auth/                  # ⚠️ Auth callback
   │       ├── tracker/               # CRUD daily_logs
@@ -281,7 +315,6 @@ narehat/
   │       │   └── quota/             # GET remaining AI quota (ai_usage table)
   │       ├── report/                # Weekly skin report (aggregate + PDF)
   │       ├── recommendations/       # Produk rekomendasi
-  │       ├── notifications/          # CRUD notifikasi user
   │       └── payment/               # ⚠️ Webhook Xendit + create invoice
   │
   ├── components/landing/            # Landing page sections
@@ -354,7 +387,7 @@ Jalankan dengan: `npm run ingest`
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
 | **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 3x AI consult, 1x purging checker. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight, notifikasi. |
+| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight. |
 | **Pro** 👑 | Rp49.000/bulan | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, purging checker unlimited, laporan mingguan PDF. |
 
 ### Revenue Stream Tambahan
@@ -412,25 +445,31 @@ Jalankan dengan: `npm run ingest`
 
 ## 11. YANG MASIH PERLU DISELESAIKAN
 
-### Manual — Pengguna
-- [ ] Set env vars di Vercel (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
-- [x] Jalankan migration SQL di Supabase (`0000_full_schema.sql` + `0008_ai_usage.sql`)
-- [ ] Supabase Auth Settings (site URL, redirect, email confirm = off)
+### Checklist — Manual
+- [ ] Set env vars (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
+- [x] Jalankan migration SQL di Supabase (0000–0008)
+- [ ] Supabase Auth Settings (site URL, redirect, email confirm = on untuk password reset)
 - [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
 - [ ] Deploy ke Vercel + testing end-to-end
 
-### Development — Tim
-- [x] Copywriting: hapus em dash (—) di landing + about page
-- [x] Halaman legal: /privacy, /terms, /contact, /blog
+### Checklist — Development
+- [x] Copywriting: hapus em dash (—) di landing + about + privacy + terms
+- [x] Halaman legal: /privacy, /terms, /contact, /blog (dengan back button)
 - [x] Ganti "affiliate" jadi "link belanja" di semua copywriting
 - [x] Footer fix: link placeholder + hapus double Privacy/Terms button
+- [x] PWA support: manifest, service worker (Serwist), offline page, meta tags, icons
+- [x] Halaman /subscription: in-app pricing, monthly/yearly toggle, Xendit invoice
+- [x] Halaman /profile: edit profil lengkap (nama, tipe kulit, kondisi, goal)
+- [x] Avatar SVG profile + favicon logo asli Narehat
+- [x] Hapus fitur notifikasi (page, API, badge, toggles, UserContext)
+- [x] Dashboard header: hapus bell icon + profile icon (via bottom nav Akun)
+- [x] Settings simplifikasi: display-only profile card, link ke /profile + /subscription
 - [ ] Password Reset flow (Supabase Auth)
 - [ ] Cancel Plan API + UI
 - [ ] Insight Korelasi: Pearson correlation habit vs skin score (Premium-gated)
 - [ ] Report PDF gate ke Pro
 - [ ] DB enum: tambah pro_monthly, pro_yearly
-- [ ] Tracker UI: ringankan ke 4 default card + detail toggle (low prio)
 
 ---
 
