@@ -37,6 +37,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { user } = useUser();
   const [deleteInput, setDeleteInput] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
 
