@@ -21,7 +21,6 @@ const serwist = new Serwist({
     entries: [
       {
         url: "/offline",
-        revision: "1",
       },
     ],
   },
