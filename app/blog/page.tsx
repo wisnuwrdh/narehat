@@ -1,5 +1,6 @@
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
+import Link from "next/link";
 
 export default function BlogPage() {
   return (
@@ -7,6 +8,10 @@ export default function BlogPage() {
       <Navbar />
       <main className="pt-24 pb-20 px-5">
         <div className="container-narrow max-w-2xl mx-auto text-center">
+          <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mb-6">
+            <span className="material-symbols-outlined text-lg">arrow_back</span>
+            Kembali
+          </Link>
           <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-4">
             Blog
           </span>

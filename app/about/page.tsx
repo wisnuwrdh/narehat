@@ -7,7 +7,13 @@ export default function AboutPage() {
     <>
       <Navbar />
       <main className="pt-20">
-        <section className="container-narrow py-20">
+        <div className="container-narrow mb-4">
+          <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+            <span className="material-symbols-outlined text-lg">arrow_back</span>
+            Kembali
+          </Link>
+        </div>
+        <section className="container-narrow py-10"> 
           <div className="text-center mb-16">
             <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
               Tentang Kami
