@@ -122,7 +122,6 @@ export default function DashboardPage() {
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
   const [insightExpanded, setInsightExpanded] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const mounted = useRef(false);
 
   useEffect(() => {
@@ -141,17 +140,13 @@ export default function DashboardPage() {
           d.setDate(d.getDate() - 1);
         }
 
-        const [weekRes, photosRes, notifRes] = await Promise.all([
+        const [weekRes, photosRes] = await Promise.all([
           fetch(`/api/tracker?dates=${dates.join(",")}`),
           fetch("/api/photos"),
-          fetch("/api/notifications?unread_only=true&limit=5"),
         ]);
 
         const weekData = await weekRes.json();
         const photosData = await photosRes.json();
-        const notifData = await notifRes.json();
-
-        setUnreadCount(notifData.unread_count || 0);
 
         const weekLogs = weekData.logs || [];
         const log = weekLogs.find((l: { date: string }) => l.date === today) || null;
@@ -247,26 +242,10 @@ export default function DashboardPage() {
 
   return (
     <main className="max-w-md mx-auto">
-      <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
+        <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
           <div className="animate-fade-in-up">
             <h1 className="text-xl font-bold text-slate-900 mb-1">Halo, {data.userName || "User"}</h1>
           <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
-        </div>
-        <div className="flex gap-2 animate-fade-in-up delay-100">
-          <Link
-            href="/notifications"
-            className="btn-press p-2.5 bg-slate-50 border border-border-light rounded-2xl hover:bg-slate-100 transition-colors relative"
-          >
-            <span className="material-symbols-outlined text-xl text-slate-600">notifications</span>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-red-500 rounded-full border-2 border-white flex items-center justify-center px-1">
-                <span className="text-white text-[10px] font-bold leading-none">{unreadCount > 9 ? "9+" : unreadCount}</span>
-              </span>
-            )}
-          </Link>
-          <Link href="/settings" className="btn-press p-2.5 bg-slate-50 border border-border-light rounded-2xl hover:bg-slate-100 transition-colors">
-            <span className="material-symbols-outlined text-xl text-slate-600">person</span>
-          </Link>
         </div>
       </header>
 

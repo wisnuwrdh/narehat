@@ -35,13 +35,7 @@ const goalLabels: Record<string, string> = {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user, updateUser } = useUser();
-  const [notifications, setNotifications] = useState([
-    user.notif_reminder,
-    user.notif_insight,
-    user.notif_promo,
-  ]);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { user } = useUser();
   const [deleteInput, setDeleteInput] = useState("");
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
@@ -141,42 +135,6 @@ export default function SettingsPage() {
               </Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="px-6 mb-6">
-        <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Notifikasi</h3>
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          {[
-            { icon: "notifications", color: "indigo", title: "Reminder Harian", sub: "Isi tracker setiap hari" },
-            { icon: "lightbulb", color: "amber", title: "Insight Baru", sub: "Notifikasi saat ada insight" },
-            { icon: "campaign", color: "rose", title: "Promo & Update", sub: "Info produk dan fitur baru" },
-          ].map((n, i) => (
-            <div key={n.title}>
-              {i > 0 && <div className="h-px bg-border-subtle -mx-5 my-4" />}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${n.color === "indigo" ? "bg-indigo-50" : n.color === "amber" ? "bg-amber-50" : "bg-rose-50"}`}>
-                    <span className={`material-symbols-outlined text-sm ${n.color === "indigo" ? "text-indigo-500" : n.color === "amber" ? "text-amber-500" : "text-rose-500"}`}>{n.icon}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm font-semibold text-slate-700 block">{n.title}</span>
-                    <span className="text-[10px] text-muted">{n.sub}</span>
-                  </div>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" checked={notifications[i]} onChange={() => {
-                    const idx = i;
-                    const keys = ["notif_reminder", "notif_insight", "notif_promo"];
-                    const nextVal = !notifications[idx];
-                    setNotifications((prev) => { const next = [...prev]; next[idx] = nextVal; return next; });
-                    updateUser({ [keys[idx]]: nextVal } as Record<string, unknown>);
-                  }} className="sr-only peer" />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary" />
-                </label>
-              </div>
-            </div>
-          ))}
         </div>
       </section>
 

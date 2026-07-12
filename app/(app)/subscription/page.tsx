@@ -212,9 +212,6 @@ export default function SubscriptionPage() {
         })}
       </section>
 
-      <p className="px-6 text-center text-[10px] text-muted mt-6">
-        Notifikasi & pengingat tracker — gratis untuk semua user
-      </p>
     </main>
   );
 }

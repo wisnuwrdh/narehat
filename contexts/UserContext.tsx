@@ -9,9 +9,6 @@ interface UserData {
   acne_severity: string;
   goal: string;
   plan: string;
-  notif_reminder: boolean;
-  notif_insight: boolean;
-  notif_promo: boolean;
 }
 
 interface UserContextValue {
@@ -28,9 +25,6 @@ const defaultUser: UserData = {
   acne_severity: "mild",
   goal: "clear_acne",
   plan: "free",
-  notif_reminder: true,
-  notif_insight: true,
-  notif_promo: false,
 };
 
 const UserContext = createContext<UserContextValue>({
@@ -62,9 +56,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           acne_severity: u.acne_severity || "mild",
           goal: u.goal || "clear_acne",
           plan: u.plan || "free",
-          notif_reminder: u.notif_reminder ?? true,
-          notif_insight: u.notif_insight ?? true,
-          notif_promo: u.notif_promo ?? false,
         });
       }
     } catch {}

@@ -25,7 +25,7 @@ export async function PATCH(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const { name, skin_type, acne_severity, goal, theme, notif_reminder, notif_insight, notif_promo } = body;
+  const { name, skin_type, acne_severity, goal, theme } = body;
 
   const updates: Record<string, unknown> = {};
   if (name) updates.name = name;
@@ -33,9 +33,6 @@ export async function PATCH(request: NextRequest) {
   if (acne_severity) updates.acne_severity = acne_severity;
   if (goal) updates.goal = goal;
   if (theme) updates.theme = theme;
-  if (typeof notif_reminder === "boolean") updates.notif_reminder = notif_reminder;
-  if (typeof notif_insight === "boolean") updates.notif_insight = notif_insight;
-  if (typeof notif_promo === "boolean") updates.notif_promo = notif_promo;
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: "No fields to update" }, { status: 400 });
