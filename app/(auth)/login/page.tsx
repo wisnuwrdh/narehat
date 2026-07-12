@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +62,32 @@ export default function LoginPage() {
       logError("signIn exception", err);
       setLoading(false);
       setError("Gagal terhubung ke server. Periksa konfigurasi Supabase.");
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!form.email.trim()) {
+      setError("Masukkan email terlebih dahulu.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        form.email,
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
+      setLoading(false);
+      if (resetError) {
+        setError(getErrorMessage(resetError));
+        return;
+      }
+      setResetSent(true);
+    } catch (err) {
+      logError("resetPassword exception", err);
+      setLoading(false);
+      setError("Gagal mengirim email reset. Coba lagi nanti.");
     }
   };
 
@@ -117,7 +144,7 @@ export default function LoginPage() {
             <input type="checkbox" className="w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary" />
             <span className="text-slate-600">Ingat saya</span>
           </label>
-          <a href="#" className="text-primary font-semibold">Lupa password?</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); handleResetPassword(); }} className="text-primary font-semibold">{resetSent ? "Email reset terkirim! Cek inbox." : "Lupa password?"}</a>
         </div>
         <button
           type="submit"

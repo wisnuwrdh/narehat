@@ -11,9 +11,9 @@ const plans = [
     period: "selamanya",
     features: [
       "Skin type quiz + profil personal",
-      "Tracker ringan (tidur, air, stress, foto)",
-      "Progress foto mingguan",
-      "Rekomendasi produk",
+      "Tracker harian (tidur, air, stress, skincare)",
+      "Progress foto (upload & timeline)",
+      "Rekomendasi produk + link belanja",
       "AI Consult: 3x (lifetime)",
       "Purging Checker: 1x (lifetime)",
     ],
@@ -23,16 +23,15 @@ const plans = [
   },
   {
     name: "Premium",
-    subtitle: "AI sepuasnya, kapan saja",
+    subtitle: "AI jadi asisten kulitmu",
     price: "Rp19.000",
     period: "/bulan",
     features: [
-      "Semua fitur Free (unlimited)",
+      "Semua fitur Free",
       "AI Consult UNLIMITED",
       "AI Deteksi jerawat dari foto",
-      "Progress foto unlimited (harian)",
-      "Deep insight & grafik korelasi",
-      "Notifikasi & pengingat tracker",
+      "Insight korelasi & grafik tren",
+      "Foto & tracking history unlimited",
     ],
     cta: "Upgrade Premium",
     href: "/register?plan=premium_monthly",
@@ -89,6 +88,10 @@ export default function PricingSection() {
             Pilih yang Cocok Buat Kamu
           </h2>
           <p className="text-sm lg:text-base text-muted mt-3">Mulai gratis. Upgrade kapan saja. Gak perlu kartu kredit.</p>
+          <p className="text-xs text-muted-light mt-2 flex items-center justify-center gap-1">
+            <span className="material-symbols-outlined text-sm">notifications</span>
+            Notifikasi & pengingat tracker — gratis untuk semua user
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 items-start">

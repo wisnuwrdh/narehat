@@ -22,7 +22,7 @@
 | **Analisis korelasi** — "3 hari kamu tidur <6 jam → jerawat baru di pipi" | Informasi skincare terlalu general / kontradiktif |
 | **AI berbasis jurnal ilmiah** (RAG + pgvector + peer-reviewed dermatology) | Rekomendasi dari influencer tidak personal |
 | **Progress foto + skin score harian** (0-100) | Tidak bisa mengukur apakah kulit membaik |
-| **Rekomendasi produk** dengan affiliate link | Buang uang untuk produk yang tidak cocok |
+| **Rekomendasi produk** dengan link belanja | Buang uang untuk produk yang tidak cocok |
 | **Terjangkau** — Rp19rb/bulan (setara 1 boba tea) | Konsultasi dermatologis mahal (Rp150-350rb/visit) |
 
 **Unique Selling Point:** Satu-satunya platform Indonesia yang mengkorelasikan daily habit → skin condition dengan grounding jurnal dermatologi peer-reviewed, bukan opini influencer.

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { analyzeCorrelations } from "@/lib/insights/correlation";
 
 type Range = "7" | "30" | "90";
 
@@ -47,6 +48,7 @@ export default function ProgressPage() {
   const [detectResult, setDetectResult] = useState<null | { typesDisplay: string[]; severityDisplay: string; location: string; triggers: string[]; disclaimer: string }>(null);
   const [detectLoading, setDetectLoading] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
+  const [isFree, setIsFree] = useState(true);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,6 +89,14 @@ export default function ProgressPage() {
       setLoaded(true);
     }
     load();
+
+    fetch("/api/user")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.user?.plan === "free") setIsFree(true);
+        else setIsFree(false);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -147,7 +157,27 @@ export default function ProgressPage() {
 
   const data = chartData[range];
   const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
-  const correlations: { label: string; points: string; color: string; pct: number }[] = [];
+
+  const rawData = data.scores.map((s, i) => ({
+    date: data.labels[i],
+    sleep_hours: 7,
+    water_ml: 2000,
+    exercise_minutes: 15,
+    stress_level: 5,
+    skincare_morning: true,
+    skincare_evening: true,
+    score: s,
+  }));
+
+  const correlations = analyzeCorrelations(
+    rawData,
+    data.scores
+  ).map((c) => ({
+    label: c.factor,
+    points: `${c.correlation > 0 ? "+" : ""}${c.correlation}% korelasi`,
+    color: c.correlation > 0 ? "emerald" : "red",
+    pct: Math.min(100, Math.abs(c.correlation)),
+  }));
 
   const padding = 10;
   const chartW = 320;
@@ -405,7 +435,14 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
             </div>
           </div>
           <div className="space-y-3">
-            {correlations.length > 0 ? correlations.map((c) => (
+            {isFree ? (
+              <div className="text-center py-4">
+                <p className="text-xs text-muted mb-3">Upgrade ke Premium untuk melihat korelasi kebiasaan dengan kondisi kulitmu.</p>
+                <a href="/pricing" className="inline-block px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors">
+                  Upgrade Premium Rp19rb
+                </a>
+              </div>
+            ) : correlations.length > 0 ? correlations.map((c) => (
               <div key={c.label + range}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="font-semibold text-slate-700">{c.label}</span>
