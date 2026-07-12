@@ -21,6 +21,7 @@ const serwist = new Serwist({
     entries: [
       {
         url: "/offline",
+        matcher: ({ request }) => request.mode === "navigate",
       },
     ],
   },
