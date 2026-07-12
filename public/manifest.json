@@ -1,17 +1,25 @@
 {
-  "name": "Narehat — Pahami Pemicu Jerawatmu",
+  "name": "Narehat - Pahami Pemicu Jerawatmu",
   "short_name": "Narehat",
-  "description": "Catat kebiasaan harian, lacak progres kulit, dan temukan pola pemicu jerawatmu.",
+  "description": "Platform AI untuk mendeteksi pemicu jerawat, analisis rutinitas skincare, dan konsultasi berbasis jurnal dermatologi.",
   "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3525cd",
+  "categories": ["health", "lifestyle"],
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
     }
   ],
-  "lang": "id"
+  "lang": "id",
+  "dir": "ltr"
 }
