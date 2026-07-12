@@ -44,8 +44,8 @@ export default function PrivacyPage() {
               <h2 className="text-lg font-bold text-slate-900 mb-3">4. Dasar Hukum Pemrosesan</h2>
               <p>Sesuai dengan Undang-Undang No. 27 Tahun 2022 tentang Perlindungan Data Pribadi (UU PDP), kami memproses data Anda berdasarkan:</p>
               <ul className="list-disc pl-5 space-y-1 mt-2">
-                <li><strong>Persetujuan eksplisit</strong> — Anda memberikan izin saat mendaftar dan menggunakan fitur AI.</li>
-                <li><strong>Pelaksanaan perjanjian</strong> — data diperlukan untuk memberikan layanan yang Anda minta.</li>
+                <li><strong>Persetujuan eksplisit</strong>: Anda memberikan izin saat mendaftar dan menggunakan fitur AI.</li>
+                <li><strong>Pelaksanaan perjanjian</strong>: data diperlukan untuk memberikan layanan yang Anda minta.</li>
               </ul>
             </section>
 
@@ -118,7 +118,7 @@ export default function PrivacyPage() {
               <h2 className="text-lg font-bold text-slate-900 mb-3">8. Keamanan Data</h2>
               <ul className="list-disc pl-5 space-y-1 mt-2">
                 <li>Enkripsi end-to-end untuk penyimpanan dan transfer foto.</li>
-                <li>Row Level Security (RLS) — setiap user hanya dapat mengakses datanya sendiri.</li>
+                <li>Row Level Security (RLS): setiap user hanya dapat mengakses datanya sendiri.</li>
                 <li>Enkripsi in-transit menggunakan TLS 1.3.</li>
                 <li>Kunci API (OpenAI, SumoPod) tidak pernah terekspos ke klien.</li>
               </ul>

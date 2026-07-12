@@ -20,7 +20,7 @@ export default function Navbar() {
       }`}
     >
       <div className="container-narrow py-3 flex items-center justify-between">
-        <Link href="#" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <Logo />
         </Link>
 

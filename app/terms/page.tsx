@@ -38,11 +38,11 @@ export default function TermsPage() {
             </section>
 
             <section className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-              <h2 className="text-lg font-bold text-amber-800 mb-3">4. Disclaimer Medis — Harap Dibaca</h2>
+              <h2 className="text-lg font-bold text-amber-800 mb-3">4. Disclaimer Medis: Harap Dibaca</h2>
               <p className="text-amber-800"><strong>Informasi yang diberikan oleh Narehat bersifat edukatif dan informatif. Narehat BUKAN pengganti diagnosis, pengobatan, atau saran dari tenaga kesehatan profesional (dokter kulit, dokter umum, atau tenaga medis lainnya).</strong></p>
               <ul className="list-disc pl-5 space-y-1 mt-3 text-amber-800">
                 <li>Hasil analisis AI bukan diagnosis medis.</li>
-                <li>Rekomendasi produk dan rutinitas bersifat umum — belum tentu cocok untuk semua orang.</li>
+                <li>Rekomendasi produk dan rutinitas bersifat umum, belum tentu cocok untuk semua orang.</li>
                 <li>Jika Anda mengalami kondisi kulit serius, segera konsultasikan ke dokter kulit.</li>
                 <li>Jangan menunda atau mengabaikan saran medis profesional berdasarkan informasi dari Narehat.</li>
               </ul>
@@ -54,7 +54,7 @@ export default function TermsPage() {
                 <li>Narehat menawarkan paket <strong>Free</strong> (gratis), <strong>Premium</strong> (Rp19.000/bulan), dan <strong>Pro</strong> (Rp49.000/bulan).</li>
                 <li>Pembayaran diproses melalui Xendit. Narehat tidak menyimpan data kartu kredit atau metode pembayaran Anda.</li>
                 <li>Anda dapat membatalkan subscription kapan saja melalui halaman Pengaturan.</li>
-                <li>Pembatalan berlaku di akhir periode berlangganan — tidak ada refund parsial untuk sisa periode yang belum digunakan.</li>
+                <li>Pembatalan berlaku di akhir periode berlangganan. Tidak ada refund parsial untuk sisa periode yang belum digunakan.</li>
               </ul>
             </section>
 
