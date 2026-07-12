@@ -26,14 +26,6 @@ const planLabels: Record<string, string> = {
   pro_yearly: "Pro Tahunan",
 };
 
-const planLabels: Record<string, string> = {
-  free: "Gratis",
-  premium_monthly: "Premium Bulanan",
-  premium_yearly: "Premium Tahunan",
-  pro_monthly: "Pro Bulanan",
-  pro_yearly: "Pro Tahunan",
-};
-
 export default function SettingsPage() {
   const router = useRouter();
   const { user, updateUser } = useUser();
