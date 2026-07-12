@@ -68,14 +68,14 @@ export default function PrivacyPage() {
                   </thead>
                   <tbody>
                     <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">OpenAI (GPT-4o-mini)</td>
+                      <td className="py-2 pr-4">OpenAI / ChatGPT</td>
                       <td className="py-2 pr-4">Foto kulit (deteksi AI & purging checker)</td>
                       <td className="py-2">Amerika Serikat</td>
                     </tr>
                     <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">SumoPod AI (DeepSeek)</td>
+                      <td className="py-2 pr-4">SumoPod</td>
                       <td className="py-2 pr-4">Teks konsultasi & data rutinitas</td>
-                      <td className="py-2">Singapura</td>
+                      <td className="py-2">Indonesia</td>
                     </tr>
                     <tr className="border-b border-slate-100">
                       <td className="py-2 pr-4">Supabase</td>
