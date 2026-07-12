@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/contexts/UserContext";
@@ -25,17 +26,12 @@ const planLabels: Record<string, string> = {
   pro_yearly: "Pro Tahunan",
 };
 
-const planPrices: Record<string, string> = {
-  premium_monthly: "Rp19.000/bulan",
-  premium_yearly: "Rp149.000/tahun",
-  pro_monthly: "Rp49.000/bulan",
-  pro_yearly: "Rp399.000/tahun",
-};
-
-const planFeatures: Record<string, string> = {
-  free: "Tracker ringan, progress foto, 3x AI Consult, rekomendasi produk",
-  premium: "AI Consult unlimited, deteksi jerawat dari foto, deep insight, notifikasi",
-  pro: "Semua fitur Premium + analisis rutinitas, routine builder, purging checker unlimited, laporan mingguan PDF",
+const planLabels: Record<string, string> = {
+  free: "Gratis",
+  premium_monthly: "Premium Bulanan",
+  premium_yearly: "Premium Tahunan",
+  pro_monthly: "Pro Bulanan",
+  pro_yearly: "Pro Tahunan",
 };
 
 export default function SettingsPage() {
@@ -53,7 +49,6 @@ export default function SettingsPage() {
   const [deleteInput, setDeleteInput] = useState("");
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const [showSubDetail, setShowSubDetail] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const showToast = (msg: string) => {
@@ -167,98 +162,13 @@ export default function SettingsPage() {
                   {user.plan !== "free" ? (user.plan.includes("pro") ? "Semua fitur Pro tersedia" : "Nikmati semua fitur premium") : "Upgrade untuk fitur lengkap"}
                 </p>
               </div>
-              <button
-                onClick={() => setShowSubDetail(!showSubDetail)}
+              <Link
+                href="/subscription"
                 className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors ${user.plan !== "free" ? "bg-primary text-white hover:bg-primary/90" : "bg-primary text-white hover:bg-primary/90"}`}
               >
-                {showSubDetail ? "Tutup" : user.plan !== "free" ? "Kelola" : "Upgrade"}
-              </button>
+                {user.plan !== "free" ? "Kelola Plan" : "Lihat Plan"}
+              </Link>
             </div>
-              {showSubDetail && (
-              <div className="mt-4 pt-4 border-t border-primary/10 animate-scale-in">
-                {user.plan !== "free" ? (
-                  <>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Plan:</strong> {planLabels[user.plan]}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Harga:</strong> {planPrices[user.plan] || (user.plan.includes("yearly") ? "Rp149.000/tahun" : "Rp19.000/bulan")}</p>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Fitur aktif:</strong> {user.plan.includes("pro") ? planFeatures.pro : planFeatures.premium}</p>
-                    <div className="flex gap-2 mt-3">
-                      {!user.plan.includes("pro") && (
-                        <button
-                          onClick={async () => {
-                            setSaving(true);
-                            try {
-                              const res = await fetch("/api/payment/create", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ plan: "pro_monthly" }),
-                              });
-                              const data = await res.json();
-                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
-                              else showToast("Gagal membuat invoice");
-                            } catch { showToast("Gagal terhubung ke server."); }
-                            setSaving(false);
-                          }}
-                          disabled={saving}
-                          className="btn-press flex-1 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-colors disabled:opacity-50"
-                        >
-                          Upgrade ke Pro 👑
-                        </button>
-                      )}
-                      <button onClick={() => showToast("Fitur pembatalan akan segera hadir")} className="btn-press flex-1 py-2 bg-white text-xs font-bold text-red-500 rounded-xl border border-red-100 hover:bg-red-50 transition-colors">Batalkan</button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-xs text-slate-600 mb-2"><strong>Plan saat ini:</strong> Gratis</p>
-                    <p className="text-xs text-slate-600 mb-2">Upgrade untuk akses AI Deteksi, Konsultasi RAG, Insight Mendalam, dan Tema Custom.</p>
-                    <div className="flex flex-col gap-2 mt-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={async () => {
-                            setSaving(true);
-                            try {
-                              const res = await fetch("/api/payment/create", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ plan: "premium_monthly" }),
-                              });
-                              const data = await res.json();
-                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
-                              else showToast("Gagal membuat invoice. Coba lagi nanti.");
-                            } catch { showToast("Gagal terhubung ke server."); }
-                            setSaving(false);
-                          }}
-                          disabled={saving}
-                          className="btn-press flex-1 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors disabled:opacity-50"
-                        >
-                          Premium Rp19rb
-                        </button>
-                        <button
-                          onClick={async () => {
-                            setSaving(true);
-                            try {
-                              const res = await fetch("/api/payment/create", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ plan: "pro_monthly" }),
-                              });
-                              const data = await res.json();
-                              if (data.invoice_url) window.open(data.invoice_url, "_blank");
-                              else showToast("Gagal membuat invoice. Coba lagi nanti.");
-                            } catch { showToast("Gagal terhubung ke server."); }
-                            setSaving(false);
-                          }}
-                          disabled={saving}
-                          className="btn-press flex-1 py-2 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 transition-colors disabled:opacity-50"
-                        >
-                          Pro Rp49rb 👑
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </section>
