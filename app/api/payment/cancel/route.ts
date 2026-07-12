@@ -1,22 +1,24 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-  if (!supabaseUrl || !serviceKey) {
-    return NextResponse.json({ error: "Server config error" }, { status: 500 });
-  }
-
-  const supabaseAuth = createClient(supabaseUrl, serviceKey);
-  const { data: { user } } = await supabaseAuth.auth.getUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { error } = await supabaseAuth
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    return NextResponse.json({ error: "Server config error" }, { status: 500 });
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const { createClient: createServiceClient } = await import("@supabase/supabase-js");
+  const adminClient = createServiceClient(supabaseUrl, serviceKey);
+
+  const { error } = await adminClient
     .from("users")
     .update({ plan: "free" })
     .eq("id", user.id);

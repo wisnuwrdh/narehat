@@ -49,6 +49,7 @@ export default function ProgressPage() {
   const [detectLoading, setDetectLoading] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
   const [isFree, setIsFree] = useState(true);
+  const [correlationLogs, setCorrelationLogs] = useState<{ sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[]>([]);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -69,8 +70,10 @@ export default function ProgressPage() {
         const j = await res.json();
         const logs = (j.logs || []) as Record<string, unknown>[];
         const logsByDate: Record<string, Record<string, number>> = {};
+        const cl: { sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[] = [];
         for (const log of logs) {
-          logsByDate[log.date as string] = log as unknown as Record<string, number>;
+          const d = log.date as string;
+          logsByDate[d] = log as unknown as Record<string, number>;
         }
 
         const labels: string[] = [];
@@ -80,10 +83,19 @@ export default function ProgressPage() {
           if (log) {
             labels.push(formatDateLabel(date, "30"));
             scores.push(computeSkinScore(log));
+            cl.push({
+              sleep_hours: log.sleep_hours || 0,
+              water_ml: log.water_ml || 0,
+              exercise_minutes: log.exercise_minutes || 0,
+              stress_level: log.stress_level || 5,
+              skincare_morning: !!log.skincare_morning,
+              skincare_evening: !!log.skincare_evening,
+            });
           }
         }
 
         setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
+        setCorrelationLogs(cl);
       } catch {}
 
       setLoaded(true);
@@ -118,8 +130,10 @@ export default function ProgressPage() {
         const j = await res.json();
         const logs = (j.logs || []) as Record<string, unknown>[];
         const logsByDate: Record<string, Record<string, number>> = {};
+        const cl: { sleep_hours: number; water_ml: number; exercise_minutes: number; stress_level: number; skincare_morning: boolean; skincare_evening: boolean }[] = [];
         for (const log of logs) {
-          logsByDate[log.date as string] = log as unknown as Record<string, number>;
+          const d = log.date as string;
+          logsByDate[d] = log as unknown as Record<string, number>;
         }
 
         const labels: string[] = [];
@@ -129,10 +143,19 @@ export default function ProgressPage() {
           if (log) {
             labels.push(formatDateLabel(date, range));
             scores.push(computeSkinScore(log));
+            cl.push({
+              sleep_hours: log.sleep_hours || 0,
+              water_ml: log.water_ml || 0,
+              exercise_minutes: log.exercise_minutes || 0,
+              stress_level: log.stress_level || 5,
+              skincare_morning: !!log.skincare_morning,
+              skincare_evening: !!log.skincare_evening,
+            });
           }
         }
 
         setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
+        setCorrelationLogs(cl);
       } catch {}
     }
     load();
@@ -158,19 +181,8 @@ export default function ProgressPage() {
   const data = chartData[range];
   const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
 
-  const rawData = data.scores.map((s, i) => ({
-    date: data.labels[i],
-    sleep_hours: 7,
-    water_ml: 2000,
-    exercise_minutes: 15,
-    stress_level: 5,
-    skincare_morning: true,
-    skincare_evening: true,
-    score: s,
-  }));
-
   const correlations = analyzeCorrelations(
-    rawData,
+    correlationLogs,
     data.scores
   ).map((c) => ({
     label: c.factor,
