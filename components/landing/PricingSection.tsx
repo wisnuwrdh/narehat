@@ -13,7 +13,7 @@ const plans = [
       "Skin type quiz + profil personal",
       "Tracker ringan (tidur, air, stress, foto)",
       "Progress foto mingguan",
-      "Rekomendasi produk + affiliate",
+      "Rekomendasi produk",
       "AI Consult: 3x (lifetime)",
       "Purging Checker: 1x (lifetime)",
     ],
