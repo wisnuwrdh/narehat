@@ -55,9 +55,9 @@ const statusColorMap: Record<string, string> = { emerald: "bg-emerald-400", ambe
 const quickActions = [
   { href: "/tracker", icon: "edit_calendar", label: "Tracker" },
   { href: "/progress", icon: "trending_up", label: "Progress" },
-  { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", pro: true },
+  { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", badge: "PREMIUM" as const },
   { href: "/recommendations", icon: "inventory_2", label: "Produk" },
-  { href: "/routine", icon: "auto_awesome", label: "Routine", pro: true },
+  { href: "/routine", icon: "auto_awesome", label: "Routine", badge: "PRO" as const },
 ];
 
 function computeStreak(logs: { date: string }[]): number {
@@ -431,8 +431,8 @@ export default function DashboardPage() {
             <Link key={item.label} href={item.href} className="btn-press flex flex-col items-center gap-2 group">
               <div className="w-14 h-14 bg-white border border-border-light rounded-2xl flex items-center justify-center group-hover:border-primary/30 group-hover:shadow-md transition-all duration-200 shadow-sm relative">
                 <span className="material-symbols-outlined text-2xl text-primary">{item.icon}</span>
-                {item.pro && (
-                  <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">PRO</span>
+                {item.badge && (
+                  <span className={`absolute -top-1 -right-1 px-1.5 py-0.5 text-white text-[8px] font-bold rounded-md ${item.badge === "PRO" ? "bg-violet-600" : "bg-primary"}`}>{item.badge}</span>
                 )}
               </div>
               <span className="text-[10px] font-medium text-muted group-hover:text-slate-700 transition-colors text-center leading-tight">

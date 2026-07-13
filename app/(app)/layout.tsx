@@ -53,7 +53,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
                 {item.href === "/ai-consult" && !isPremium && (
                   <span className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-primary text-white text-[7px] font-bold rounded-md leading-none">
-                    PRO
+                    PREMIUM
                   </span>
                 )}
               </Link>
