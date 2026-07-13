@@ -51,6 +51,7 @@ export default function ProgressPage() {
   const [barsAnimated, setBarsAnimated] = useState(false);
   const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number }[]>([]);
   const [insightItems, setInsightItems] = useState<{ title: string; description: string; type: string }[]>([]);
+  const [pickerSide, setPickerSide] = useState<"left" | "right" | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -200,23 +201,17 @@ export default function ProgressPage() {
     return () => clearTimeout(t);
   }, [range]);
 
-  const selectPhoto = (side: "left" | "right") => {
-    if (allPhotos.length === 0) return;
-    const list = allPhotos
-      .map((p, i) => `${i}: ${p.date} (${p.label})`)
-      .join("\n");
-    const idxStr = prompt(`Pilih foto (0-${allPhotos.length - 1}):\n\n${list}`, "1");
-    if (idxStr === null) return;
-    const idx = parseInt(idxStr, 10);
-    if (isNaN(idx) || idx < 0 || idx >= allPhotos.length) return;
+  const pickPhoto = (idx: number) => {
+    if (!pickerSide || idx < 0 || idx >= allPhotos.length) return;
     const selected = allPhotos[idx];
-    if (side === "left") {
+    if (pickerSide === "left") {
       setLeftPhoto(selected.url);
       setLeftLabel(selected.date);
     } else {
       setRightPhoto(selected.url);
       setRightLabel(selected.date);
     }
+    setPickerSide(null);
   };
 
   const avgScore = data.scores.length > 0 ? Math.round(data.scores.reduce((a, b) => a + b, 0) / data.scores.length) : 0;
@@ -577,8 +572,8 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
           </div>
           <div className="flex gap-3">
             {[
-              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, label: leftLabel || "Sebelum", badge: "Baseline", onClick: () => selectPhoto("left") },
-              { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, label: rightLabel || "Sekarang", badge: "Terbaru", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => selectPhoto("right") },
+              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, label: leftLabel || "Sebelum", badge: "Baseline", onClick: () => setPickerSide("left") },
+              { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, label: rightLabel || "Sekarang", badge: "Terbaru", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => setPickerSide("right") },
             ].map((s) => (
               <div key={s.side} className="flex-1">
                 {s.photo ? (
@@ -607,6 +602,37 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
           </div>
         </div>
       </section>
+
+      {pickerSide && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setPickerSide(null)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white rounded-t-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[60vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800 text-sm">Pilih Foto</h3>
+              <button onClick={() => setPickerSide(null)} className="p-1.5 text-muted hover:text-slate-700 rounded-lg hover:bg-slate-50">
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {allPhotos.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => pickPhoto(i)}
+                  className="text-left rounded-xl overflow-hidden border border-border-light hover:border-primary/50 transition-all bg-white"
+                >
+                  <div className="aspect-square bg-slate-50">
+                    <img src={p.url} alt={p.date} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="p-2">
+                    <span className="text-[11px] font-semibold text-slate-700 block">{p.label}</span>
+                    <span className="text-[10px] text-muted">{p.date}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <section className="px-6 mb-8">
         <h2 className="font-bold text-slate-900 text-base mb-4">Insight Minggu Ini</h2>
