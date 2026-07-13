@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/contexts/UserContext";
-import { exportAsJSON, exportAsCSV, exportAsPDF } from "@/lib/export/formatters";
+import { exportAsCSV, exportAsPDF } from "@/lib/export/formatters";
 
 const skinLabels: Record<string, string> = {
   oily: "Berminyak",
@@ -49,14 +49,13 @@ export default function SettingsPage() {
     setTimeout(() => setToast(""), 3000);
   };
 
-  const handleExport = async (format: "json" | "csv" | "pdf") => {
+  const handleExport = async (format: "csv" | "pdf") => {
     setExportLoading(true);
     try {
       const res = await fetch("/api/export");
       if (!res.ok) throw new Error("Gagal mengambil data");
       const data = await res.json();
-      if (format === "json") exportAsJSON(data);
-      else if (format === "csv") exportAsCSV(data);
+      if (format === "csv") exportAsCSV(data);
       else exportAsPDF(data);
       setShowExportDialog(false);
       showToast("Data berhasil diexport");
@@ -215,7 +214,7 @@ export default function SettingsPage() {
             ) : (
               <div className="flex flex-col gap-2">
                 {([
-                  { format: "json" as const, icon: "code", label: "JSON", desc: "Format mentah, cocok untuk backup" },
+
                   { format: "csv" as const, icon: "table", label: "CSV", desc: "Spreadsheet, bisa dibuka di Excel" },
                   { format: "pdf" as const, icon: "picture_as_pdf", label: "PDF", desc: "Laporan terformat siap cetak" },
                 ]).map((opt) => (

@@ -19,6 +19,98 @@ const severityLabels: Record<string, string> = { mild: "Ringan", moderate: "Seda
 const goalLabels: Record<string, string> = {
   clear_acne: "Jerawat Hilang", fade_scars: "Bekas Memudar", brighter_skin: "Kulit Cerah", all: "Semua",
 };
+const planLabels: Record<string, string> = {
+  free: "Gratis", premium_monthly: "Premium Bulanan", premium_yearly: "Premium Tahunan",
+  pro_monthly: "Pro Bulanan", pro_yearly: "Pro Tahunan",
+};
+const typeLabels: Record<string, string> = {
+  correlation: "Korelasi", trend: "Tren", recommendation: "Rekomendasi",
+  reminder: "Pengingat", insight: "Insight", promo: "Promo",
+};
+const analysisLabels: Record<string, string> = { detect: "Deteksi", purging: "Purging" };
+const featureLabels: Record<string, string> = {
+  consult: "AI Consult", detect: "Deteksi Jerawat", purging: "Purging Check",
+  routine_analyze: "Analisis Rutinitas", routine_build: "Bangun Rutinitas",
+};
+
+const profileColumnMap: Record<string, string> = {
+  name: "Nama", email: "Email", skin_type: "Tipe Kulit", acne_severity: "Tingkat Jerawat",
+  goal: "Tujuan", plan: "Plan", created_at: "Terdaftar", updated_at: "Diupdate",
+};
+
+const dailyLogColumnMap: Record<string, string> = {
+  date: "Tanggal", sleep_hours: "Jam Tidur", water_ml: "Air (ml)",
+  exercise_minutes: "Olahraga (menit)", stress_level: "Level Stress",
+  skincare_morning: "Skincare Pagi", skincare_evening: "Skincare Malam",
+  touched_face: "Menyentuh Wajah", junk_food: "Makanan Cepat Saji",
+  notes: "Catatan", created_at: "Dibuat",
+};
+
+const photoColumnMap: Record<string, string> = {
+  url: "URL Foto", date: "Tanggal", notes: "Catatan",
+  ai_analysis: "Analisis AI", analysis_type: "Tipe Analisis", created_at: "Dibuat",
+};
+
+const productColumnMap: Record<string, string> = {
+  name: "Nama", brand: "Merek", category: "Kategori", active: "Aktif",
+  notes: "Catatan", created_at: "Dibuat",
+};
+
+const insightColumnMap: Record<string, string> = {
+  date: "Tanggal", type: "Tipe", title: "Judul", description: "Deskripsi", created_at: "Dibuat",
+};
+
+const notifColumnMap: Record<string, string> = {
+  type: "Tipe", title: "Judul", description: "Deskripsi",
+  related_link: "Link Terkait", is_read: "Sudah Dibaca", created_at: "Dibuat",
+};
+
+const usageColumnMap: Record<string, string> = {
+  feature: "Fitur", created_at: "Waktu",
+};
+
+function formatValue(v: unknown, key: string): string {
+  if (v === null || v === undefined) return "-";
+  if (typeof v === "boolean") return v ? "Ya" : "Tidak";
+  if (key === "skin_type") return skinLabels[String(v)] || String(v);
+  if (key === "acne_severity") return severityLabels[String(v)] || String(v);
+  if (key === "goal") return goalLabels[String(v)] || String(v);
+  if (key === "plan") return planLabels[String(v)] || String(v);
+  if (key === "type") return typeLabels[String(v)] || String(v);
+  if (key === "analysis_type") return analysisLabels[String(v)] || String(v);
+  if (key === "feature") return featureLabels[String(v)] || String(v);
+  if ((key === "date" || key === "created_at" || key === "updated_at") && typeof v === "string") {
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    }
+    return String(v);
+  }
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+function transformRows(rows: Record<string, unknown>[], columnMap: Record<string, string>): Record<string, string>[] {
+  return rows.map((row) => {
+    const out: Record<string, string> = {};
+    for (const [key, label] of Object.entries(columnMap)) {
+      if (!(key in row)) continue;
+      out[label] = formatValue(row[key], key);
+    }
+    return out;
+  });
+}
+
+function rowsToCSV(rows: Record<string, unknown>[], columnMap: Record<string, string>): string {
+  if (rows.length === 0) return "";
+  const transformed = transformRows(rows, columnMap);
+  const keys = Object.keys(transformed[0]);
+  const header = keys.map((k) => `"${k}"`).join(",");
+  const body = transformed
+    .map((row) => keys.map((k) => `"${String(row[k] || "").replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  return `${header}\n${body}`;
+}
 
 function downloadBlob(content: string | ArrayBuffer, filename: string, mime: string) {
   const blob = new Blob([content], { type: mime });
@@ -32,51 +124,48 @@ function downloadBlob(content: string | ArrayBuffer, filename: string, mime: str
   URL.revokeObjectURL(url);
 }
 
-function rowsToCSV(rows: Record<string, unknown>[]): string {
-  if (rows.length === 0) return "";
-  const keys = Object.keys(rows[0]);
-  const header = keys.map((k) => `"${k}"`).join(",");
-  const body = rows
-    .map((row) =>
-      keys
-        .map((k) => {
-          const v = row[k];
-          if (v === null || v === undefined) return "";
-          const s = typeof v === "object" ? JSON.stringify(v) : String(v);
-          return `"${s.replace(/"/g, '""')}"`;
-        })
-        .join(",")
-    )
-    .join("\n");
-  return `${header}\n${body}`;
-}
-
-export function exportAsJSON(data: ExportData) {
-  downloadBlob(JSON.stringify(data, null, 2), "narehat-data.json", "application/json");
-}
-
 export function exportAsCSV(data: ExportData) {
   const parts: string[] = [];
   const timestamp = new Date().toISOString().split("T")[0];
 
   if (data.profile) {
-    parts.push(`# Profil\n${rowsToCSV([data.profile])}`);
+    const transformed = transformRows([data.profile], profileColumnMap);
+    parts.push(`# Profil\n${rowsToCSV([data.profile], profileColumnMap)}`);
   }
 
-  const tables: [string, Record<string, unknown>[]][] = [
-    ["Daily Logs", data.dailyLogs],
-    ["Skin Photos", data.skinPhotos],
-    ["Skincare Products", data.skincareProducts],
-    ["Insights", data.insights],
-    ["Notifications", data.notifications],
-    ["AI Usage", data.aiUsage],
+  const tables: [string, Record<string, unknown>[], Record<string, string>][] = [
+    ["Log Harian", data.dailyLogs, dailyLogColumnMap],
+    ["Foto Kulit", data.skinPhotos, photoColumnMap],
+    ["Produk Skincare", data.skincareProducts, productColumnMap],
+    ["Insight", data.insights, insightColumnMap],
+    ["Notifikasi", data.notifications, notifColumnMap],
+    ["Penggunaan AI", data.aiUsage, usageColumnMap],
   ];
 
-  for (const [title, rows] of tables) {
-    parts.push(`# ${title}\n${rowsToCSV(rows)}`);
+  for (const [title, rows, colMap] of tables) {
+    parts.push(`# ${title}\n${rowsToCSV(rows, colMap)}`);
   }
 
   downloadBlob("\uFEFF" + parts.join("\n\n"), `narehat-data-${timestamp}.csv`, "text/csv;charset=utf-8");
+}
+
+function addTableToPDF(
+  doc: jsPDF,
+  rows: Record<string, unknown>[],
+  columnMap: Record<string, string>,
+  startY: number,
+): number {
+  if (rows.length === 0) return startY;
+  const transformed = transformRows(rows, columnMap);
+  const keys = Object.keys(transformed[0]);
+  autoTable(doc, {
+    startY,
+    head: [keys],
+    body: transformed.map((r) => keys.map((k) => r[k] || "-")),
+    styles: { fontSize: 7, cellPadding: 1.5 },
+    headStyles: { fillColor: [59, 130, 246] },
+  });
+  return (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
 }
 
 export function exportAsPDF(data: ExportData) {
@@ -91,7 +180,7 @@ export function exportAsPDF(data: ExportData) {
   y += 8;
   doc.setFontSize(9);
   doc.setTextColor(100);
-  doc.text(`Diexport pada: ${timestamp}`, 14, y);
+  doc.text(`Diekspor pada: ${timestamp}`, 14, y);
   y += 12;
 
   if (data.profile) {
@@ -99,57 +188,35 @@ export function exportAsPDF(data: ExportData) {
     doc.setTextColor(0);
     doc.text("Profil", 14, y);
     y += 7;
+    const body = Object.entries(profileColumnMap).map(([key, label]) => {
+      return [label, formatValue(data.profile![key], key)];
+    });
     autoTable(doc, {
       startY: y,
-      head: [["Field", "Value"]],
-      body: [
-        ["Nama", String(data.profile.name || "-")],
-        ["Email", String(data.profile.email || "-")],
-        ["Tipe Kulit", skinLabels[String(data.profile.skin_type)] || String(data.profile.skin_type)],
-        ["Tingkat Jerawat", severityLabels[String(data.profile.acne_severity)] || String(data.profile.acne_severity)],
-        ["Goal", goalLabels[String(data.profile.goal)] || String(data.profile.goal)],
-        ["Plan", String(data.profile.plan || "-")],
-        ["Terdaftar", new Date(String(data.profile.created_at)).toLocaleDateString("id-ID")],
-      ],
+      head: [["Field", "Nilai"]],
+      body,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [145, 103, 255] },
     });
-    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 8;
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   }
 
-  const tables: [string, Record<string, unknown>[]][] = [
-    ["Daily Logs", data.dailyLogs],
-    ["Skin Photos", data.skinPhotos],
-    ["Skincare Products", data.skincareProducts],
-    ["Insights", data.insights],
-    ["Notifications", data.notifications],
-    ["AI Usage", data.aiUsage],
+  const tables: [string, Record<string, unknown>[], Record<string, string>][] = [
+    ["Log Harian", data.dailyLogs, dailyLogColumnMap],
+    ["Foto Kulit", data.skinPhotos, photoColumnMap],
+    ["Produk Skincare", data.skincareProducts, productColumnMap],
+    ["Insight", data.insights, insightColumnMap],
+    ["Notifikasi", data.notifications, notifColumnMap],
+    ["Penggunaan AI", data.aiUsage, usageColumnMap],
   ];
 
-  for (const [title, rows] of tables) {
+  for (const [title, rows, colMap] of tables) {
     if (rows.length === 0) continue;
     doc.setFontSize(12);
     doc.setTextColor(0);
     doc.text(`${title} (${rows.length})`, 14, y);
     y += 7;
-
-    const keys = Object.keys(rows[0]);
-    autoTable(doc, {
-      startY: y,
-      head: [keys],
-      body: rows.map((r) =>
-        keys.map((k) => {
-          const v = r[k];
-          if (v === null || v === undefined) return "-";
-          if (typeof v === "object") return JSON.stringify(v);
-          if (typeof v === "boolean") return v ? "Ya" : "Tidak";
-          return String(v);
-        })
-      ),
-      styles: { fontSize: 7, cellPadding: 1.5 },
-      headStyles: { fillColor: [59, 130, 246] },
-    });
-    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
+    y = addTableToPDF(doc, rows, colMap, y);
   }
 
   doc.save(`narehat-data-${new Date().toISOString().split("T")[0]}.pdf`);
