@@ -4,10 +4,10 @@ export async function checkPurging(imageBase64: string, productName: string): Pr
   description: string;
   recommendations: string[];
 } | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.SUMOPOD_API_KEY;
   if (!apiKey) return null;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://ai.sumopod.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

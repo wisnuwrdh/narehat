@@ -5,13 +5,13 @@ export async function detectAcne(imageBase64: string): Promise<{
   location: string;
   triggers: string[];
 } | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.SUMOPOD_API_KEY;
   if (!apiKey) {
-    console.error("OPENAI_API_KEY is not set");
+    console.error("SUMOPOD_API_KEY is not set");
     return null;
   }
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch("https://ai.sumopod.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -63,7 +63,7 @@ Valid triggers: hormonal, diet, stress, skincare, maskne, sleep, hygiene, fricti
 
   if (!response.ok) {
     const err = await response.text();
-    console.error("OpenAI vision error:", response.status, err);
+    console.error("SumoPod vision error:", response.status, err);
     return null;
   }
 
