@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 interface Day {
   day: string;
@@ -36,7 +37,8 @@ const stressEmojis = ["", "😌", "😌", "😤", "😫", "🤯"];
 const stressColors = ["", "bg-emerald-50 text-emerald-600", "bg-emerald-50 text-emerald-600", "bg-amber-50 text-amber-600", "bg-orange-50 text-orange-600", "bg-red-50 text-red-600"];
 
 export default function TrackerPage() {
-  const [activeDate, setActiveDate] = useState(6); // today
+  const { showToast } = useToast();
+  const [activeDate, setActiveDate] = useState(6);
   const [sleep, setSleep] = useState(0);
   const [exercise, setExercise] = useState(0);
   const [water, setWater] = useState(0);
@@ -45,7 +47,6 @@ export default function TrackerPage() {
   const [skincareEvening, setSkincareEvening] = useState(false);
   const [notes, setNotes] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadedDates, setLoadedDates] = useState<Set<string>>(new Set());
   const [showDetail, setShowDetail] = useState(false);
@@ -136,8 +137,7 @@ export default function TrackerPage() {
         }),
       });
       if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 3000);
+        showToast("Data berhasil disimpan!");
       }
 
       if (photoPreview && fileRef.current?.files?.[0]) {
@@ -163,7 +163,6 @@ export default function TrackerPage() {
     setSkincareEvening(false);
     setNotes("");
     setPhotoPreview(null);
-    setSaved(false);
   };
 
   const handleAIDetect = async () => {
@@ -676,16 +675,7 @@ export default function TrackerPage() {
       )}
 
       {/* Actions */}
-      <div className="px-6 pb-8 space-y-3">
-        {saved && (
-          <div className="animate-fade-in-up p-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-center">
-            <span className="text-xs font-bold text-emerald-600 flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              Data berhasil disimpan! ✅
-            </span>
-          </div>
-        )}
-        <button
+      <div className="px-6 pb-8 space-y-3">        <button
           onClick={handleSave}
           disabled={loading}
           className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

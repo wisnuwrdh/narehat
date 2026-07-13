@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "@/contexts/ToastContext";
 
 const CATEGORIES = ["Semua", "Cleanser", "Moisturizer", "Sunscreen", "Treatment"];
 
@@ -47,14 +48,10 @@ export default function RecommendationsPage() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState("");
   const [userSkin, setUserSkin] = useState("kombinasi");
   const [userConcern, setUserConcern] = useState("jerawat aktif");
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 3000);
-  }, []);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const saved = localStorage.getItem("narehat-favorites");
@@ -114,7 +111,7 @@ export default function RecommendationsPage() {
         return next;
       });
     },
-    [showToast]
+    []
   );
 
   const handleLoadMore = useCallback(() => {
@@ -162,17 +159,6 @@ export default function RecommendationsPage() {
           ))}
         </div>
       </header>
-
-      {toast && (
-        <div className="px-6 mb-4">
-          <div className="animate-fade-in-up p-3 bg-primary-light border border-primary/10 rounded-2xl text-center">
-            <span className="text-xs font-bold text-primary flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              {toast}
-            </span>
-          </div>
-        </div>
-      )}
 
       <section className="px-6 mb-6">
         <div className="bg-gradient-to-br from-indigo-50/60 to-violet-50/30 border border-indigo-100/60 rounded-2xl p-4">

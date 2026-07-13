@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/contexts/ToastContext";
 
 type Billing = "monthly" | "yearly";
 
@@ -64,14 +65,9 @@ const plans = [
 
 export default function SubscriptionPage() {
   const { user } = useUser();
+  const { showToast } = useToast();
   const [billing, setBilling] = useState<Billing>("monthly");
   const [savingPlan, setSavingPlan] = useState<string | null>(null);
-  const [toast, setToast] = useState("");
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 3000);
-  };
 
   const currentPlanId = user.plan === "free" ? "free" : user.plan.includes("pro") ? "pro" : "premium";
 
@@ -87,10 +83,10 @@ export default function SubscriptionPage() {
       if (data.invoice_url) {
         window.open(data.invoice_url, "_blank");
       } else {
-        showToast(data.error || "Gagal membuat invoice.");
+        showToast(data.error || "Gagal membuat invoice.", "error");
       }
     } catch {
-      showToast("Gagal terhubung ke server.");
+      showToast("Gagal terhubung ke server.", "error");
     }
     setSavingPlan(null);
   };
@@ -106,17 +102,6 @@ export default function SubscriptionPage() {
           <p className="text-sm text-muted">Upgrade untuk fitur lebih lengkap</p>
         </div>
       </header>
-
-      {toast && (
-        <div className="px-6 mb-4">
-          <div className="animate-fade-in-up p-3 bg-primary-light border border-primary/10 rounded-2xl text-center">
-            <span className="text-xs font-bold text-primary flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              {toast}
-            </span>
-          </div>
-        </div>
-      )}
 
       <section className="px-6 mb-4">
         <div className="flex gap-2 bg-slate-50 p-1 rounded-xl border border-border-subtle">

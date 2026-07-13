@@ -45,6 +45,7 @@ const config: Config = {
         "fade-in-up": "fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "scale-in": "scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "slide-in-right": "slideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "slide-down": "slideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         float: "float 4s ease-in-out infinite",
         "pulse-glow": "pulseGlow 3s ease-in-out infinite",
         blob: "blob 8s ease-in-out infinite",
@@ -62,6 +63,10 @@ const config: Config = {
         slideInRight: {
           from: { opacity: "0", transform: "translateX(20px)" },
           to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideDown: {
+          from: { opacity: "0", transform: "translateY(-12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
         },
         float: {
           "0%, 100%": { transform: "translateY(0px)" },

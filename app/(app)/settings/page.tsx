@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/contexts/ToastContext";
 import { exportAsCSV, exportAsPDF } from "@/lib/export/formatters";
 
 const skinLabels: Record<string, string> = {
@@ -37,17 +38,12 @@ const goalLabels: Record<string, string> = {
 export default function SettingsPage() {
   const router = useRouter();
   const { user } = useUser();
+  const { showToast } = useToast();
   const [deleteInput, setDeleteInput] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 3000);
-  };
 
   const handleExport = async (format: "csv" | "pdf") => {
     setExportLoading(true);
@@ -60,7 +56,7 @@ export default function SettingsPage() {
       setShowExportDialog(false);
       showToast("Data berhasil diexport");
     } catch {
-      showToast("Gagal mengexport data");
+      showToast("Gagal mengexport data", "error");
     } finally {
       setExportLoading(false);
     }
@@ -93,17 +89,6 @@ export default function SettingsPage() {
         <h1 className="text-xl font-bold text-slate-900">Pengaturan</h1>
         <p className="text-sm text-muted">Kelola profil dan preferensimu</p>
       </header>
-
-      {toast && (
-        <div className="px-6 mb-4">
-          <div className="animate-fade-in-up p-3 bg-primary-light border border-primary/10 rounded-2xl text-center">
-            <span className="text-xs font-bold text-primary flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              {toast}
-            </span>
-          </div>
-        </div>
-      )}
 
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import { useToast } from "@/contexts/ToastContext";
 
 const skinLabels: Record<string, string> = {
   oily: "Berminyak",
@@ -27,23 +28,18 @@ const goalLabels: Record<string, string> = {
 
 export default function ProfilePage() {
   const { user, updateUser } = useUser();
+  const { showToast } = useToast();
   const [name, setName] = useState(user.name);
   const [skinType, setSkinType] = useState(user.skin_type);
   const [severity, setSeverity] = useState(user.acne_severity);
   const [goal, setGoal] = useState(user.goal);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState("");
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 3000);
-  };
 
   const dirty = name !== user.name || skinType !== user.skin_type || severity !== user.acne_severity || goal !== user.goal;
 
   const handleSave = async () => {
     if (!name.trim()) {
-      showToast("Nama tidak boleh kosong");
+      showToast("Nama tidak boleh kosong", "error");
       return;
     }
     setSaving(true);
@@ -63,17 +59,6 @@ export default function ProfilePage() {
           <p className="text-sm text-muted">Sesuaikan data diri dan kondisi kulitmu</p>
         </div>
       </header>
-
-      {toast && (
-        <div className="px-6 mb-4">
-          <div className="animate-fade-in-up p-3 bg-primary-light border border-primary/10 rounded-2xl text-center">
-            <span className="text-xs font-bold text-primary flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              {toast}
-            </span>
-          </div>
-        </div>
-      )}
 
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm flex flex-col items-center">
