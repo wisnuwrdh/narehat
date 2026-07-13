@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   let imageBase64 = formData.get("image") as string | null;
+  const photoId = formData.get("photo_id") as string | null;
 
   if (file) {
     const arrayBuffer = await file.arrayBuffer();
@@ -37,21 +38,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
 
-  await supabase.from("skin_photos").insert({
-    user_id: user.id,
-    url: imageBase64,
-    date: new Date().toISOString().split("T")[0],
-    notes: "AI Detection",
-    analysis_type: "detect",
-    ai_analysis: {
-      types: result.types,
-      severity: result.severity,
-      confidence: result.confidence,
-      location: result.location,
-      triggers: result.triggers,
-      analyzed_at: new Date().toISOString(),
-    },
-  });
+  const analysisData = {
+    types: result.types,
+    severity: result.severity,
+    confidence: result.confidence,
+    location: result.location,
+    triggers: result.triggers,
+    analyzed_at: new Date().toISOString(),
+  };
+
+  if (photoId) {
+    await supabase
+      .from("skin_photos")
+      .update({ ai_analysis: analysisData, analysis_type: "detect" })
+      .eq("id", photoId)
+      .eq("user_id", user.id);
+  } else {
+    await supabase.from("skin_photos").insert({
+      user_id: user.id,
+      url: imageBase64,
+      date: new Date().toISOString().split("T")[0],
+      notes: "AI Detection",
+      analysis_type: "detect",
+      ai_analysis: analysisData,
+    });
+  }
 
   const severityLabels: Record<string, string> = {
     mild: "Ringan",

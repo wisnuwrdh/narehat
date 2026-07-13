@@ -39,7 +39,7 @@ export default function ProgressPage() {
   });
   const [loaded, setLoaded] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
-  const [allPhotos, setAllPhotos] = useState<{ url: string; date: string; label: string }[]>([]);
+  const [allPhotos, setAllPhotos] = useState<{ id: string; url: string; date: string; label: string }[]>([]);
   const [expandedInsight, setExpandedInsight] = useState<number | null>(null);
   const [leftPhoto, setLeftPhoto] = useState<string | null>(null);
   const [leftLabel, setLeftLabel] = useState("");
@@ -152,7 +152,8 @@ export default function ProgressPage() {
       .then((data) => {
         if (data.photos) {
           setAllPhotos(
-            data.photos.map((p: { url: string; date: string }, i: number) => ({
+            data.photos.map((p: { id: string; url: string; date: string }, i: number) => ({
+              id: p.id,
               url: p.url,
               date: p.date,
               label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
@@ -489,6 +490,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                       body: (() => {
                         const fd = new FormData();
                         fd.append("image", p.url);
+                        fd.append("photo_id", p.id);
                         return fd;
                       })(),
                     });
