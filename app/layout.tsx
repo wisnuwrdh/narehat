@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import ClientShell from "@/components/ClientShell";
 import "./globals.css";
 
 const SITE_URL = "https://narehat.vercel.app";
@@ -95,7 +94,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="overflow-x-hidden"><ClientShell>{children}</ClientShell></body>
+      <body className="overflow-x-hidden">{children}</body>
     </html>
   );
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ToastProvider } from "@/contexts/ToastContext";
 import { UserProvider, useUser } from "@/contexts/UserContext";
 
 const navItems = [
@@ -70,8 +71,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UserProvider>
-      <AppShell>{children}</AppShell>
-    </UserProvider>
+    <ToastProvider>
+      <UserProvider>
+        <AppShell>{children}</AppShell>
+      </UserProvider>
+    </ToastProvider>
   );
 }

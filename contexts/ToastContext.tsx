@@ -42,7 +42,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className="pointer-events-auto animate-slide-down flex items-center gap-2 px-4 py-3 bg-slate-900 text-white text-sm font-semibold rounded-2xl shadow-xl max-w-sm"
+            className="pointer-events-auto animate-fade-in-up flex items-center gap-2 px-4 py-3 bg-slate-900 text-white text-sm font-semibold rounded-2xl shadow-xl max-w-sm"
           >
             <span className="material-symbols-outlined text-lg">
               {toast.variant === "success" ? "check_circle" : toast.variant === "error" ? "error" : "info"}
