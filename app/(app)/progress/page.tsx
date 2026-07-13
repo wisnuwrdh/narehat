@@ -604,7 +604,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
       </section>
 
       {pickerSide && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setPickerSide(null)}>
+        <div className="fixed inset-0 z-[100] flex items-end justify-center pb-24" onClick={() => setPickerSide(null)}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative bg-white rounded-t-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[60vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
