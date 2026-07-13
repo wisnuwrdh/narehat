@@ -606,7 +606,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
       {pickerSide && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center pb-24" onClick={() => setPickerSide(null)}>
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-t-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[60vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="relative bg-white rounded-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[60vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-slate-800 text-sm">Pilih Foto</h3>
               <button onClick={() => setPickerSide(null)} className="p-1.5 text-muted hover:text-slate-700 rounded-lg hover:bg-slate-50">
