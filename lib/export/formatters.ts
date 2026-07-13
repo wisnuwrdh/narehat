@@ -47,8 +47,7 @@ const dailyLogColumnMap: Record<string, string> = {
 };
 
 const photoColumnMap: Record<string, string> = {
-  url: "URL Foto", date: "Tanggal", notes: "Catatan",
-  ai_analysis: "Analisis AI", analysis_type: "Tipe Analisis", created_at: "Dibuat",
+  date: "Tanggal", notes: "Catatan", analysis_type: "Tipe Analisis", created_at: "Dibuat",
 };
 
 const productColumnMap: Record<string, string> = {
@@ -129,7 +128,6 @@ export function exportAsCSV(data: ExportData) {
   const timestamp = new Date().toISOString().split("T")[0];
 
   if (data.profile) {
-    const transformed = transformRows([data.profile], profileColumnMap);
     parts.push(`# Profil\n${rowsToCSV([data.profile], profileColumnMap)}`);
   }
 
