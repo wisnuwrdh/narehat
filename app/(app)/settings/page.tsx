@@ -144,8 +144,8 @@ export default function SettingsPage() {
         <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Privasi & Data</h3>
         <div className="bg-white border border-border-subtle rounded-3xl shadow-sm overflow-hidden">
           {[
-            { icon: "download", title: "Export Data", sub: "Download semua data kamu", action: () => setShowExportDialog(true) },
-            { icon: "delete", title: "Hapus Akun", sub: "Hapus semua data permanen", action: () => setShowDeleteConfirm(true) },
+            { icon: "download", title: "Export Data", sub: "Download semua data kamu", action: () => { setShowDeleteConfirm(false); setShowExportDialog(true); } },
+            { icon: "delete", title: "Hapus Akun", sub: "Hapus semua data permanen", action: () => { setShowExportDialog(false); setShowDeleteConfirm(true); } },
           ].map((p, i) => (
             <div key={p.title}>
               {i > 0 && <div className="h-px bg-border-subtle mx-4" />}
