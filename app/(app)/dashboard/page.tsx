@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 
 interface DashboardData {
@@ -122,78 +122,87 @@ export default function DashboardPage() {
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
   const [insightExpanded, setInsightExpanded] = useState(false);
-  const mounted = useRef(false);
+
+  const loadDashboard = useCallback(async () => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
+      const dates: string[] = [];
+      const d = new Date();
+      for (let i = 0; i < 7; i++) {
+        dates.push(d.toISOString().split("T")[0]);
+        d.setDate(d.getDate() - 1);
+      }
+
+      const [weekRes, photosRes, allLogsRes] = await Promise.all([
+        fetch(`/api/tracker?dates=${dates.join(",")}`),
+        fetch("/api/photos"),
+        fetch("/api/tracker"),
+      ]);
+
+      const weekData = await weekRes.json();
+      const photosData = await photosRes.json();
+      const allLogsData = await allLogsRes.json();
+
+      const weekLogs = weekData.logs || [];
+      const allLogs = allLogsData.logs || [];
+      const log = weekLogs.find((l: { date: string }) => l.date === today) || null;
+      const photos = (photosData.photos || []).slice(0, 4);
+
+      const skinScore = computeSkinScore(log);
+      let skinScoreDelta = 0;
+
+      const yesterdayLog = weekLogs.find((l: { date: string }) => l.date === yesterdayStr);
+      if (yesterdayLog) {
+        skinScoreDelta = skinScore - computeSkinScore(yesterdayLog);
+      } else if (weekLogs.length > 1) {
+        skinScoreDelta = skinScore - computeSkinScore(weekLogs[0] === log ? weekLogs[1] : weekLogs[0]);
+      }
+
+      const streak = computeStreak(allLogs);
+      const insights = generateInsights(weekLogs);
+      const userName = user.name || "User";
+
+      setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta });
+
+      let s = 0;
+      const duration = 1200;
+      const stepTime = Math.max(Math.floor(duration / (skinScore || 1)), 16);
+      const timer = setInterval(() => {
+        s += 1;
+        setAnimatedScore(s);
+        if (s >= skinScore) clearInterval(timer);
+      }, stepTime);
+
+      let st = 0;
+      const _streak = streak;
+      const streakDuration = 80;
+      const streakTimer = setInterval(() => {
+        st += 1;
+        setAnimatedStreak(st);
+        if (st >= _streak) clearInterval(streakTimer);
+      }, streakDuration);
+
+      return () => { clearInterval(timer); clearInterval(streakTimer); };
+    } catch {
+      setData((d) => ({ ...d, userName: "User" }));
+    }
+  }, [user.name]);
 
   useEffect(() => {
-    if (mounted.current) return;
-    mounted.current = true;
+    loadDashboard();
+  }, [loadDashboard]);
 
-    async function load() {
-      try {
-        const today = new Date().toISOString().split("T")[0];
-        const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-
-        const dates = [];
-        const d = new Date();
-        for (let i = 0; i < 7; i++) {
-          dates.push(d.toISOString().split("T")[0]);
-          d.setDate(d.getDate() - 1);
-        }
-
-        const [weekRes, photosRes] = await Promise.all([
-          fetch(`/api/tracker?dates=${dates.join(",")}`),
-          fetch("/api/photos"),
-        ]);
-
-        const weekData = await weekRes.json();
-        const photosData = await photosRes.json();
-
-        const weekLogs = weekData.logs || [];
-        const log = weekLogs.find((l: { date: string }) => l.date === today) || null;
-        const photos = (photosData.photos || []).slice(0, 4);
-
-        const skinScore = computeSkinScore(log);
-        let skinScoreDelta = 0;
-
-        const yesterdayLog = weekLogs.find((l: { date: string }) => l.date === yesterdayStr);
-        if (yesterdayLog) {
-          skinScoreDelta = skinScore - computeSkinScore(yesterdayLog);
-        } else if (weekLogs.length > 1) {
-          skinScoreDelta = skinScore - computeSkinScore(weekLogs[0] === log ? weekLogs[1] : weekLogs[0]);
-        }
-
-        const streak = computeStreak(weekLogs);
-        const insights = generateInsights(weekLogs);
-
-        const userName = user.name || "User";
-
-        setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta });
-
-        let s = 0;
-        const duration = 1200;
-        const stepTime = Math.max(Math.floor(duration / (skinScore || 1)), 16);
-        const timer = setInterval(() => {
-          s += 1;
-          setAnimatedScore(s);
-          if (s >= skinScore) clearInterval(timer);
-        }, stepTime);
-
-        let st = 0;
-        const _streak = streak;
-        const streakDuration = 80;
-        const streakTimer = setInterval(() => {
-          st += 1;
-          setAnimatedStreak(st);
-          if (st >= _streak) clearInterval(streakTimer);
-        }, streakDuration);
-
-        return () => { clearInterval(timer); clearInterval(streakTimer); };
-      } catch {
-        setData((d) => ({ ...d, userName: "User" }));
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        loadDashboard();
       }
-    }
-    load();
-  }, []);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [loadDashboard]);
 
   useEffect(() => {
     if (user.name) {
