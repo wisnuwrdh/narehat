@@ -52,6 +52,21 @@ export async function DELETE() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { data: photos } = await supabase
+    .from("skin_photos")
+    .select("url")
+    .eq("user_id", user.id);
+
+  if (photos && photos.length > 0) {
+    const paths = photos
+      .map((p) => p.url.split("/").slice(-2).join("/"))
+      .filter(Boolean);
+    const { error: storageError } = await supabase.storage
+      .from("skin_photos")
+      .remove(paths);
+    if (storageError) console.error("Failed to delete photo files:", storageError.message);
+  }
+
   const { error } = await supabase.from("daily_logs").delete().eq("user_id", user.id);
   if (error) console.error("Failed to delete logs:", error.message);
 
@@ -63,6 +78,12 @@ export async function DELETE() {
 
   const { error: productsError } = await supabase.from("skincare_products").delete().eq("user_id", user.id);
   if (productsError) console.error("Failed to delete products:", productsError.message);
+
+  const { error: notifError } = await supabase.from("notifications").delete().eq("user_id", user.id);
+  if (notifError) console.error("Failed to delete notifications:", notifError.message);
+
+  const { error: usageError } = await supabase.from("ai_usage").delete().eq("user_id", user.id);
+  if (usageError) console.error("Failed to delete ai usage:", usageError.message);
 
   const { error: userError } = await supabase.from("users").delete().eq("id", user.id);
   if (userError) console.error("Failed to delete user profile:", userError.message);
