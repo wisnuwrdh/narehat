@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { DailyLog } from "@/types";
+import { analyzeCorrelations } from "@/lib/insights/correlation";
 
 type Range = "7" | "30" | "90";
 
@@ -47,6 +49,8 @@ export default function ProgressPage() {
   const [detectResult, setDetectResult] = useState<null | { typesDisplay: string[]; severityDisplay: string; location: string; triggers: string[]; disclaimer: string }>(null);
   const [detectLoading, setDetectLoading] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
+  const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number }[]>([]);
+  const [insightItems, setInsightItems] = useState<{ title: string; description: string; type: string }[]>([]);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,6 +86,13 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
+        const corr = analyzeCorrelations(logs as unknown as DailyLog[], scores);
+        setCorrelations(corr.map((r) => ({
+          label: r.factor,
+          points: `${Math.round(r.correlation * 100)}%`,
+          color: r.correlation < 0 ? "red" : "green",
+          pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
+        })));
       } catch {}
 
       setLoaded(true);
@@ -123,6 +134,13 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
+        const corr = analyzeCorrelations(logs as unknown as DailyLog[], scores);
+        setCorrelations(corr.map((r) => ({
+          label: r.factor,
+          points: `${Math.round(r.correlation * 100)}%`,
+          color: r.correlation < 0 ? "red" : "green",
+          pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
+        })));
       } catch {}
     }
     load();
@@ -145,9 +163,19 @@ export default function ProgressPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    fetch("/api/report")
+      .then((r) => r.json())
+      .then((report) => {
+        if (report.insights?.length) {
+          setInsightItems(report.insights);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const data = chartData[range];
   const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
-  const correlations: { label: string; points: string; color: string; pct: number }[] = [];
 
   const padding = 10;
   const chartW = 320;
@@ -581,9 +609,9 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
       <section className="px-6 mb-8">
         <h2 className="font-bold text-slate-900 text-base mb-4">Insight Minggu Ini</h2>
         <div className="space-y-3">
-          {data.scores.length > 0 ? (
+          {data.scores.length > 0 || insightItems.length > 0 ? (
             <>
-              {avgScore >= 70 && (
+              {data.scores.length > 0 && (
                 <div onClick={() => setExpandedInsight(expandedInsight === 0 ? null : 0)} className="bg-white border border-border-subtle rounded-2xl shadow-sm card-hover cursor-pointer overflow-hidden transition-all">
                   <div className="p-4 flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-50">
@@ -601,6 +629,30 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                   </div>
                 </div>
               )}
+              {insightItems.map((insight, i) => {
+                const idx = i + 1;
+                const icon = insight.type === "recommendation" ? "lightbulb" : insight.type === "trend" ? "trending_up" : "hub";
+                const bg = insight.type === "recommendation" ? "bg-violet-50" : insight.type === "trend" ? "bg-emerald-50" : "bg-blue-50";
+                const fg = insight.type === "recommendation" ? "text-violet-500" : insight.type === "trend" ? "text-emerald-500" : "text-blue-500";
+                return (
+                  <div key={i} onClick={() => setExpandedInsight(expandedInsight === idx ? null : idx)} className="bg-white border border-border-subtle rounded-2xl shadow-sm card-hover cursor-pointer overflow-hidden transition-all">
+                    <div className="p-4 flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${bg}`}>
+                        <span className={`material-symbols-outlined text-sm ${fg}`}>{icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-slate-800">{insight.title}</p>
+                          <span className={`material-symbols-outlined text-muted-light text-sm transition-transform ${expandedInsight === idx ? "rotate-180" : ""}`}>expand_more</span>
+                        </div>
+                        <p className={`text-xs text-muted mt-0.5 transition-all ${expandedInsight === idx ? "max-h-32 opacity-100" : "max-h-0 opacity-0 overflow-hidden"}`}>
+                          {insight.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </>
           ) : (
             <div className="bg-white border border-border-subtle rounded-2xl shadow-sm p-4 text-center">
