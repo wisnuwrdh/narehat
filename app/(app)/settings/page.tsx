@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/contexts/UserContext";
+import { exportAsJSON, exportAsCSV, exportAsPDF } from "@/lib/export/formatters";
 
 const skinLabels: Record<string, string> = {
   oily: "Berminyak",
@@ -40,14 +41,30 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [toast, setToast] = useState("");
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 3000);
   };
 
-  const handleExport = () => {
-    showToast("Fitur export data akan segera hadir");
+  const handleExport = async (format: "json" | "csv" | "pdf") => {
+    setExportLoading(true);
+    try {
+      const res = await fetch("/api/export");
+      if (!res.ok) throw new Error("Gagal mengambil data");
+      const data = await res.json();
+      if (format === "json") exportAsJSON(data);
+      else if (format === "csv") exportAsCSV(data);
+      else exportAsPDF(data);
+      setShowExportDialog(false);
+      showToast("Data berhasil diexport");
+    } catch {
+      showToast("Gagal mengexport data");
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -143,7 +160,7 @@ export default function SettingsPage() {
         <h3 className="text-sm font-bold text-slate-700 mb-3 px-1">Privasi & Data</h3>
         <div className="bg-white border border-border-subtle rounded-3xl shadow-sm overflow-hidden">
           {[
-            { icon: "download", title: "Export Data", sub: "Download semua data kamu", action: handleExport },
+            { icon: "download", title: "Export Data", sub: "Download semua data kamu", action: () => setShowExportDialog(true) },
             { icon: "delete", title: "Hapus Akun", sub: "Hapus semua data permanen", action: () => setShowDeleteConfirm(true) },
           ].map((p, i) => (
             <div key={p.title}>
@@ -178,6 +195,49 @@ export default function SettingsPage() {
               </button>
               <button onClick={() => { setShowDeleteConfirm(false); setDeleteInput(""); }} className="btn-press flex-1 py-2.5 bg-white border border-border-light text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Batal</button>
             </div>
+          </div>
+        </section>
+      )}
+
+      {showExportDialog && (
+        <section className="px-6 mb-6">
+          <div className="bg-white border-2 border-primary/20 rounded-3xl p-5 shadow-lg animate-scale-in">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="material-symbols-outlined text-primary">download</span>
+              <h3 className="font-bold text-primary text-sm">Export Data</h3>
+            </div>
+            <p className="text-xs text-muted mb-4">Pilih format untuk mendownload semua data kamu</p>
+            {exportLoading ? (
+              <div className="flex items-center justify-center py-4 gap-2 text-primary">
+                <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                <span className="text-sm font-semibold">Mengambil data...</span>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {([
+                  { format: "json" as const, icon: "code", label: "JSON", desc: "Format mentah, cocok untuk backup" },
+                  { format: "csv" as const, icon: "table", label: "CSV", desc: "Spreadsheet, bisa dibuka di Excel" },
+                  { format: "pdf" as const, icon: "picture_as_pdf", label: "PDF", desc: "Laporan terformat siap cetak" },
+                ]).map((opt) => (
+                  <button
+                    key={opt.format}
+                    onClick={() => handleExport(opt.format)}
+                    className="btn-press w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary-light/30 transition-colors text-left border border-border-light"
+                  >
+                    <div className="w-9 h-9 bg-primary-light rounded-xl flex items-center justify-center">
+                      <span className="material-symbols-outlined text-primary text-sm">{opt.icon}</span>
+                    </div>
+                    <div className="flex-1">
+                      <span className="text-sm font-semibold text-slate-700 block">{opt.label}</span>
+                      <span className="text-[10px] text-muted">{opt.desc}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+            {!exportLoading && (
+              <button onClick={() => setShowExportDialog(false)} className="btn-press w-full mt-3 py-2.5 bg-slate-100 text-sm font-semibold text-slate-500 rounded-xl hover:bg-slate-200 transition-colors">Batal</button>
+            )}
           </div>
         </section>
       )}
