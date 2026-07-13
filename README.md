@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.5 (PWA + Profile + Subscription + Notifikasi removed + Copy fixes)
+**Versi:** 0.6 (Export Data + Toast System + Progress Enhancement + Account Deletion Fix)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -54,7 +54,7 @@ Pertama kali app memberikan insight seperti:
 |-------|-----------|--------|
 | Skin Type Quiz (Onboarding) | 5-step quiz: tipe kulit, kondisi jerawat, kebiasaan, produk yang dipakai, goal | ✅ Done |
 | Tracker Harian | Tidur, minum air, olahraga, tingkat stress, skincare AM/PM — 30 detik isi | ✅ Done |
-| Progress Foto | Upload foto, timeline view, side-by-side comparison | ✅ Done |
+| Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
 | Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
@@ -77,7 +77,7 @@ Pertama kali app memberikan insight seperti:
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
 | Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | ✅ Done |
-| Weekly Skin Report | Auto-generate laporan mingguan: skin score, foto banding, trigger, rekomendasi → export PDF | ✅ Done |
+| Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF | ✅ Done |
 
 ---
 
@@ -157,7 +157,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi (3x free, unlimited Premium)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + link belanja
-/settings         → Profil display, kelola plan, privasi & data, logout
+/settings         → Profil display, kelola plan, export data (CSV/PDF), hapus akun, logout
 /subscription     → Pilih plan — Free/Premium/Pro, monthly/yearly toggle, upgrade via Xendit
 /profile          → Edit profil — nama, tipe kulit, kondisi jerawat, goal
 ```
@@ -255,7 +255,7 @@ Quiz: skin type, goal, budget, preferensi waktu → AI generate:
 
 ### Weekly Skin Report (Pro — Print/PDF)
 ```
-GET /api/report → aggregate 7 hari tracker + foto + insight + AI results
+GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI results
 → HTML report di tab baru → window.print() → simpan sebagai PDF
 ```
 
@@ -313,14 +313,15 @@ narehat/
   │       │   ├── routine-analyze/   # ⚠️ AI analisis rutinitas (SumoPod LLM)
   │       │   ├── routine-build/     # ⚠️ AI builder rutinitas (SumoPod LLM)
   │       │   └── quota/             # GET remaining AI quota (ai_usage table)
-  │       ├── report/                # Weekly skin report (aggregate + PDF)
-  │       ├── recommendations/       # Produk rekomendasi
+  │   ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
+  │   ├── export/                # Export semua data user (JSON data provider)
+  │   ├── recommendations/       # Produk rekomendasi
   │       └── payment/               # ⚠️ Webhook Xendit + create invoice
   │
   ├── components/landing/            # Landing page sections
   ├── components/ui/                 # Base components
   ├── components/onboarding/         # Step wizard
-  ├── contexts/                      # React Context providers (UserContext)
+  ├── contexts/                      # React Context providers (UserContext, ToastContext)
   │
   ├── lib/
   │   ├── supabase/                  # client.ts, server.ts
@@ -331,6 +332,7 @@ narehat/
   │   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
   │   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
   │   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
+  │   ├── export/formatters.ts       # CSV & PDF formatter (label Indonesia)
   │   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
   │   └── security/                  # Rate limiter, file validation
   │
@@ -417,6 +419,24 @@ Jalankan dengan: `npm run ingest`
 
 ---
 
+## 9.1 KEAMANAN AKUN
+
+### Hapus Akun (Full Cleanup)
+Saat user menghapus akun via Settings, semua data dihapus permanen:
+1. File foto dari Supabase Storage (skin_photos bucket)
+2. Metadata foto (skin_photos table)
+3. Daily logs, insights, skincare products, notifications, ai_usage
+4. User profile + auth account (via service role)
+5. Urutan: storage files → DB rows → auth user
+
+### Export Data
+User bisa mendownload semua data mereka dari halaman Settings:
+- **CSV**: spreadsheet, label Indonesia, kolom id/user_id disembunyikan
+- **PDF**: laporan terformat dengan tabel per kategori
+- Semua data: profil, daily logs, foto, produk, insight, notifikasi, AI usage
+
+---
+
 ## 10. GO-TO-MARKET
 
 ### Strategi Distribusi
@@ -430,7 +450,7 @@ Jalankan dengan: `npm run ingest`
 | Fase | Status | Target |
 |------|--------|--------|
 | Design & Branding | ✅ Done | Logo, design system, landing page |
-| Core App Development | ✅ Done | Tracker, dashboard, progress, settings, recommendations |
+| Core App Development | ✅ Done | Tracker, dashboard, progress (grafik + korelasi + insight), settings, recommendations |
 | AI Pipeline | ✅ Done | RAG consult + journal ingest |
 | AI Vision Detection | ✅ Done | GPT-4o-mini: acne detection, purging checker |
 | AI Routine Analyzer | ✅ Done | SumoPod LLM: conflict detection, routine builder |
@@ -465,9 +485,15 @@ Jalankan dengan: `npm run ingest`
 - [x] Hapus fitur notifikasi (page, API, badge, toggles, UserContext)
 - [x] Dashboard header: hapus bell icon + profile icon (via bottom nav Akun)
 - [x] Settings simplifikasi: display-only profile card, link ke /profile + /subscription
+- [x] Insight Korelasi: Pearson correlation habit vs skin score (Premium-gated)
+- [x] Report: dynamic range 7/30/90 hari
+- [x] Export Data CSV/PDF dari Settings (semua data user, label Indonesia)
+- [x] Toast system: global floating toast ganti 14 duplikat di 5 halaman
+- [x] Hapus Akun: delete file storage + semua tabel termasuk ai_usage & notifikasi
+- [x] Progress: modal thumbnail picker ganti prompt() untuk bandingkan foto
+- [x] AI Detect dari timeline: gunakan photo_id untuk update row existing (hindari duplikat)
 - [ ] Password Reset flow (Supabase Auth)
 - [ ] Cancel Plan API + UI
-- [ ] Insight Korelasi: Pearson correlation habit vs skin score (Premium-gated)
 - [ ] Report PDF gate ke Pro
 - [ ] DB enum: tambah pro_monthly, pro_yearly
 

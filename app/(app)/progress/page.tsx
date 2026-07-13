@@ -219,15 +219,24 @@ export default function ProgressPage() {
   const changePct = data.scores.length > 1 && data.scores[0] > 0 ? Math.round((scoreChange / data.scores[0]) * 100) : 0;
 
   const handleGenerateReport = async () => {
-    const res = await fetch("/api/report");
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#94a3b8'><p>Menyiapkan laporan...</p></body></html>");
+    w.document.close();
+
+    const res = await fetch(`/api/report?range=${range}`);
     const report = await res.json();
-    if (!report || report.error) return;
+    if (!report || report.error) {
+      w.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif'><p style='color:#ef4444'>Gagal membuat laporan.</p></body></html>");
+      w.document.close();
+      return;
+    }
 
     const html = `<!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Laporan Mingguan Narehat</title>
+<title>Laporan Narehat</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: system-ui, -apple-system, sans-serif; color: #1e293b; line-height:1.6; padding:2rem; max-width:600px; margin:0 auto; }
@@ -258,12 +267,12 @@ export default function ProgressPage() {
 </head>
 <body>
 <div class="header">
-  <h1>Laporan Mingguan Narehat</h1>
+  <h1>Laporan Narehat</h1>
   <p>${report.userName} &bull; ${report.skinType} &bull; ${report.rangeLabel}</p>
 </div>
 
 <div class="card">
-  <div class="section-title" style="margin-top:0">Skin Score Mingguan</div>
+  <div class="section-title" style="margin-top:0">Skin Score</div>
   <div style="text-align:center;margin:0.5rem 0;">
     <span style="font-size:3rem;font-weight:800;color:#3525cd;">${report.avgScore}</span>
     <span style="font-size:1rem;color:#64748b;">/100</span>
@@ -274,7 +283,7 @@ export default function ProgressPage() {
     <div class="stat"><div class="value">${report.avgStress}</div><div class="label">Stress Level</div></div>
     <div class="stat"><div class="value">${report.skincareConsistency}%</div><div class="label">Konsistensi</div></div>
   </div>
-  <p style="font-size:0.75rem;color:#94a3b8;">${report.loggingDays}/7 hari terisi tracker</p>
+  <p style="font-size:0.75rem;color:#94a3b8;">${report.loggingDays}/${range} hari terisi tracker</p>
 </div>
 
 ${report.photos.length > 0 ? `
@@ -318,11 +327,8 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
 </body>
 </html>`;
 
-    const w = window.open("", "_blank");
-    if (w) {
-      w.document.write(html);
-      w.document.close();
-    }
+    w.document.write(html);
+    w.document.close();
   };
 
   return (
@@ -696,7 +702,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
           className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
         >
           <span className="material-symbols-outlined">description</span>
-          Export Laporan Mingguan
+          Export Laporan {range} Hari
         </button>
         <p className="text-center text-[10px] text-muted mt-2">Laporan akan terbuka di tab baru untuk di-print atau disimpan sebagai PDF</p>
       </section>
