@@ -54,10 +54,10 @@ const statusColorMap: Record<string, string> = { emerald: "bg-emerald-400", ambe
 
 const quickActions = [
   { href: "/tracker", icon: "edit_calendar", label: "Tracker" },
-  { href: "/tracker", icon: "add_a_photo", label: "Foto Kulit" },
+  { href: "/progress", icon: "trending_up", label: "Progress" },
   { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", pro: true },
-  { href: "/tracker", icon: "edit_note", label: "Catatan" },
-  { href: "/settings", icon: "notifications_active", label: "Pengingat" },
+  { href: "/recommendations", icon: "inventory_2", label: "Produk" },
+  { href: "/routine", icon: "auto_awesome", label: "Routine", pro: true },
 ];
 
 function computeStreak(logs: { date: string }[]): number {
