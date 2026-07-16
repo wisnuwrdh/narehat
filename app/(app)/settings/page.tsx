@@ -68,13 +68,13 @@ export default function SettingsPage() {
       await fetch("/api/user", { method: "DELETE" });
     } catch {}
     showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
-    setTimeout(() => router.push("/"), 2000);
+    setTimeout(() => router.replace("/"), 2000);
   };
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/login");
+    router.replace("/login");
   };
 
   const infoItems = [

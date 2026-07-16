@@ -113,7 +113,7 @@ export default function RegisterPage() {
       }
 
       if (data.session) {
-        router.push("/onboarding");
+        router.replace("/onboarding");
       } else {
         setError("");
         setForm({ name: "", email: "", password: "", agreed: false });

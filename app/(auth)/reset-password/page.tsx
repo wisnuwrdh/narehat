@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
 
       setSuccess("Password berhasil diubah. Mengarahkan ke login...");
       setTimeout(() => {
-        router.push("/login");
+        router.replace("/login");
       }, 2000);
     } catch (err) {
       logError("updateUser exception", err);

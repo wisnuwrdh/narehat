@@ -92,7 +92,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } catch (err) {
       logError("signIn exception", err);
       setLoading(false);
