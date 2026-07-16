@@ -39,6 +39,7 @@ function GoogleIcon() {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [step, setStep] = useState<"choose" | "email">("choose");
   const [form, setForm] = useState({ name: "", email: "", password: "", agreed: false });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -147,89 +148,107 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={handleGoogleSignUp}
-        disabled={googleLoading}
-        className="btn-press w-full py-3.5 bg-white border border-border-light rounded-2xl font-semibold text-sm text-slate-700 flex items-center justify-center gap-3 transition-colors hover:bg-slate-50 animate-fade-in-up delay-100 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <GoogleIcon />
-        {googleLoading ? "Menghubungkan..." : "Daftar dengan Google"}
-      </button>
+      {step === "choose" ? (
+        <div className="space-y-3 animate-fade-in-up delay-100">
+          <button
+            type="button"
+            onClick={handleGoogleSignUp}
+            disabled={googleLoading}
+            className="btn-press w-full py-3.5 bg-white border border-border-light rounded-2xl font-semibold text-sm text-slate-700 flex items-center justify-center gap-3 transition-colors hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <GoogleIcon />
+            {googleLoading ? "Menghubungkan..." : "Daftar dengan Google"}
+          </button>
 
-      <div className="flex items-center gap-4 my-6 animate-fade-in-up delay-150">
-        <div className="flex-1 h-px bg-border-subtle" />
-        <span className="text-xs text-muted-light font-medium">atau daftar dengan email</span>
-        <div className="flex-1 h-px bg-border-subtle" />
-      </div>
+          <button
+            type="button"
+            onClick={() => { setError(""); setStep("email"); }}
+            className="btn-press w-full py-3.5 bg-white border border-border-light rounded-2xl font-semibold text-sm text-slate-700 flex items-center justify-center gap-3 transition-colors hover:bg-slate-50"
+          >
+            <span className="material-symbols-outlined text-lg text-slate-500">mail</span>
+            Daftar dengan Email
+          </button>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => { setError(""); setStep("choose"); }}
+            className="flex items-center gap-1 text-sm text-muted-light hover:text-slate-700 transition-colors mb-4 animate-fade-in-up"
+          >
+            <span className="material-symbols-outlined text-base">arrow_back</span>
+            Kembali
+          </button>
 
-      <form className="space-y-4 animate-fade-in-up delay-200" onSubmit={handleSubmit}>
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
-          <input
-            type="text"
-            placeholder="Wisnu Prasetyo"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            disabled={!!success}
-            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
-          <input
-            type="email"
-            placeholder="nama@email.com"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            disabled={!!success}
-            className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Min. 8 karakter"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              disabled={!!success}
-              className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12 disabled:opacity-50"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-light"
-            >
-              <span className="material-symbols-outlined text-lg">
-                {showPassword ? "visibility" : "visibility_off"}
+          <form className="space-y-4 animate-fade-in-up delay-100" onSubmit={handleSubmit}>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nama Lengkap</label>
+              <input
+                type="text"
+                placeholder="Wisnu Prasetyo"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                disabled={!!success}
+                className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+              <input
+                type="email"
+                placeholder="nama@email.com"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                disabled={!!success}
+                className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all disabled:opacity-50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min. 8 karakter"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  disabled={!!success}
+                  className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12 disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-light"
+                >
+                  <span className="material-symbols-outlined text-lg">
+                    {showPassword ? "visibility" : "visibility_off"}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.agreed}
+                onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
+                disabled={!!success}
+                className="mt-0.5 w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary"
+              />
+              <span className="text-xs text-slate-500 leading-relaxed">
+                Saya setuju dengan <a href="#" className="text-primary font-semibold">Syarat &amp; Ketentuan</a> dan <a href="#" className="text-primary font-semibold">Kebijakan Privasi</a> Narehat
               </span>
+            </label>
+            <button
+              type="submit"
+              disabled={loading || !!success}
+              className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Mendaftarkan..." : "Daftar Sekarang"}
             </button>
-          </div>
-        </div>
-        <label className="flex items-start gap-2.5 cursor-pointer animate-fade-in-up delay-200">
-          <input
-            type="checkbox"
-            checked={form.agreed}
-            onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
-            disabled={!!success}
-            className="mt-0.5 w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary"
-          />
-          <span className="text-xs text-slate-500 leading-relaxed">
-            Saya setuju dengan <a href="#" className="text-primary font-semibold">Syarat &amp; Ketentuan</a> dan <a href="#" className="text-primary font-semibold">Kebijakan Privasi</a> Narehat
-          </span>
-        </label>
-        <button
-          type="submit"
-          disabled={loading || !!success}
-          className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 animate-fade-in-up delay-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "Mendaftarkan..." : "Daftar Sekarang"}
-        </button>
-      </form>
+          </form>
+        </>
+      )}
 
-      <p className="text-center text-sm text-muted mt-8 animate-fade-in-up delay-300">
+      <p className="text-center text-sm text-muted mt-8 animate-fade-in-up delay-200">
         Sudah punya akun? <Link href="/login" className="text-primary font-bold">Masuk di sini</Link>
       </p>
     </div>
