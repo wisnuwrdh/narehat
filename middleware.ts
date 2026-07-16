@@ -34,6 +34,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  if (user && isAppRoute && !user.user_metadata?.onboarding_completed) {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
+
   if (user && isAuthRoute && !pathname.startsWith("/onboarding") && !pathname.startsWith("/reset-password")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const steps = [
   {
@@ -111,6 +112,9 @@ export default function OnboardingPage() {
         }),
       });
     } catch {}
+    try {
+      await createClient().auth.updateUser({ data: { onboarding_completed: true } });
+    } catch {}
     setLoading(false);
 
     const planIntent = localStorage.getItem("narehat-plan-intent");
@@ -150,7 +154,7 @@ export default function OnboardingPage() {
             <span className="material-symbols-outlined text-xl">arrow_back</span>
           </button>
           <span className="text-xs font-semibold text-muted">Langkah {currentStep}/{totalSteps}</span>
-          <button onClick={() => router.replace("/dashboard")} className="btn-press p-2 -mr-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold">
+          <button onClick={async () => { try { await createClient().auth.updateUser({ data: { onboarding_completed: true } }); } catch {} router.replace("/dashboard"); }} className="btn-press p-2 -mr-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold">
             Lewati
           </button>
         </div>
