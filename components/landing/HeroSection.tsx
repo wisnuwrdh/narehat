@@ -27,7 +27,7 @@ export default function HeroSection() {
                 href="/register"
                 className="btn-press w-full sm:w-auto px-8 py-4 bg-primary text-white font-bold rounded-2xl text-center shadow-xl shadow-primary/25 text-base whitespace-nowrap"
               >
-                Analisis Jerawatku Gratis
+                Coba Gratis
               </Link>
               <Link
                 href="#how-it-works"

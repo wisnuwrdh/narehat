@@ -41,7 +41,7 @@ export default function CTASection() {
               href="/register"
               className="btn-press w-full py-4 bg-white text-primary font-bold rounded-2xl shadow-xl shadow-black/10 text-base lg:text-lg"
             >
-              Analisis Jerawatku Gratis
+              Coba Gratis
             </Link>
           </div>
           <p className="text-[11px] lg:text-xs text-white/50 mt-4">Hasil dalam hitungan detik • Tanpa kartu kredit</p>
