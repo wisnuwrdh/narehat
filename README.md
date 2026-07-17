@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.7 (Responsive Layout + Auth Flow Lengkap + Pricing Restructure)
+**Versi:** 0.8 (Migrasi Cloudflare: R2 Storage + Pages Hosting)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -276,7 +276,8 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 | Vision (planned) | OpenAI GPT-4o-mini |
 | Payment | Xendit (invoice-based, HMAC-SHA256 verified webhook) |
 | Animasi | Framer Motion |
-| Hosting | Vercel |
+| Hosting | Cloudflare Pages |
+| Storage Foto | Cloudflare R2 (S3-compatible, egress gratis) |
 
 ---
 
@@ -310,7 +311,7 @@ narehat/
   │   └── api/
   │       ├── auth/                  # ⚠️ Auth callback
   │       ├── tracker/               # CRUD daily_logs
-  │       ├── photos/                # ⚠️ Upload Supabase Storage
+  │       ├── photos/                # ⚠️ Upload ke Cloudflare R2
   │       ├── user/                  # Profile read/update
   │       ├── ai/
   │       │   ├── detect/            # ⚠️ AI deteksi jerawat (GPT-4o-mini)
@@ -330,8 +331,15 @@ narehat/
   ├── contexts/                      # React Context providers (UserContext, ToastContext)
   │
   ├── lib/
-  │   ├── supabase/                  # client.ts, server.ts
-  │   ├── ai/
+│   ├── supabase/                  # client.ts, server.ts
+│   ├── storage/
+│   │   └── r2.ts                  # Cloudflare R2 client (upload, delete, public URL)
+│   ├── image/
+│   │   └── compress.ts            # Kompresi WebP (~1600px, quality 75%)
+│   ├── utils/
+│   │   ├── binary.ts              # arrayBufferToBase64 (Workers-safe)
+│   │   └── utils.ts               # cn() classname helper
+│   ├── ai/
   │   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
   │   │   ├── rag.ts                 # RAG pipeline + SumoPod call
   │   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
@@ -346,6 +354,7 @@ narehat/
   ├── types/                         # TypeScript types
   ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
   ├── middleware.ts                  # Auth guard
+  ├── wrangler.jsonc                 # Cloudflare Pages config
   └── public/                        # Static assets
 ```
 
@@ -429,11 +438,11 @@ Jalankan dengan: `npm run ingest`
 
 ### Hapus Akun (Full Cleanup)
 Saat user menghapus akun via Settings, semua data dihapus permanen:
-1. File foto dari Supabase Storage (skin_photos bucket)
+1. File foto dari Cloudflare R2 (narehat-photos bucket)
 2. Metadata foto (skin_photos table)
 3. Daily logs, insights, skincare products, notifications, ai_usage
 4. User profile + auth account (via service role)
-5. Urutan: storage files → DB rows → auth user
+5. Urutan: R2 files → DB rows → auth user
 
 ### Export Data
 User bisa mendownload semua data mereka dari halaman Settings:
@@ -477,7 +486,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [ ] Supabase Auth Settings (site URL, redirect, email confirm = on untuk password reset)
 - [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
-- [ ] Deploy ke Vercel + testing end-to-end
+- [ ] Deploy ke Cloudflare Pages (`npm run cf:build` + `npm run cf:deploy`) + testing end-to-end
 
 ### Checklist — Development
 - [x] Copywriting: hapus em dash (—) di landing + about + privacy + terms

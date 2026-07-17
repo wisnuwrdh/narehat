@@ -1,11 +1,16 @@
 import withSerwist from "@serwist/next";
+import { withCloudflare } from "@opennextjs/cloudflare/config";
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    unoptimized: true,
+  },
 };
 
-export default withSerwist({
+const withSerwistConfig = withSerwist({
   swSrc: "app/sw.ts",
   swDest: "public/sw.js",
-})(nextConfig);
+});
+
+export default withCloudflare(withSerwistConfig(nextConfig));

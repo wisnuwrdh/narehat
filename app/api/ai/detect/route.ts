@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { detectAcne } from "@/lib/ai/vision";
+import { uploadPhoto } from "@/lib/storage/r2";
+import { compressToWebP } from "@/lib/image/compress";
+import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -20,13 +23,14 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   let imageBase64 = formData.get("image") as string | null;
-  const photoId = formData.get("photo_id") as string | null;
+
+  let rawBuffer: Uint8Array | null = null;
 
   if (file) {
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    rawBuffer = new Uint8Array(arrayBuffer);
     const mime = file.type || "image/jpeg";
-    imageBase64 = `data:${mime};base64,${buffer.toString("base64")}`;
+    imageBase64 = `data:${mime};base64,${arrayBufferToBase64(arrayBuffer)}`;
   }
 
   if (!imageBase64) {
@@ -38,6 +42,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
 
+  if (!rawBuffer && file) {
+    const ab = await file.arrayBuffer();
+    rawBuffer = new Uint8Array(ab);
+  }
+
+  let photoUrl = imageBase64;
+  if (rawBuffer) {
+    try {
+      const compressed = await compressToWebP(rawBuffer);
+      const filePath = `${user.id}/${Date.now()}-detect.webp`;
+      photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+    } catch (err) {
+      console.error("R2 upload failed:", err);
+    }
+  }
+
+  rawBuffer = null;
+
   const analysisData = {
     types: result.types,
     severity: result.severity,
@@ -47,22 +69,14 @@ export async function POST(request: NextRequest) {
     analyzed_at: new Date().toISOString(),
   };
 
-  if (photoId) {
-    await supabase
-      .from("skin_photos")
-      .update({ ai_analysis: analysisData, analysis_type: "detect" })
-      .eq("id", photoId)
-      .eq("user_id", user.id);
-  } else {
-    await supabase.from("skin_photos").insert({
-      user_id: user.id,
-      url: imageBase64,
-      date: new Date().toISOString().split("T")[0],
-      notes: "AI Detection",
-      analysis_type: "detect",
-      ai_analysis: analysisData,
-    });
-  }
+  await supabase.from("skin_photos").insert({
+    user_id: user.id,
+    url: photoUrl,
+    date: new Date().toISOString().split("T")[0],
+    notes: "AI Detection",
+    analysis_type: "detect",
+    ai_analysis: analysisData,
+  });
 
   const severityLabels: Record<string, string> = {
     mild: "Ringan",

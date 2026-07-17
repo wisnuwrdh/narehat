@@ -35,7 +35,7 @@
 |---------|-------|--------|
 | **TikTok** | Awareness & Acquisition | Konten edukasi jerawat, behind-the-scenes building, audience existing |
 | **Instagram** | Awareness & Community | Testimonial visual, before/after progress, tips daily tracking |
-| **Web App (PWA)** | Delivery & Usage | `narehat.vercel.app` — self-service, semua fitur dalam 1 platform |
+| **Web App (PWA)** | Delivery & Usage | `narehat.com` — self-service, semua fitur dalam 1 platform |
 | **SEO / Blog** (rencana) | Discovery | Artikel "penyebab jerawat hormonal", "retinol vs niacinamide" |
 | **Word of Mouth** | Referral | "Aha moment" — user share insight personal mereka ke teman |
 

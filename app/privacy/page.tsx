@@ -18,7 +18,7 @@ export default function PrivacyPage() {
           <div className="prose prose-slate max-w-none space-y-8 text-sm leading-relaxed text-slate-700">
             <section>
               <h2 className="text-lg font-bold text-slate-900 mb-3">1. Identitas Pengendali Data</h2>
-              <p>Narehat (&quot;kami&quot;) mengoperasikan platform jurnal jerawat cerdas yang dapat diakses melalui <strong>narehat.vercel.app</strong>. Untuk pertanyaan terkait privasi, hubungi kami di <strong>support@narehat.id</strong>.</p>
+              <p>Narehat (&quot;kami&quot;) mengoperasikan platform jurnal jerawat cerdas yang dapat diakses melalui <strong>narehat.com</strong>. Untuk pertanyaan terkait privasi, hubungi kami di <strong>support@narehat.id</strong>.</p>
             </section>
 
             <section>
@@ -88,9 +88,9 @@ export default function PrivacyPage() {
                       <td className="py-2">Indonesia</td>
                     </tr>
                     <tr>
-                      <td className="py-2 pr-4">Vercel</td>
-                      <td className="py-2 pr-4">Log akses aplikasi</td>
-                      <td className="py-2">Amerika Serikat</td>
+                      <td className="py-2 pr-4">Cloudflare</td>
+                      <td className="py-2 pr-4">Hosting aplikasi & penyimpanan foto</td>
+                      <td className="py-2">Global (CDN)</td>
                     </tr>
                   </tbody>
                 </table>

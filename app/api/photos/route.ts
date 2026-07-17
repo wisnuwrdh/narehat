@@ -1,5 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { uploadPhoto, deletePhoto } from "@/lib/storage/r2";
+import { compressToWebP } from "@/lib/image/compress";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const MAX_SIZE_PRE_COMPRESS = 15 * 1024 * 1024;
+
+function validateFile(file: File) {
+  if (file.size > MAX_SIZE_PRE_COMPRESS) {
+    return { error: "Ukuran file maksimal 15MB" };
+  }
+  const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return { error: "Format file tidak didukung. Gunakan JPG, PNG, atau WebP." };
+  }
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return { error: "Tipe file tidak valid." };
+  }
+  return null;
+}
+
+function validateMagic(buffer: Uint8Array): boolean {
+  if (buffer.length < 4) return false;
+  return (
+    (buffer[0] === 0xFF && buffer[1] === 0xD8) ||
+    (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) ||
+    (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46)
+  );
+}
+
+function sanitiseName(filename: string): string {
+  return filename
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .replace(/\.\./g, "_")
+    .slice(0, 100);
+}
 
 export async function GET() {
   const supabase = await createClient();
@@ -31,78 +67,48 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-  const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
-  const MAX_SIZE = 10 * 1024 * 1024;
-
-  if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "Ukuran file maksimal 10MB" }, { status: 400 });
+  const validationError = validateFile(file);
+  if (validationError) {
+    return NextResponse.json(validationError, { status: 400 });
   }
-
-  const ext = "." + (file.name.split(".").pop()?.toLowerCase() || "");
-  if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    return NextResponse.json({ error: "Format file tidak didukung. Gunakan JPG, PNG, atau WebP." }, { status: 400 });
-  }
-
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    return NextResponse.json({ error: "Tipe file tidak valid." }, { status: 400 });
-  }
-
-  const safeName = file.name
-    .replace(/[^a-zA-Z0-9._-]/g, "_")
-    .replace(/\.\./g, "_")
-    .slice(0, 100);
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
 
-  if (buffer.length < 4) {
-    return NextResponse.json({ error: "File terlalu kecil." }, { status: 400 });
-  }
-
-  const isValidMagic =
-    (buffer[0] === 0xFF && buffer[1] === 0xD8) ||
-    (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) ||
-    (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46);
-
-  if (!isValidMagic) {
+  if (!validateMagic(buffer)) {
     return NextResponse.json({ error: "File bukan gambar yang valid." }, { status: 400 });
   }
 
+  const compressed = await compressToWebP(buffer);
+
+  const safeName = sanitiseName(file.name).replace(/\.[^.]+$/, ".webp");
   const filePath = `${user.id}/${Date.now()}-${safeName}`;
 
-  const { error: uploadError } = await supabase.storage
-    .from("skin_photos")
-    .upload(filePath, buffer, {
-      contentType: file.type,
-      upsert: false,
-    });
-
-  if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+  let publicUrl: string;
+  try {
+    publicUrl = await uploadPhoto(filePath, compressed, "image/webp");
+  } catch (uploadError) {
+    console.error("R2 upload failed:", uploadError);
+    return NextResponse.json({ error: "Gagal mengupload foto" }, { status: 500 });
   }
-
-  const { data: urlData } = supabase.storage
-    .from("skin_photos")
-    .getPublicUrl(filePath);
 
   const { error: insertError } = await supabase
     .from("skin_photos")
     .insert({
       user_id: user.id,
-      url: urlData.publicUrl,
+      url: publicUrl,
       date,
       notes,
     });
 
   if (insertError) {
-    await supabase.storage.from("skin_photos").remove([filePath]);
+    await deletePhoto(publicUrl).catch(() => {});
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
   return NextResponse.json({
     message: "Photo uploaded",
-    url: urlData.publicUrl,
+    url: publicUrl,
   }, { status: 201 });
 }
 
@@ -124,10 +130,7 @@ export async function DELETE(request: NextRequest) {
 
   if (!photo) return NextResponse.json({ error: "Photo not found" }, { status: 404 });
 
-  const urlPath = photo.url.split("/").slice(-2).join("/");
-  if (urlPath) {
-    await supabase.storage.from("skin_photos").remove([urlPath]);
-  }
+  await deletePhoto(photo.url).catch(() => {});
 
   const { error } = await supabase
     .from("skin_photos")

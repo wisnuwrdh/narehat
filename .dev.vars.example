@@ -1,0 +1,24 @@
+# Cloudflare local dev secrets — jangan commit, copy ke .dev.vars
+# cp .dev.vars.example .dev.vars && isi dengan kredensial asli
+
+# Supabase (sudah ada di Vercel, pindahkan ke sini untuk local dev dengan wrangler)
+# NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+# SUPABASE_SERVICE_ROLE_KEY=eyJ...
+
+# Cloudflare R2
+# R2_ACCESS_KEY_ID=xxx
+# R2_SECRET_ACCESS_KEY=xxx
+# R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+# R2_BUCKET_NAME=narehat-photos
+# R2_PUBLIC_URL=https://photos.narehat.com
+
+# AI
+# SUMOPOD_API_KEY=xxx
+
+# Payment
+# XENDIT_API_KEY=xxx
+# XENDIT_WEBHOOK_SECRET=xxx
+
+# Public site URL (sesuai environment)
+# NEXT_PUBLIC_SITE_URL=https://narehat.com

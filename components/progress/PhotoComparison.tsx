@@ -1,6 +1,8 @@
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
+const imageLoader = ({ src }: { src: string }) => src;
+
 interface PhotoComparisonProps {
   beforeUrl: string;
   afterUrl: string;
@@ -23,6 +25,8 @@ export function PhotoComparison({
               src={beforeUrl}
               alt="Sebelum"
               fill
+              unoptimized
+              loader={imageLoader}
               className="object-cover"
             />
           ) : (
@@ -45,6 +49,8 @@ export function PhotoComparison({
               src={afterUrl}
               alt="Sekarang"
               fill
+              unoptimized
+              loader={imageLoader}
               className="object-cover"
             />
           ) : (

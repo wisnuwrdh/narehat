@@ -23,9 +23,9 @@ Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 
 ---
 
-## B. Vercel — Environment Variables
+## B. Cloudflare Pages — Environment Variables
 
-Buka **Vercel Dashboard → Settings → Environment Variables → Add New**:
+Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add New**:
 
 | Key | Value | Untuk Apa |
 |-----|-------|-----------|
@@ -35,18 +35,24 @@ Buka **Vercel Dashboard → Settings → Environment Variables → Add New**:
 | `SUMOPOD_API_KEY` | `sk-...` (dari SumoPod Dashboard) | AI Consult — panggil SumoPod LLM |
 | `XENDIT_API_KEY` | `xnd_...` (dari Xendit Dashboard) | Buat invoice di Xendit |
 | `XENDIT_WEBHOOK_SECRET` | `wh_...` (dari Xendit Callback config) | Verifikasi callback dari Xendit |
-| `NEXT_PUBLIC_APP_URL` | `https://narehat.vercel.app` | Redirect URL setelah pembayaran sukses/gagal |
+| `NEXT_PUBLIC_APP_URL` | `https://narehat.com` | Redirect URL setelah pembayaran sukses/gagal |
+| `NEXT_PUBLIC_SITE_URL` | `https://narehat.com` | URL publik situs (untuk metadata SEO) |
+| `R2_ACCESS_KEY_ID` | (dari Cloudflare R2 token) | Kredensial akses R2 |
+| `R2_SECRET_ACCESS_KEY` | (dari Cloudflare R2 token) | Kredensial akses R2 |
+| `R2_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` | Endpoint S3 R2 |
+| `R2_BUCKET_NAME` | `narehat-photos` | Nama bucket foto |
+| `R2_PUBLIC_URL` | `https://photos.narehat.com` | URL publik foto (custom domain R2) |
 
-**Setelah semua diisi → klik "Redeploy" di tab Deployments.**
+**Setelah semua diisi → klik "Save" lalu "Redeploy" di tab Deployments.**
 
 ---
 
 ## C. Xendit — Webhook Registration
 
 1. Buka **Xendit Dashboard → Settings → Callbacks**
-2. Tambahkan webhook URL: `https://narehat.vercel.app/api/payment`
+2. Tambahkan webhook URL: `https://narehat.com/api/payment`
 3. Event yang dipilih: `invoice.paid`
-4. Copy webhook secret yang dihasilkan → set ke `XENDIT_WEBHOOK_SECRET` di Vercel env
+4. Copy webhook secret yang dihasilkan → set ke `XENDIT_WEBHOOK_SECRET` di Cloudflare Pages env
 
 ---
 
@@ -56,8 +62,8 @@ Buka **Vercel Dashboard → Settings → Environment Variables → Add New**:
 
 | Setting | Nilai | Kenapa |
 |---------|-------|--------|
-| Site URL | `https://narehat.vercel.app` | Redirect URL setelah auth |
-| Redirect URLs | `https://narehat.vercel.app/**` | Allowed redirect patterns |
+| Site URL | `https://narehat.com` | Redirect URL setelah auth |
+| Redirect URLs | `https://narehat.com/**` | Allowed redirect patterns |
 | Confirm email | **Disabled** (untuk MVP/testing) | User langsung login setelah register |
 | Minimum password length | 8 | Sesuai validasi di register page |
 
@@ -118,7 +124,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 ## G. Urutan Eksekusi
 
 ```
-1.  B.  Set env vars di Vercel (supabase URL + keys)
+1.  B.  Set env vars di Cloudflare Pages (supabase URL + keys)
 2.  A.  Jalankan 3 migration SQL di Supabase
 3.  D.  Supabase Auth settings
 4.  C.  Register Xendit webhook
@@ -133,7 +139,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | Masalah | Cek |
 |---------|-----|
 | Register gagal "{}" / 500 | Jalankan migration 0002 dulu (INSERT policy + SECURITY DEFINER) |
-| AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set di Vercel / invalid key |
+| AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set di Cloudflare / invalid key |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
 | Payment invoice gagal | `XENDIT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |

@@ -8,7 +8,7 @@
 
 - Node.js 18+
 - Akun [Supabase](https://supabase.com) (free tier cukup)
-- Akun [Vercel](https://vercel.com) (hobby tier cukup)
+- Akun [Cloudflare](https://dash.cloudflare.com) (free tier cukup)
 - Akun [Xendit](https://xendit.co) (untuk payment)
 - Akun [OpenAI](https://platform.openai.com) (untuk AI deteksi jerawat)
 - Akun [SumoPod](https://ai.sumopod.com) (untuk AI Consult RAG)
@@ -36,11 +36,11 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUMOPOD_API_KEY=sk-...
 XENDIT_API_KEY=xnd_...
 XENDIT_WEBHOOK_SECRET=wh_...
-NEXT_PUBLIC_APP_URL=https://narehat.vercel.app
+NEXT_PUBLIC_APP_URL=https://narehat.com
 OPENAI_API_KEY=sk-...
 ```
 
-Semua key ini juga harus di-set di **Vercel Dashboard → Settings → Environment Variables**.
+Semua key ini juga harus di-set di **Cloudflare Pages Dashboard → Settings → Environment Variables**.
 
 ---
 
@@ -62,8 +62,8 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 | Setting | Nilai |
 |---------|-------|
-| Site URL | `https://narehat.vercel.app` |
-| Redirect URLs | `https://narehat.vercel.app/**` |
+| Site URL | `https://narehat.com` |
+| Redirect URLs | `https://narehat.com/**` |
 | Confirm email | **Disabled** (untuk testing) |
 | Minimum password length | 8 |
 
@@ -75,7 +75,7 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 **Xendit Dashboard → Settings → Callbacks:**
 
-1. URL: `https://narehat.vercel.app/api/payment`
+1. URL: `https://narehat.com/api/payment`
 2. Event: `invoice.paid`
 3. Copy webhook secret → set ke `XENDIT_WEBHOOK_SECRET`
 
@@ -142,13 +142,17 @@ Script akan:
 
 ---
 
-## 8. Deploy ke Vercel
+## 8. Deploy ke Cloudflare Pages
 
 ```bash
-git push
+# Build untuk Cloudflare
+npm run cf:build
+
+# Deploy
+npm run cf:deploy
 ```
 
-Vercel auto-deploy dari branch `main`. Setelah deploy, redeploy manual dari dashboard untuk memastikan env vars ter-load.
+Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs/cloudflare build` dan output directory `.open-next`.
 
 ---
 

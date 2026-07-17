@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 
-const SITE_URL = "https://narehat.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://narehat.com";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -80,7 +80,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebApplication",
               name: "Narehat",
-              url: "https://narehat.vercel.app",
+              url: SITE_URL,
               description:
                 "Platform AI untuk mendeteksi pemicu jerawat, analisis rutinitas skincare, dan konsultasi berbasis jurnal dermatologi peer-reviewed.",
               applicationCategory: "HealthApplication",
