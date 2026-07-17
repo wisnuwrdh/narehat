@@ -12,13 +12,6 @@ export default function HeroSection() {
         <div className="lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center">
           {/* Left: Text */}
           <div className="text-center lg:text-left">
-            <div className="animate-fade-in-up flex justify-center lg:justify-start mb-6">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-light/60 border border-primary/10 rounded-full">
-                <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-xs font-bold text-primary">Analisis Jerawat Pertamamu Gratis</span>
-              </div>
-            </div>
-
             <div className="mb-6">
               <h1 className="animate-fade-in-up delay-100 hero-title font-extrabold text-slate-900 tracking-tight">
                 Jerawatmu Ada<br />
