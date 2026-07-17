@@ -231,7 +231,7 @@ export default function TrackerPage() {
   };
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-white z-10">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Tracker Harian</h1>

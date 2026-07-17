@@ -127,7 +127,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md mx-auto w-full min-h-screen">
+    <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md lg:max-w-lg mx-auto w-full min-h-screen">
       <div className="text-center mb-8 animate-fade-in-up">
         <div className="inline-flex items-center justify-center mb-2">
           <Logo size={48} showText={false} />

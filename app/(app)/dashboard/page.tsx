@@ -250,7 +250,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
         <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
           <div className="animate-fade-in-up">
             <h1 className="text-xl font-bold text-slate-900 mb-1">Halo, {data.userName || "User"}</h1>
@@ -454,12 +454,12 @@ export default function DashboardPage() {
             Detail <span className="material-symbols-outlined text-sm">chevron_right</span>
           </Link>
         </div>
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory">
+        <div className="flex md:grid md:grid-cols-5 gap-3 overflow-x-auto md:overflow-visible no-scrollbar pb-2 snap-x snap-mandatory">
           {summaryItems.map((item) => (
             <Link
               key={item.label}
               href="/tracker"
-              className="min-w-[100px] snap-start bg-white border border-border-subtle rounded-2xl p-3.5 flex flex-col items-center text-center relative card-hover shadow-sm cursor-pointer"
+              className="min-w-[100px] md:min-w-0 snap-start bg-white border border-border-subtle rounded-2xl p-3.5 flex flex-col items-center text-center relative card-hover shadow-sm cursor-pointer"
             >
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2.5 ${colorMap[item.color]}`}>
                 <span className="material-symbols-outlined text-lg">{item.icon}</span>
@@ -486,12 +486,12 @@ export default function DashboardPage() {
           <h2 className="font-bold text-slate-900 text-base">Perkembangan Terbaru</h2>
           <Link href="/progress" className="btn-press text-xs font-bold text-primary px-3 py-1.5 rounded-lg hover:bg-primary-light transition-colors">Lihat semua</Link>
         </div>
-        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory">
+        <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto md:overflow-visible no-scrollbar pb-2 snap-x snap-mandatory">
           {photoDates.map((item, i) => (
             <Link
               key={item.date || i}
               href="/progress"
-              className={`min-w-[140px] snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm cursor-pointer ${"bg-white border-border-subtle"}`}
+              className={`min-w-[140px] md:min-w-0 snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm cursor-pointer ${"bg-white border-border-subtle"}`}
             >
               <div className="mb-2 px-1 flex justify-between items-center">
                 <div>

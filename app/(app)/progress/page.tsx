@@ -332,7 +332,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
   };
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-white z-10">
         <div>
           <h1 className="text-xl font-bold text-slate-900">Perkembangan</h1>
@@ -465,11 +465,11 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
             {showAllPhotos ? "Sembunyikan" : "Lihat semua"}
           </button>
         </div>
-        <div className={`grid gap-3 ${showAllPhotos ? "grid-cols-2 sm:grid-cols-3" : "flex overflow-x-auto no-scrollbar pb-2 snap-x snap-mandatory"}`}>
+        <div className={`grid gap-3 ${showAllPhotos ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4" : "flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible no-scrollbar pb-2 snap-x snap-mandatory"}`}>
           {photos.length > 0 ? photos.map((p, i) => (
             <div
               key={p.date}
-              className={`${showAllPhotos ? "" : "min-w-[140px]"} snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm ${i === 0 ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10" : "bg-white border-border-subtle"}`}
+              className={`${showAllPhotos ? "" : "min-w-[140px] md:min-w-0"} snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm ${i === 0 ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10" : "bg-white border-border-subtle"}`}
             >
               <div className="mb-2 px-1 flex justify-between items-center">
                 <div>

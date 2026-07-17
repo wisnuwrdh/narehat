@@ -31,7 +31,7 @@ export default function RoutinePage() {
 
   if (!user.plan.includes("pro")) {
     return (
-      <main className="max-w-md mx-auto">
+      <main className="max-w-md md:max-w-4xl mx-auto">
         <header className="px-6 pt-6 pb-4 flex items-center gap-3">
           <Link href="/dashboard" className="btn-press p-2 -ml-2 rounded-xl hover:bg-slate-100 transition-colors">
             <span className="material-symbols-outlined text-xl text-slate-600">arrow_back</span>
@@ -53,7 +53,7 @@ export default function RoutinePage() {
   }
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4 flex items-center gap-3 bg-white sticky top-0 z-10 border-b border-border-subtle">
         <Link href="/dashboard" className="btn-press p-2 -ml-2 rounded-xl hover:bg-slate-100 transition-colors">
           <span className="material-symbols-outlined text-xl text-slate-600">arrow_back</span>

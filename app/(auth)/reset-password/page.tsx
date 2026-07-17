@@ -79,14 +79,14 @@ export default function ResetPasswordPage() {
 
   if (checkingSession) {
     return (
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 max-w-md mx-auto w-full min-h-screen">
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 max-w-md lg:max-w-lg mx-auto w-full min-h-screen">
         <div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md mx-auto w-full min-h-screen">
+    <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md lg:max-w-lg mx-auto w-full min-h-screen">
       <div className="text-center mb-10 animate-fade-in-up">
         <div className="inline-flex items-center justify-center mb-2">
           <Logo size={48} showText={false} />

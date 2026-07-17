@@ -182,7 +182,7 @@ export default function AIConsultPage() {
   };
 
   return (
-    <div className="h-dvh overflow-hidden flex flex-col bg-white">
+    <div className="h-dvh overflow-hidden flex flex-col bg-white md:max-w-4xl md:mx-auto md:border-x md:border-border-subtle">
       <header className="px-6 pt-6 pb-3 flex items-center gap-3 bg-white sticky top-0 z-10 border-b border-border-subtle">
         <Link
           href="/dashboard"

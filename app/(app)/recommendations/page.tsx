@@ -129,7 +129,7 @@ export default function RecommendationsPage() {
   };
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4 sticky top-0 bg-white z-10">
         <div className="flex items-center gap-3 mb-4">
           <Link

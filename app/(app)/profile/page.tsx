@@ -49,7 +49,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="max-w-md mx-auto pb-8">
+    <main className="max-w-md md:max-w-4xl mx-auto pb-8">
       <header className="px-6 pt-6 pb-2 flex items-center gap-3">
         <Link href="/settings" className="p-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">
           <span className="material-symbols-outlined text-lg">arrow_back</span>

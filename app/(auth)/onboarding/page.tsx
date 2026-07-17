@@ -147,7 +147,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col">
+    <div className="max-w-md lg:max-w-lg mx-auto min-h-screen flex flex-col">
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center justify-between mb-4">
           <button onClick={prevStep} className="btn-press p-2 -ml-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors">

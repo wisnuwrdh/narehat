@@ -84,7 +84,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <main className="max-w-md mx-auto">
+    <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4">
         <h1 className="text-xl font-bold text-slate-900">Pengaturan</h1>
         <p className="text-sm text-muted">Kelola profil dan preferensimu</p>
