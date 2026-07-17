@@ -92,7 +92,6 @@ export default function LoginPage() {
         return;
       }
 
-      const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
