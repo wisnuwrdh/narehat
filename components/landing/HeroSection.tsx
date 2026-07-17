@@ -73,7 +73,7 @@ export default function HeroSection() {
                     <div className="relative w-14 h-14 shrink-0">
                       <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
                         <circle cx="28" cy="28" r="24" fill="none" stroke="#e2e8f0" strokeWidth="4" />
-                        <circle cx="28" cy="28" r="24" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round"
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="#3525cd" strokeWidth="4" strokeLinecap="round"
                           strokeDasharray="150.8" strokeDashoffset="39" />
                       </svg>
                       <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-slate-900">74</span>
