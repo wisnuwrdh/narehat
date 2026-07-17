@@ -11,7 +11,7 @@ Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 
 | # | File | Deskripsi |
 |---|------|-----------|
-| 1 | `supabase/migrations/0003_storage_and_seed.sql` | Buat storage bucket `skin_photos` (public, 50MB) + RLS policy + seed 8 produk rekomendasi |
+| 1 | `supabase/migrations/0003_storage_and_seed.sql` | Seed 8 produk rekomendasi (storage bucket R2 — tidak perlu Supabase Storage) |
 | 2 | `supabase/migrations/0004_fix_plan_rls.sql` | Fix RLS policy: user tidak bisa ubah plan sendiri (WITH CHECK) |
 | 3 | `supabase/migrations/0005_add_theme_column.sql` | Tambah kolom `theme` ke `users` table |
 

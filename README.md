@@ -480,15 +480,42 @@ User bisa mendownload semua data mereka dari halaman Settings:
 
 ## 11. YANG MASIH PERLU DISELESAIKAN
 
-### Checklist — Manual
-- [ ] Set env vars (SUPABASE_URL, ANON_KEY, SERVICE_ROLE_KEY, SUMOPOD_API_KEY, XENDIT_API_KEY, XENDIT_WEBHOOK_SECRET, OPENAI_API_KEY)
-- [x] Jalankan migration SQL di Supabase (0000–0008)
-- [ ] Supabase Auth Settings (site URL, redirect, email confirm = on untuk password reset)
-- [ ] Register Xendit webhook URL (`/api/payment` + event `invoice.paid`)
-- [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
-- [ ] Deploy ke Cloudflare Pages (`npm run cf:build` + `npm run cf:deploy`) + testing end-to-end
+### Checklist — Deploy & Migrasi ke Cloudflare
 
-### Checklist — Development
+**Fase 0 — Backup (sebelum apa-apa)**
+- [ ] `pg_dump` database Supabase
+- [ ] Download semua foto dari bucket `skin_photos` (Supabase Storage)
+- [ ] Catat semua env vars dari Vercel dashboard
+
+**Fase 1 — Setup Cloudflare**
+- [ ] Buat akun Cloudflare + R2 bucket `narehat-photos`
+- [ ] Generate R2 API token (Access Key ID + Secret Access Key)
+- [ ] Catat R2 endpoint + bucket name
+
+**Fase 2 — Deploy ke Preview URL**
+- [ ] Connect repo GitHub ke Cloudflare Pages
+- [ ] Set semua env vars di Cloudflare Pages dashboard (termasuk R2 credentials)
+- [ ] Build + deploy (build command: `npx @opennextjs/cloudflare build`, output: `.open-next`)
+- [ ] **SEMENTARA:** tambahkan preview URL (`*.pages.dev`) ke Supabase Auth Redirect URLs (jangan hapus `narehat.com`)
+- [ ] Smoke test 14 flow di preview URL (register, login, OAuth, tracker, AI detect, purging, dll)
+- [ ] Fix bug kalau ada → redeploy → tes ulang
+
+**Fase 3 — Cutover Domain (setelah testing lolos)**
+- [ ] Update Supabase Auth Settings: Site URL → `https://narehat.com`, Redirect URLs → `https://narehat.com/**`
+- [ ] ⚠️ **Hapus preview URL dari Supabase Redirect URLs** (jangan dibiarkan nempel)
+- [ ] Update Xendit webhook URL → `https://narehat.com/api/payment`
+- [ ] Set `NEXT_PUBLIC_SITE_URL=https://narehat.com` di Cloudflare Pages env
+- [ ] Arahkan DNS domain `narehat.com` ke Cloudflare Pages
+- [ ] Smoke test ulang di domain final
+- [ ] Monitor error log 24-48 jam
+
+**Fase 4 — Cleanup (setelah stabil 3-7 hari)**
+- [ ] Hapus project dari Vercel
+- [ ] Hapus bucket `skin_photos` di Supabase Storage
+- [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
+- [ ] Register Xendit webhook URL final (kalau belum)
+
+
 - [x] Copywriting: hapus em dash (—) di landing + about + privacy + terms
 - [x] Halaman legal: /privacy, /terms, /contact, /blog (dengan back button)
 - [x] Ganti "affiliate" jadi "link belanja" di semua copywriting

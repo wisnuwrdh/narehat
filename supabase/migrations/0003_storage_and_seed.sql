@@ -1,45 +1,9 @@
 -- ============================================================
--- Narehat — Storage Bucket + Seed Data
+-- Narehat — Seed Data (Rekomendasi Produk)
 -- Jalankan di Supabase SQL Editor setelah migration 0002
 -- ============================================================
-
--- ============================================================
--- 1. STORAGE — skin_photos bucket
--- ============================================================
-
--- Create the storage bucket (public, 50MB limit)
-INSERT INTO storage.buckets (id, name, public, file_size_limit)
-VALUES ('skin_photos', 'skin_photos', true, 52428800)
-ON CONFLICT (id) DO NOTHING;
-
--- Clean up existing conflicting policies
-DROP POLICY IF EXISTS "Anyone can view photos" ON storage.objects;
-DROP POLICY IF EXISTS "Users can upload own photos" ON storage.objects;
-DROP POLICY IF EXISTS "Users can delete own photos" ON storage.objects;
-
--- Policy: authenticated users can view any photo
-CREATE POLICY "Anyone can view photos"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'skin_photos');
-
--- Policy: users can upload to their own folder
-CREATE POLICY "Users can upload own photos"
-  ON storage.objects FOR INSERT
-  WITH CHECK (
-    bucket_id = 'skin_photos'
-    AND auth.uid()::text = (storage.foldername(name))[1]
-  );
-
--- Policy: users can delete their own photos
-CREATE POLICY "Users can delete own photos"
-  ON storage.objects FOR DELETE
-  USING (
-    bucket_id = 'skin_photos'
-    AND auth.uid()::text = (storage.foldername(name))[1]
-  );
-
--- ============================================================
--- 2. SEED — rekomendasi produk awal
+-- Catatan: Bagian storage bucket skin_photos sudah dihapus karena
+-- foto sekarang disimpan di Cloudflare R2, bukan Supabase Storage.
 -- ============================================================
 
 INSERT INTO public.recommendations (name, brand, description, price, rating, reviews, affiliate_link, image_url, category)
