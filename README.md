@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.6 (Export Data + Toast System + Progress Enhancement + Account Deletion Fix)
+**Versi:** 0.7 (Responsive Layout + Auth Flow Lengkap + Pricing Restructure)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -56,28 +56,28 @@ Pertama kali app memberikan insight seperti:
 | Tracker Harian | Tidur, minum air, olahraga, tingkat stress, skincare AM/PM — 30 detik isi | ✅ Done |
 | Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
-| AI Consult — 3x (lifetime) | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
-| Purging Checker — 1x (lifetime) | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
+| AI Consult — 10x/bulan | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
 
-### ⭐ Premium — Rp19.000/bulan
+### ⭐ Premium — Rp19.000/bulan (Rp149.000/tahun)
 
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
-| Semua fitur Free (unlimited) | — | ✅ |
+| Semua fitur Free | — | ✅ |
 | AI Consult UNLIMITED | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
 | AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu (GPT-4o-mini) | ✅ Done |
-| Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
+| Purging Checker | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
+| Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
 
-### 👑 Pro — Rp49.000/bulan
+### 👑 Pro — Rp49.000/bulan (Rp399.000/tahun)
 
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
-| Purging Checker UNLIMITED | Cek setiap kali mulai produk baru | ✅ Done |
 | Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF | ✅ Done |
+| Akses fitur baru lebih awal | Beta tester fitur upcoming | 🔜 |
 
 ---
 
@@ -144,9 +144,12 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 
 ### Auth Pages
 ```
-/login       → Masuk
-/register    → Daftar akun baru
-/onboarding  → Setup awal (hanya muncul sekali)
+/login              → Masuk (2-step: Google/Email → form Email)
+/register           → Daftar akun baru (2-step: Google/Email → form Email)
+/forgot-password    → Lupa password (resetPasswordForEmail → redirect /reset-password)
+/reset-password     → Buat password baru (session check → updateUser)
+/auth/callback      → Google OAuth callback (code exchange → onboarding check)
+/onboarding         → Setup awal (hanya muncul sekali, cek lewat profile fields)
 ```
 
 ### App Pages (Setelah Login)
@@ -265,7 +268,7 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 |-------|-----------|
 | Frontend | Next.js 15 App Router + TypeScript + Tailwind CSS |
 | Backend | Next.js API Routes |
-| Auth | Supabase Auth (email/password) |
+| Auth | Supabase Auth (email/password + Google OAuth) |
 | Database | Supabase (PostgreSQL + RLS) |
 | Vector DB | Supabase pgvector |
 | Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
@@ -287,9 +290,12 @@ narehat/
 │   │   ├── pricing/page.tsx       → /pricing
 │   │   └── about/page.tsx         → /about
 │   ├── (auth)/
-│   │   ├── login/page.tsx         → /login
-│   │   ├── register/page.tsx      → /register
-│   │   └── onboarding/page.tsx    → /onboarding
+  │   │   ├── login/page.tsx         → /login
+  │   │   ├── register/page.tsx      → /register
+  │   │   ├── forgot-password/page.tsx → /forgot-password
+  │   │   ├── reset-password/page.tsx  → /reset-password
+  │   │   ├── onboarding/page.tsx    → /onboarding
+  │   │   └── callback/route.ts      → /auth/callback (Google OAuth)
   │   ├── (app)/
   │   │   ├── dashboard/page.tsx      → /dashboard
   │   │   ├── tracker/page.tsx        → /tracker
@@ -300,7 +306,7 @@ narehat/
   │   │   ├── settings/page.tsx       → /settings
   │   │   ├── subscription/page.tsx   → /subscription
   │   │   ├── profile/page.tsx        → /profile
-  │   │   └── layout.tsx              # Auth guard + bottom nav + UserProvider
+  │   │   └── layout.tsx              # Auth guard + bottom nav (mobile) / left sidebar (md+) + UserProvider
   │   └── api/
   │       ├── auth/                  # ⚠️ Auth callback
   │       ├── tracker/               # CRUD daily_logs
@@ -312,11 +318,11 @@ narehat/
   │       │   ├── purging/           # ⚠️ Purging vs breakout checker (GPT-4o-mini)
   │       │   ├── routine-analyze/   # ⚠️ AI analisis rutinitas (SumoPod LLM)
   │       │   ├── routine-build/     # ⚠️ AI builder rutinitas (SumoPod LLM)
-  │       │   └── quota/             # GET remaining AI quota (ai_usage table)
-  │   ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
-  │   ├── export/                # Export semua data user (JSON data provider)
-  │   ├── recommendations/       # Produk rekomendasi
-  │       └── payment/               # ⚠️ Webhook Xendit + create invoice
+  │   │       └── quota/             # GET remaining AI quota (ai_usage table)
+  │   │   ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
+  │   │   ├── export/                # Export semua data user (JSON data provider)
+  │   │   ├── recommendations/       # Produk rekomendasi
+  │   │   └── payment/               # Xendit invoice + webhook
   │
   ├── components/landing/            # Landing page sections
   ├── components/ui/                 # Base components
@@ -388,9 +394,9 @@ Jalankan dengan: `npm run ingest`
 
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
-| **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 3x AI consult, 1x purging checker. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp19.000/bulan | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, deep insight. |
-| **Pro** 👑 | Rp49.000/bulan | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, purging checker unlimited, laporan mingguan PDF. |
+| **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 10x AI consult/bulan. Cukup untuk "oh ini toh pemicunya." |
+| **Premium** ⭐ | Rp19.000/bulan (Rp149.000/tahun) | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, purging checker, deep insight. |
+| **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, laporan mingguan PDF, akses fitur baru lebih awal. |
 
 ### Revenue Stream Tambahan
 - **Link belanja** produk skincare di halaman rekomendasi (pasif, semua tier)
@@ -405,7 +411,7 @@ Jalankan dengan: `npm run ingest`
 
 ### Sudah Diimplementasikan
 - Supabase RLS di semua tabel (owner-based access)
-- Middleware auth guard (redirect unauthenticated ke /login)
+- Middleware auth guard (redirect unauthenticated ke /login; onboarding check via profile fields di login page & callback — no longer in middleware)
 - Payload validation + file type check (magic bytes, extension, MIME, size, filename)
 - Rate limiter AI endpoints (5 req/menit)
 - Xendit webhook HMAC-SHA256 signature verification
@@ -492,10 +498,15 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [x] Hapus Akun: delete file storage + semua tabel termasuk ai_usage & notifikasi
 - [x] Progress: modal thumbnail picker ganti prompt() untuk bandingkan foto
 - [x] AI Detect dari timeline: gunakan photo_id untuk update row existing (hindari duplikat)
-- [ ] Password Reset flow (Supabase Auth)
+- [x] Password Reset flow (Supabase Auth) + Forgot Password page
+- [x] Google OAuth login dengan 2-step UI (Google/Email → form Email) + callback route
+- [x] Onboarding check via profile fields (login page & callback) — removed from middleware
+- [x] DB enum: tambah pro_monthly, pro_yearly
+- [x] Pricing restructure: monthly AI limits (10 consult/bulan free), yearly toggle, AI vision paid-only
+- [x] Landing page: dashboard mockup di Hero, CTA "Coba Gratis", hapus badge "gratis"
+- [x] Responsive layout: left sidebar di md+, app pages max-w-4xl, auth pages max-w-lg
 - [ ] Cancel Plan API + UI
 - [ ] Report PDF gate ke Pro
-- [ ] DB enum: tambah pro_monthly, pro_yearly
 
 ---
 
