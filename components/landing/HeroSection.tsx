@@ -54,50 +54,64 @@ export default function HeroSection() {
                   </div>
                 </div>
 
-                {/* Onboarding quiz — Step 1 */}
-                <div className="px-5 pt-3 pb-4">
-                  {/* Progress bar */}
-                  <div className="flex gap-1.5 mb-5">
-                    <div className="h-1.5 flex-1 bg-primary rounded-full" />
-                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
-                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
-                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
-                    <div className="h-1.5 flex-1 bg-slate-200 rounded-full" />
+                {/* Dashboard */}
+                <div className="px-5 pt-3 pb-3">
+                  {/* Greeting + streak */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[10px] text-muted">Kamis, 15 Mei 2025</p>
+                      <h3 className="text-sm font-extrabold text-slate-900">Halo, User! 👋</h3>
+                    </div>
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 border border-amber-200 rounded-full">
+                      <span className="text-[10px]">🔥</span>
+                      <span className="text-[10px] font-bold text-amber-600">3 hari</span>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-primary font-bold uppercase tracking-wider mb-1">Step 1/5</p>
-                  <h3 className="text-base font-extrabold text-slate-900 mb-1">Tipe kulit kamu apa?</h3>
-                  <p className="text-[10px] text-muted mb-4">Ini membantu kami memberikan insight yang lebih akurat.</p>
 
-                  {/* Options */}
-                  <div className="space-y-2">
+                  {/* Skin Score */}
+                  <div className="flex items-center gap-4 mb-3 p-3 bg-gradient-to-br from-primary-light/20 to-white rounded-2xl border border-primary/10">
+                    <div className="relative w-14 h-14 shrink-0">
+                      <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="#e2e8f0" strokeWidth="4" />
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="#16a34a" strokeWidth="4" strokeLinecap="round"
+                          strokeDasharray="150.8" strokeDashoffset="39" />
+                      </svg>
+                      <span className="absolute inset-0 flex items-center justify-center text-sm font-extrabold text-slate-900">74</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-muted font-medium">Skin Score</p>
+                      <p className="text-xs font-bold text-primary">Cukup Baik</p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-[9px] text-emerald-500 font-bold">+3</span>
+                        <span className="text-[9px] text-muted">dari kemarin</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-4 gap-1.5 mb-3">
                     {[
-                      { emoji: "🌿", label: "Berminyak", desc: "Wajah sering mengkilap", active: false },
-                      { emoji: "🌀", label: "Kombinasi", desc: "Berminyak di T-zone", active: true },
-                      { emoji: "💧", label: "Kering", desc: "Kulit terasa kencang", active: false },
-                    ].map((opt, i) => (
-                      <div
-                        key={i}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
-                          opt.active
-                            ? "bg-primary-light/30 border-primary"
-                            : "bg-slate-50 border-border-light"
-                        }`}
-                      >
-                        <span className="text-sm">{opt.emoji}</span>
-                        <div className="flex-1">
-                          <span className={`text-[11px] font-semibold ${opt.active ? "text-primary" : "text-slate-700"}`}>
-                            {opt.label}
-                          </span>
-                          <span className="text-[9px] text-muted block">{opt.desc}</span>
+                      { icon: "edit_calendar", label: "Tracker", color: "bg-indigo-50 text-indigo-500" },
+                      { icon: "trending_up", label: "Progress", color: "bg-blue-50 text-blue-500" },
+                      { icon: "smart_toy", label: "AI Cons", color: "bg-amber-50 text-amber-500" },
+                      { icon: "photo_camera", label: "Deteksi", color: "bg-violet-50 text-violet-500" },
+                    ].map((a) => (
+                      <div key={a.label} className="flex flex-col items-center gap-1">
+                        <div className={`w-9 h-9 ${a.color} rounded-xl flex items-center justify-center`}>
+                          <span className="material-symbols-outlined text-sm">{a.icon}</span>
                         </div>
-                        {opt.active && <span className="material-symbols-outlined text-primary text-sm">check_circle</span>}
+                        <span className="text-[8px] font-semibold text-slate-600">{a.label}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Next button */}
-                  <div className="mt-4 w-full py-2.5 bg-primary text-white text-[11px] font-bold rounded-xl text-center">
-                    Lanjut
+                  {/* Insight card */}
+                  <div className="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-border-light">
+                    <span className="material-symbols-outlined text-sm text-primary shrink-0">lightbulb</span>
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-800 mb-0.5">Insight Hari Ini</p>
+                      <p className="text-[8px] text-muted leading-relaxed">Jerawat muncul setelah gorengan & begadang. Coba kurangi minyak & tidur lebih awal.</p>
+                    </div>
                   </div>
                 </div>
 
