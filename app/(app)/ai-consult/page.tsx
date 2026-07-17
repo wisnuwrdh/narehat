@@ -42,13 +42,13 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [freeRemaining, setFreeRemaining] = useState(3);
+  const [freeRemaining, setFreeRemaining] = useState(10);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isPremium = user.plan !== "free";
   const limitReached = !isPremium && freeRemaining <= 0;
-  const FREE_LIMIT = 3;
+  const FREE_LIMIT = 10;
 
   useEffect(() => {
     if (isPremium) return;
@@ -344,8 +344,8 @@ export default function AIConsultPage() {
         {limitReached && (
           <div className="pt-2">
             <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white">
-              <p className="text-sm font-bold mb-1">Batas konsultasi gratis tercapai</p>
-              <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
+              <p className="text-sm font-bold mb-1">Batas konsultasi bulanan tercapai</p>
+              <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis bulan ini. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
               <Link
                 href="/pricing"
                 className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"

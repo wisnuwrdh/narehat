@@ -23,6 +23,15 @@ setInterval(() => {
   }
 }, 60_000);
 
+function firstDayOfMonth(): string {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+const FREE_MONTHLY_LIMIT = 10;
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -41,20 +50,20 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     const isPaying = profile && profile.plan !== "free";
-    const FREE_LIMIT = 3;
 
     if (!isPaying) {
       const { data: usageRows } = await supabase
         .from("ai_usage")
         .select("id")
         .eq("user_id", user.id)
-        .eq("feature", "consult");
+        .eq("feature", "consult")
+        .gte("created_at", firstDayOfMonth());
 
-      if ((usageRows || []).length >= FREE_LIMIT) {
+      if ((usageRows || []).length >= FREE_MONTHLY_LIMIT) {
         return NextResponse.json(
           {
-            error: "Batas konsultasi gratis tercapai",
-            message: "Kamu sudah menggunakan 3x AI Consult gratis. Upgrade ke Premium untuk konsultasi unlimited.",
+            error: "Batas konsultasi bulanan tercapai",
+            message: `Kamu sudah menggunakan ${FREE_MONTHLY_LIMIT}x AI Consult bulan ini. Upgrade ke Premium untuk konsultasi unlimited.`,
             free_remaining: 0,
           },
           { status: 402 }
@@ -128,9 +137,10 @@ export async function POST(request: NextRequest) {
         .from("ai_usage")
         .select("id")
         .eq("user_id", user.id)
-        .eq("feature", "consult");
+        .eq("feature", "consult")
+        .gte("created_at", firstDayOfMonth());
 
-      const freeRemaining = Math.max(0, FREE_LIMIT - (afterRows || []).length);
+      const freeRemaining = Math.max(0, FREE_MONTHLY_LIMIT - (afterRows || []).length);
 
       return NextResponse.json({
         question,

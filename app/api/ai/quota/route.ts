@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-const FREE_LIMITS: Record<string, number> = {
-  consult: 3,
-  purging: 1,
-  detect: 0,
-};
+const FREE_MONTHLY_LIMIT = 10;
+
+function firstDayOfMonth(): string {
+  const d = new Date();
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
 
 export async function GET() {
   const supabase = await createClient();
@@ -31,7 +34,8 @@ export async function GET() {
   const { data: usage } = await supabase
     .from("ai_usage")
     .select("feature")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .gte("created_at", firstDayOfMonth());
 
   const counts: Record<string, number> = {};
   for (const row of usage || []) {
@@ -41,17 +45,17 @@ export async function GET() {
   return NextResponse.json({
     consult: {
       used: counts.consult || 0,
-      limit: FREE_LIMITS.consult,
+      limit: FREE_MONTHLY_LIMIT,
       unlimited: false,
     },
     purging: {
-      used: counts.purging || 0,
-      limit: FREE_LIMITS.purging,
+      used: 0,
+      limit: 0,
       unlimited: false,
     },
     detect: {
-      used: counts.detect || 0,
-      limit: FREE_LIMITS.detect,
+      used: 0,
+      limit: 0,
       unlimited: false,
     },
   });
