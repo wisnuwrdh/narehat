@@ -92,7 +92,29 @@ export default function LoginPage() {
         return;
       }
 
-      router.replace("/dashboard");
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("users")
+          .select("skin_type,acne_severity,goal")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        const needsOnboarding = !profile
+          || (profile.skin_type === "combination"
+              && profile.acne_severity === "mild"
+              && profile.goal === "clear_acne");
+
+        if (needsOnboarding) {
+          router.replace("/onboarding");
+        } else {
+          await supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
+          router.replace("/dashboard");
+        }
+      } else {
+        router.replace("/dashboard");
+      }
     } catch (err) {
       logError("signIn exception", err);
       setLoading(false);
