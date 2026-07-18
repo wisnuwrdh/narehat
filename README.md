@@ -354,7 +354,6 @@ narehat/
   ├── types/                         # TypeScript types
   ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
   ├── middleware.ts                  # Auth guard
-  ├── wrangler.jsonc                 # Cloudflare Pages config
   └── public/                        # Static assets
 ```
 
