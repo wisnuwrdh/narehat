@@ -37,7 +37,7 @@ async function resizeImageData(
 
 function getImageDataFromInput(input: Uint8Array): Promise<ImageData> {
   try {
-    const blob = new Blob([input]);
+    const blob = new Blob([input.buffer as ArrayBuffer]);
     return createImageBitmap(blob).then((bitmap) => {
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
       const ctx = canvas.getContext("2d");
