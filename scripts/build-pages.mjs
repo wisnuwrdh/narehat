@@ -1,26 +1,19 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 
-const patches = [
-  {
-    file: "node_modules/@opennextjs/aws/dist/plugins/edge.js",
-    search: '/\\.(mjs|wasm)$/',
-    replace: '/\\.(mjs|wasm|node)$/',
-  },
-  {
-    file: "node_modules/@opennextjs/cloudflare/dist/cli/build/patches/plugins/wrangler-external.js",
-    search: '/(\\.bin|\\.wasm(\\?module)?)$/',
-    replace: '/(\\.bin|\\.wasm(\\?module)?|\\.node)$/',
-  },
-];
+console.log("Removing .node native binary files...");
+execSync('find node_modules -name "*.node" -type f -delete', { stdio: "inherit" });
+console.log("Done removing .node files");
 
-for (const { file, search, replace } of patches) {
-  const content = readFileSync(file, "utf-8");
-  const patched = content.replace(search, replace);
-  if (patched !== content) {
-    writeFileSync(file, patched);
-    console.log(`Patched ${file.split("/").pop()} to handle .node files`);
-  }
+const edgeJs = "node_modules/@opennextjs/aws/dist/plugins/edge.js";
+const edgeContent = readFileSync(edgeJs, "utf-8");
+const patched = edgeContent
+  .replace("(mjs|wasm|node)$/g", "(mjs|wasm|node)$/")
+  .replace("(mjs|wasm)$/g", "(mjs|wasm|node)$/")
+  .replace("(mjs|wasm)$/", "(mjs|wasm|node)$/");
+if (patched !== edgeContent) {
+  writeFileSync(edgeJs, patched);
+  console.log("Patched edge.js to handle .node files (no g flag)");
 }
 
 execSync("npx @opennextjs/cloudflare build", { stdio: "inherit" });
