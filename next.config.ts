@@ -5,6 +5,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  serverExternalPackages: ["sharp", "onnxruntime-node"],
 };
 
 const withSerwistConfig = withSerwist({
