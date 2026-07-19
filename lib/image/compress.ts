@@ -37,7 +37,7 @@ async function resizeImageData(
 
 function getImageDataFromInput(input: Uint8Array): Promise<ImageData> {
   try {
-    const blob = new Blob([input.buffer as ArrayBuffer]);
+    const blob = new Blob([input as unknown as BlobPart]);
     return createImageBitmap(blob).then((bitmap) => {
       const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
       const ctx = canvas.getContext("2d");
@@ -52,7 +52,7 @@ function getImageDataFromInput(input: Uint8Array): Promise<ImageData> {
 
 async function decodeImageViaJSquash(input: Uint8Array): Promise<ImageData> {
   const { decode } = await import("@jsquash/webp");
-  const data = await decode(input);
+  const data = await decode(input as unknown as ArrayBuffer);
   return new ImageData(
     new Uint8ClampedArray(data.data),
     data.width,
