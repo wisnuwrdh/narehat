@@ -3,5 +3,11 @@
   "name": "narehat",
   "compatibility_date": "2026-07-18",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".open-next"
+  "pages_build_output_dir": ".open-next",
+  "rules": [
+    {
+      "type": "Data",
+      "globs": ["**/*.node"]
+    }
+  ]
 }
