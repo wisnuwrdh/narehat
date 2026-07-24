@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, renameSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync, existsSync, cpSync, readdirSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const originals = {};
@@ -91,8 +91,23 @@ build.onLoad({ filter: /.*/, namespace }, async ({ path }) => {`,
     console.log("  - worker.js not found");
   }
 
+  console.log("\n=== [6/6] Copy static assets to .open-next/ root for Pages ===\n");
+  const assetsDir = ".open-next/assets";
+  if (existsSync(assetsDir)) {
+    for (const entry of readdirSync(assetsDir)) {
+      const src = `${assetsDir}/${entry}`;
+      const dest = `.open-next/${entry}`;
+      if (!existsSync(dest)) {
+        cpSync(src, dest, { recursive: true });
+        console.log(`  ✓ Copied ${entry}/ to root`);
+      }
+    }
+  } else {
+    console.log("  - assets/ not found");
+  }
+
   console.log("\n✓ Build succeeded!\n");
 } finally {
-  console.log("\n=== [5/5] Restore files ===\n");
+  console.log("\n=== Restore files ===\n");
   restoreAll();
 }
