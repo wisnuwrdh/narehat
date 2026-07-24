@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync, existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const originals = {};
@@ -80,6 +80,17 @@ build.onLoad({ filter: /.*/, namespace }, async ({ path }) => {`,
 
   console.log("\n=== [4/5] Run OpenNext Cloudflare build ===\n");
   execSync("npx @opennextjs/cloudflare build", { stdio: "inherit" });
+
+  console.log("\n=== [5/5] Rename worker.js → _worker.js for Pages ===\n");
+  const workerPath = ".open-next/worker.js";
+  const underscoreWorkerPath = ".open-next/_worker.js";
+  if (existsSync(workerPath)) {
+    renameSync(workerPath, underscoreWorkerPath);
+    console.log("  ✓ _worker.js ready");
+  } else {
+    console.log("  - worker.js not found");
+  }
+
   console.log("\n✓ Build succeeded!\n");
 } finally {
   console.log("\n=== [5/5] Restore files ===\n");
