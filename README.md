@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.8 (Migrasi Cloudflare: R2 Storage + Pages Hosting)
+**Versi:** 0.9 (Cloudflare Pages + OpenNext)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -273,11 +273,15 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 | Vector DB | Supabase pgvector |
 | Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
 | LLM Provider | SumoPod AI (deepseek-v4-flash) |
-| Vision (planned) | OpenAI GPT-4o-mini |
+| Vision | OpenAI GPT-4o-mini |
 | Payment | Xendit (invoice-based, HMAC-SHA256 verified webhook) |
 | Animasi | Framer Motion |
-| Hosting | Cloudflare Pages |
+| Hosting | Cloudflare Pages + Workers (via OpenNext adapter) |
+| Adapter | `@opennextjs/cloudflare` — Next.js → CF Workers |
+| Static Assets | `env.ASSETS` binding via Cloudflare Pages |
 | Storage Foto | Cloudflare R2 (S3-compatible, egress gratis) |
+| Build Tool | Custom `scripts/build-pages.mjs` |
+| Platform | Android Termux (build lokal) → Cloudflare x86 Linux (deploy) |
 
 ---
 
@@ -472,6 +476,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter, quota enforcement |
 | Payment Integration | ✅ Done | Xendit invoice + webhook |
 | Perf Optimization | ✅ Done | Batched API calls (127→1), UserContext caching |
+| Cloudflare Migration | ✅ Done | Pages + Workers via OpenNext, R2 storage, custom build script |
 | Soft Launch | 🔜 | 50-100 user pertama dari audiens TikTok |
 | Iterasi | 🔜 | Feedback → perbaikan → monetisasi |
 
@@ -482,20 +487,22 @@ User bisa mendownload semua data mereka dari halaman Settings:
 ### Checklist — Deploy & Migrasi ke Cloudflare
 
 **Fase 0 — Backup (sebelum apa-apa)**
-- [ ] `pg_dump` database Supabase
-- [ ] Download semua foto dari bucket `skin_photos` (Supabase Storage)
-- [ ] Catat semua env vars dari Vercel dashboard
+- [x] `pg_dump` database Supabase
+- [x] Download semua foto dari bucket `skin_photos` (Supabase Storage)
+- [x] Catat semua env vars dari Vercel dashboard
 
 **Fase 1 — Setup Cloudflare**
-- [ ] Buat akun Cloudflare + R2 bucket `narehat-photos`
-- [ ] Generate R2 API token (Access Key ID + Secret Access Key)
-- [ ] Catat R2 endpoint + bucket name
+- [x] Buat akun Cloudflare + R2 bucket `narehat-photos`
+- [x] Generate R2 API token (Access Key ID + Secret Access Key)
+- [x] Catat R2 endpoint + bucket name
 
 **Fase 2 — Deploy ke Preview URL**
-- [ ] Connect repo GitHub ke Cloudflare Pages
-- [ ] Set semua env vars di Cloudflare Pages dashboard (termasuk R2 credentials)
-- [ ] Build + deploy (build command: `npx @opennextjs/cloudflare build`, output: `.open-next`)
-- [ ] **SEMENTARA:** tambahkan preview URL (`*.pages.dev`) ke Supabase Auth Redirect URLs (jangan hapus `narehat.com`)
+- [x] Connect repo GitHub ke Cloudflare Pages
+- [x] Set semua env vars di Cloudflare Pages dashboard (termasuk R2 credentials)
+- [x] Build command: `node scripts/build-pages.mjs` — output dir: `.open-next`
+- [x] Patches: native modules (`sharp`, `onnxruntime-node`, `@ast-grep/napi`) dikosongin untuk Android compat
+- [x] Worker: `env.ASSETS.fetch()` untuk serve `/_next/static/*`
+- [x] **SEMENTARA:** tambahkan preview URL (`*.pages.dev`) ke Supabase Auth Redirect URLs (jangan hapus `narehat.com`)
 - [ ] Smoke test 14 flow di preview URL (register, login, OAuth, tracker, AI detect, purging, dll)
 - [ ] Fix bug kalau ada → redeploy → tes ulang
 
@@ -509,7 +516,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [ ] Monitor error log 24-48 jam
 
 **Fase 4 — Cleanup (setelah stabil 3-7 hari)**
-- [ ] Hapus project dari Vercel
+- [x] Hapus project dari Vercel
 - [ ] Hapus bucket `skin_photos` di Supabase Storage
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
 - [ ] Register Xendit webhook URL final (kalau belum)
