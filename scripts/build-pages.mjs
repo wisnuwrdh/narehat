@@ -1,10 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 
-console.log("Removing .node native binary files...");
-execSync('find node_modules -name "*.node" -type f -delete', { stdio: "inherit" });
-console.log("Done removing .node files");
-
 const edgeJs = "node_modules/@opennextjs/aws/dist/plugins/edge.js";
 const edgeContent = readFileSync(edgeJs, "utf-8");
 const patched = edgeContent
