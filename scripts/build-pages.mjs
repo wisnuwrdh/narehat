@@ -145,7 +145,7 @@ try {
   if (existsSync(underscoreWorkerPath)) {
     let workerCode = readFileSync(underscoreWorkerPath, "utf-8");
     const search = `            // - \`Request\`s are handled by the Next server`;
-    const insert = `            // Serve static assets from env.ASSETS (Cloudflare Pages)\n            if (url.pathname.startsWith("/_next/static/")) {\n                const asset = await env.ASSETS.fetch(request);\n                if (asset.status !== 404) return asset;\n            }\n            `;
+    const insert = `            // Serve static assets from env.ASSETS (Cloudflare Pages)\n            if (url.pathname.startsWith("/_next/static/") || !url.pathname.startsWith("/api/")) {\n                const asset = await env.ASSETS.fetch(request);\n                if (asset.status !== 404) return asset;\n            }\n            `;
     if (workerCode.includes(search)) {
       workerCode = workerCode.replace(search, insert + search);
       writeFileSync(underscoreWorkerPath, workerCode);
@@ -164,6 +164,15 @@ try {
     }
   } else {
     console.log("  - assets/ not found");
+  }
+
+  console.log("  → Copying public/ files to root...\n");
+  for (const entry of readdirSync("public")) {
+    const dest = `.open-next/${entry}`;
+    if (!existsSync(dest)) {
+      cpSync(`public/${entry}`, dest);
+      console.log(`  ✓ public/${entry}`);
+    }
   }
 
   console.log("\n✓ Build succeeded!\n");
