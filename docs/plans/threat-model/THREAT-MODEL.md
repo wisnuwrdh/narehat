@@ -22,7 +22,7 @@ Narehat adalah SaaS kesehatan kulit (PWA) yang membantu user memahami pemicu per
 | Database | Supabase PostgreSQL + pgvector (RAG) |
 | Storage | Supabase Storage (public bucket: `skin_photos`) |
 | AI | SumoPod LLM (DeepSeek V4 Flash) + Xenova Transformers |
-| Payment | Xendit |
+| Payment | SumoPod (QRIS) |
 | Deployment | Vercel |
 
 ### Trust Model
@@ -401,7 +401,7 @@ TH-01 (premium access, bypass or legit)
 | 4 | Filename sanitization | Medium | 1 regex | None |
 | 5 | Rate limiting AI Consult | Medium | ~15 lines | None |
 | 6 | Tracker range validation | Low | ~10 lines | None |
-| 7 | Complete payment webhook | Medium | ~30 lines | Xendit secret env |
+| 7 | Complete payment webhook | Medium | ~30 lines | SumoPod webhook secret/env |
 | 8 | Photo DELETE endpoint | Low | ~15 lines | None |
 
 ---

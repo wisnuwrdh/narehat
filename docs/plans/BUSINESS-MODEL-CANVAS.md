@@ -60,8 +60,8 @@
 
 | Stream | Model | Proyeksi |
 |--------|-------|----------|
-| **Premium Bulanan** | Subscription Rp19.000/bulan (~$1.15) | Rp19.000 × conversion rate |
-| **Premium Tahunan** | Subscription Rp149.000/tahun (~$9.00) | Rp12.416/bulan setara (35% saving vs bulanan) |
+| **Premium Bulanan** | Subscription Rp29.000/bulan (~$1.85) | Rp29.000 × conversion rate |
+| **Premium Tahunan** | Subscription Rp199.000/tahun (~$12.70) | Rp16.583/bulan setara (~43% saving vs bulanan) |
 | **Affiliate Shopee/Tokopedia** | Commission per sale | ~3-5% per transaksi |
 | **B2B Data Insight** (future) | Anonymized tren kulit ke brand skincare lokal | TBD — perlu skala >1.000 MAU |
 
@@ -70,7 +70,7 @@
 | Metric | Value |
 |--------|-------|
 | CAC (TikTok organic + paid boost) | Rp3.000 - 5.000 |
-| LTV (12 bulan premium × 70% retention) | ~Rp104.000 |
+| LTV (12 bulan premium × 70% retention) | ~Rp243.600 |
 | LTV : CAC ratio | **20-35x** |
 | Gross margin (subscription) | ~85-90% |
 
@@ -107,7 +107,7 @@
 |---------|-------|-------|
 | **Supabase** | Backend infra (free tier → Pro saat scale) | Zero DevOps, built-in Auth + Storage + pgvector |
 | **SumoPod AI** | LLM provider untuk RAG consultation | Model deepseek, OpenAI-compatible API |
-| **Xendit** | Payment gateway Indonesia | Invoice otomatis, webhook HMAC-SHA256 terverifikasi |
+| **SumoPod** | Payment gateway (QRIS) | Payment link QRIS + webhook token/Svix verified |
 | **Vercel** | Hosting Next.js (Hobby → Pro) | Auto-deploy dari git push, edge middleware |
 | **Shopee / Tokopedia Affiliate** | Monetisasi rekomendasi produk | Passive income, zero inventory |
 | **Brand skincare lokal** (future) | B2B data partnership | Revenue stream baru |
@@ -122,7 +122,7 @@
 | **Supabase** | $0 (Free tier — 500MB DB, 2GB bandwidth) | Fixed → Variable saat scale |
 | **Vercel** | $0 (Hobby — 100GB bandwidth, 1K serverless hours) | Fixed → Variable saat scale |
 | **SumoPod AI** | ~$10-30 (tergantung volume konsultasi AI) | Variable |
-| **Xendit** | ~Rp1.500 per transaksi sukses | Variable |
+| **SumoPod** | ~0.7% + Rp300 per transaksi | Variable |
 | **Domain** | ~$10/tahun (mis. narehat.id) | Fixed |
 | **Content creation** | ~Rp0-500rb (self-produced atau UGC) | Variable |
 | **Xenova embeddings** | $0 (komputasi lokal, tanpa biaya API) | Fixed — zero |

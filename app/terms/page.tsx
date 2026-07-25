@@ -56,8 +56,8 @@ export default function TermsPage() {
             <section>
               <h2 className="text-lg font-bold text-slate-900 mb-3">5. Langganan & Pembayaran</h2>
               <ul className="list-disc pl-5 space-y-1">
-                <li>Narehat menawarkan paket <strong>Free</strong> (gratis), <strong>Premium</strong> (Rp19.000/bulan), dan <strong>Pro</strong> (Rp49.000/bulan).</li>
-                <li>Pembayaran diproses melalui Xendit. Narehat tidak menyimpan data kartu kredit atau metode pembayaran Anda.</li>
+                <li>Narehat menawarkan paket <strong>Free</strong> (gratis), <strong>Premium</strong> (Rp29.000/bulan), dan <strong>Pro</strong> (Rp49.000/bulan).</li>
+                <li>Pembayaran diproses melalui SumoPod. Narehat tidak menyimpan data kartu kredit atau metode pembayaran Anda.</li>
                 <li>Anda dapat membatalkan subscription kapan saja melalui halaman Pengaturan.</li>
                 <li>Pembatalan berlaku di akhir periode berlangganan. Tidak ada refund parsial untuk sisa periode yang belum digunakan.</li>
               </ul>

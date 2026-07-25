@@ -9,9 +9,8 @@
 - Node.js 18+
 - Akun [Supabase](https://supabase.com) (free tier cukup)
 - Akun [Cloudflare](https://dash.cloudflare.com) (free tier cukup)
-- Akun [Xendit](https://xendit.co) (untuk payment)
 - Akun [OpenAI](https://platform.openai.com) (untuk AI deteksi jerawat)
-- Akun [SumoPod](https://ai.sumopod.com) (untuk AI Consult RAG)
+- Akun [SumoPod](https://ai.sumopod.com) (untuk payment + AI Consult RAG)
 
 ---
 
@@ -34,8 +33,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUMOPOD_API_KEY=sk-...
-XENDIT_API_KEY=xnd_...
-XENDIT_WEBHOOK_SECRET=wh_...
+SUMODOP_PAYMENT_API_KEY=xxx
+SUMODOP_PAYMENT_WEBHOOK_TOKEN=whtok_...
 NEXT_PUBLIC_APP_URL=https://narehat.com
 OPENAI_API_KEY=sk-...
 ```
@@ -69,19 +68,19 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ---
 
-## 4. Xendit Setup
+## 4. SumoPod Payment Setup
 
-### 4.1 Webhook Registration
+### 4.1 API Key
 
-**Xendit Dashboard → Settings → Callbacks:**
+**SumoPod Payment Dashboard → API Keys:** copy API key → set ke `SUMODOP_PAYMENT_API_KEY`
+
+### 4.2 Webhook Registration
+
+**SumoPod Payment Dashboard → Settings → Webhooks:**
 
 1. URL: `https://narehat.com/api/payment`
-2. Event: `invoice.paid`
-3. Copy webhook secret → set ke `XENDIT_WEBHOOK_SECRET`
-
-### 4.2 API Key
-
-**Xendit Dashboard → Settings → API Keys:** copy secret key → set ke `XENDIT_API_KEY`
+2. Copy webhook token → set ke `SUMODOP_PAYMENT_WEBHOOK_TOKEN`
+3. *(Opsional)* Copy signing secret → set ke `SUMODOP_PAYMENT_WEBHOOK_SECRET`
 
 ---
 
@@ -167,7 +166,7 @@ Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs
 | 5 | Progress | Buka `/progress` → pilih "7/30/90 hari" | Chart muncul dengan data tracker |
 | 6 | AI Consult | Buka `/ai-consult` → tanya "Kenapa jerawat muncul?" | Dapat jawaban + sumber jurnal + disclaimer (max 3x untuk free) |
 | 7 | AI Detect | Buka `/progress` → klik "Deteksi AI" di foto | Hasil deteksi: jenis jerawat, lokasi, severity, estimasi pemicu |
-| 8 | Payment | Settings → Upgrade Premium/Pro → Buka Xendit | Invoice Xendit terbuka di tab baru |
+| 8 | Payment | Settings → Upgrade Premium/Pro → Bayar via QRIS | QRIS payment page terbuka di tab baru |
 | 9 | Theme Sync | Settings → ganti tema | Tema tersimpan ke localStorage + backend |
 | 10 | Auth Guard | Buka Incognito → ketik `/dashboard` | Redirect ke `/login` |
 
@@ -181,7 +180,7 @@ Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs
 | AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set / invalid |
 | AI Detect error "Gagal menganalisis foto" | `OPENAI_API_KEY` belum di-set / saldo habis |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
-| Payment invoice gagal | `XENDIT_API_KEY` belum di-set / invalid |
+| Payment gagal | `SUMODOP_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
 | AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step 7) / embeddings tidak match |

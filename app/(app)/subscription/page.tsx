@@ -27,7 +27,7 @@ const plans = [
   },
   {
     name: "Premium",
-    price: { monthly: "Rp19.000", yearly: "Rp149.000" },
+    price: { monthly: "Rp29.000", yearly: "Rp199.000" },
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Free",
@@ -78,10 +78,10 @@ export default function SubscriptionPage() {
         body: JSON.stringify({ plan }),
       });
       const data = await res.json();
-      if (data.invoice_url) {
-        window.open(data.invoice_url, "_blank");
+      if (data.payment_url) {
+        window.open(data.payment_url, "_blank");
       } else {
-        showToast(data.error || "Gagal membuat invoice.", "error");
+        showToast(data.error || "Gagal membuat pembayaran.", "error");
       }
     } catch {
       showToast("Gagal terhubung ke server.", "error");

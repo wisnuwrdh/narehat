@@ -127,8 +127,8 @@ export default function OnboardingPage() {
           body: JSON.stringify({ plan: planIntent }),
         });
         const data = await res.json();
-        if (data.invoice_url) {
-          router.push(data.invoice_url);
+        if (data.payment_url) {
+          router.push(data.payment_url);
           return;
         }
       } catch {}

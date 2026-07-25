@@ -58,7 +58,7 @@ Pertama kali app memberikan insight seperti:
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 10x/bulan | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
 
-### ⭐ Premium — Rp19.000/bulan (Rp149.000/tahun)
+### ⭐ Premium — Rp29.000/bulan (Rp199.000/tahun)
 
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
@@ -161,7 +161,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + link belanja
 /settings         → Profil display, kelola plan, export data (CSV/PDF), hapus akun, logout
-/subscription     → Pilih plan — Free/Premium/Pro, monthly/yearly toggle, upgrade via Xendit
+/subscription     → Pilih plan — Free/Premium/Pro, monthly/yearly toggle, payment via SumoPod
 /profile          → Edit profil — nama, tipe kulit, kondisi jerawat, goal
 ```
 
@@ -274,7 +274,7 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 | Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
 | LLM Provider | SumoPod AI (deepseek-v4-flash) |
 | Vision | OpenAI GPT-4o-mini |
-| Payment | Xendit (invoice-based, HMAC-SHA256 verified webhook) |
+| Payment | SumoPod (QRIS-based, webhook HMAC + token verification) |
 | Animasi | Framer Motion |
 | Hosting | Cloudflare Pages + Workers (via OpenNext adapter) |
 | Adapter | `@opennextjs/cloudflare` — Next.js → CF Workers |
@@ -327,7 +327,7 @@ narehat/
   │   │   ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
   │   │   ├── export/                # Export semua data user (JSON data provider)
   │   │   ├── recommendations/       # Produk rekomendasi
-  │   │   └── payment/               # Xendit invoice + webhook
+   │   │   └── payment/               # SumoPod payment + webhook
   │
   ├── components/landing/            # Landing page sections
   ├── components/ui/                 # Base components
@@ -351,7 +351,7 @@ narehat/
   │   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
   │   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
   │   ├── export/formatters.ts       # CSV & PDF formatter (label Indonesia)
-  │   ├── payment/xendit.ts          # ⚠️ Xendit invoice + webhook verify
+   │   ├── payment/sumopod.ts         # SumoPod payment + webhook verify
   │   └── security/                  # Rate limiter, file validation
   │
   ├── supabase/migrations/           # 9 migration files (0000-0008)
@@ -407,7 +407,7 @@ Jalankan dengan: `npm run ingest`
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
 | **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 10x AI consult/bulan. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp19.000/bulan (Rp149.000/tahun) | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, purging checker, deep insight. |
+| **Premium** ⭐ | Rp29.000/bulan (Rp199.000/tahun) | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, purging checker, deep insight. |
 | **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, laporan mingguan PDF, akses fitur baru lebih awal. |
 
 ### Revenue Stream Tambahan
@@ -415,7 +415,7 @@ Jalankan dengan: `npm run ingest`
 - **Future:** Data insight anonim untuk brand skincare lokal (B2B)
 
 ### Payment Gateway
-**Xendit** — invoice-based, HMAC-SHA256 webhook verification, plan auto-update
+**SumoPod** — QRIS-based payment, webhook signature + token verification, plan auto-update
 
 ---
 
@@ -426,7 +426,7 @@ Jalankan dengan: `npm run ingest`
 - Middleware auth guard (redirect unauthenticated ke /login; onboarding check via profile fields di login page & callback — no longer in middleware)
 - Payload validation + file type check (magic bytes, extension, MIME, size, filename)
 - Rate limiter AI endpoints (5 req/menit)
-- Xendit webhook HMAC-SHA256 signature verification
+- SumoPod webhook HMAC-SHA256 + token verification
 - Service role key never exposed to client
 - Prompt injection defense di system prompt AI
 - AI quota enforcement server-side (ai_usage table — immutable, append-only — prevents free tier bypass via localStorage/record deletion)
@@ -474,7 +474,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | AI Routine Analyzer | ✅ Done | SumoPod LLM: conflict detection, routine builder |
 | Weekly Skin Report | ✅ Done | Aggregate → HTML → print PDF |
 | Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter, quota enforcement |
-| Payment Integration | ✅ Done | Xendit invoice + webhook |
+| Payment Integration | ✅ Done | SumoPod QRIS + webhook |
 | Perf Optimization | ✅ Done | Batched API calls (127→1), UserContext caching |
 | Cloudflare Migration | ✅ Done | Pages + Workers via OpenNext, R2 storage, custom build script |
 | Soft Launch | 🔜 | 50-100 user pertama dari audiens TikTok |
@@ -509,7 +509,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 **Fase 3 — Cutover Domain (setelah testing lolos)**
 - [ ] Update Supabase Auth Settings: Site URL → `https://narehat.com`, Redirect URLs → `https://narehat.com/**`
 - [ ] ⚠️ **Hapus preview URL dari Supabase Redirect URLs** (jangan dibiarkan nempel)
-- [ ] Update Xendit webhook URL → `https://narehat.com/api/payment`
+- [ ] Set SumoPod Payment webhook URL → `https://narehat.com/api/payment`
 - [ ] Set `NEXT_PUBLIC_SITE_URL=https://narehat.com` di Cloudflare Pages env
 - [ ] Arahkan DNS domain `narehat.com` ke Cloudflare Pages
 - [ ] Smoke test ulang di domain final
@@ -519,7 +519,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [x] Hapus project dari Vercel
 - [ ] Hapus bucket `skin_photos` di Supabase Storage
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
-- [ ] Register Xendit webhook URL final (kalau belum)
+- [ ] Register SumoPod webhook URL final (kalau belum)
 
 
 - [x] Copywriting: hapus em dash (—) di landing + about + privacy + terms
@@ -527,7 +527,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [x] Ganti "affiliate" jadi "link belanja" di semua copywriting
 - [x] Footer fix: link placeholder + hapus double Privacy/Terms button
 - [x] PWA support: manifest, service worker (Serwist), offline page, meta tags, icons
-- [x] Halaman /subscription: in-app pricing, monthly/yearly toggle, Xendit invoice
+- [x] Halaman /subscription: in-app pricing, monthly/yearly toggle, SumoPod payment
 - [x] Halaman /profile: edit profil lengkap (nama, tipe kulit, kondisi, goal)
 - [x] Avatar SVG profile + favicon logo asli Narehat
 - [x] Hapus fitur notifikasi (page, API, badge, toggles, UserContext)

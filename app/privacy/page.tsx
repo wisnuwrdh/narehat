@@ -41,7 +41,7 @@ export default function PrivacyPage() {
                 <li>Menganalisis foto kulit menggunakan AI untuk deteksi jenis jerawat dan purging vs breakout.</li>
                 <li>Membangun dan merekomendasikan rutinitas skincare yang sesuai.</li>
                 <li>Mengirim notifikasi, pengingat tracker, dan insight baru.</li>
-                <li>Memproses pembayaran subscription melalui Xendit.</li>
+                <li>Memproses pembayaran subscription melalui SumoPod.</li>
               </ul>
             </section>
 
@@ -83,7 +83,7 @@ export default function PrivacyPage() {
                       <td className="py-2">Asia Pasifik</td>
                     </tr>
                     <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">Xendit</td>
+                      <td className="py-2 pr-4">SumoPod</td>
                       <td className="py-2 pr-4">Data pembayaran subscription</td>
                       <td className="py-2">Indonesia</td>
                     </tr>

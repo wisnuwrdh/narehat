@@ -130,7 +130,7 @@ Pricing cards:
   
 Register page:
   Tidak ada logic untuk baca query param ?plan=
-  Tidak ada logic untuk trigger Xendit invoice setelah register
+  Tidak ada logic untuk trigger payment setelah register
   Tidak ada redirect ke payment page
 
 After register:
@@ -142,21 +142,21 @@ After register:
 
 | File | Function | Called by |
 |------|----------|-----------|
-| `lib/payment/xendit.ts` | `createInvoice(userId, plan)` | No one |
-| `lib/payment/xendit.ts` | `verifyWebhookSignature(payload, sig)` | No one |
+| `lib/payment/sumopod.ts` | `createPayment(userId, plan)` | Payment create route |
+| `lib/payment/sumopod.ts` | `verifyWebhookToken`, `verifyWebhookSignature` | Payment webhook |
 | `app/api/payment/route.ts` | `POST` webhook handler | Stub only |
 
 ### Missing
 
-1. Payment page: `/checkout?plan=premium_monthly` that calls `createInvoice()` and shows payment details
+1. Payment page: `/checkout?plan=premium_monthly` that calls `createPayment()` and shows payment details
 2. Register page: baca `?plan=` query param → setelah register → redirect ke `/checkout?plan=...`
-3. Webhook: verify signature → update `users.plan` via service_role client
+3. Webhook: verify signature/token → update `users.plan` via service_role client
 
 ### Relevant Files
 
 - `components/landing/PricingSection.tsx:137-146` — CTAs point to `/register?plan=`
 - `app/(auth)/register/page.tsx` — no plan param handling
-- `lib/payment/xendit.ts` — createInvoice, verifyWebhook both unused
+- `lib/payment/sumopod.ts` — createPayment, verifyWebhookToken, verifyWebhookSignature
 - `app/api/payment/route.ts` — stub
 
 ---

@@ -25,7 +25,7 @@ const plans = [
   {
     name: "Premium",
     subtitle: "AI jadi asisten kulitmu",
-    price: { monthly: "Rp19.000", yearly: "Rp149.000" },
+    price: { monthly: "Rp29.000", yearly: "Rp199.000" },
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Free (unlimited)",

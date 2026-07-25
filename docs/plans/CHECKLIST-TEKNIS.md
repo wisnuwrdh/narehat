@@ -33,8 +33,8 @@ Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` | (mungkin sudah ada) |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` (dari Supabase Dashboard → Settings → API → service_role) | Payment webhook — update plan user tanpa RLS |
 | `SUMOPOD_API_KEY` | `sk-...` (dari SumoPod Dashboard) | AI Consult — panggil SumoPod LLM |
-| `XENDIT_API_KEY` | `xnd_...` (dari Xendit Dashboard) | Buat invoice di Xendit |
-| `XENDIT_WEBHOOK_SECRET` | `wh_...` (dari Xendit Callback config) | Verifikasi callback dari Xendit |
+| `SUMODOP_PAYMENT_API_KEY` | `xxx` (dari SumoPod Payment Dashboard) | Buat payment QRIS via SumoPod |
+| `SUMODOP_PAYMENT_WEBHOOK_TOKEN` | `whtok_...` (dari SumoPod Payment Settings) | Verifikasi webhook dari SumoPod |
 | `NEXT_PUBLIC_APP_URL` | `https://narehat.com` | Redirect URL setelah pembayaran sukses/gagal |
 | `NEXT_PUBLIC_SITE_URL` | `https://narehat.com` | URL publik situs (untuk metadata SEO) |
 | `R2_ACCESS_KEY_ID` | (dari Cloudflare R2 token) | Kredensial akses R2 |
@@ -47,12 +47,12 @@ Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add
 
 ---
 
-## C. Xendit — Webhook Registration
+## C. SumoPod Payment — Webhook Registration
 
-1. Buka **Xendit Dashboard → Settings → Callbacks**
+1. Buka **SumoPod Payment Dashboard → Settings → Webhooks**
 2. Tambahkan webhook URL: `https://narehat.com/api/payment`
-3. Event yang dipilih: `invoice.paid`
-4. Copy webhook secret yang dihasilkan → set ke `XENDIT_WEBHOOK_SECRET` di Cloudflare Pages env
+3. Copy webhook token yang dihasilkan → set ke `SUMODOP_PAYMENT_WEBHOOK_TOKEN` di Cloudflare Pages env
+4. *(Opsional)* Copy signing secret → set ke `SUMODOP_PAYMENT_WEBHOOK_SECRET`
 
 ---
 
@@ -116,7 +116,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | 4 | Dashboard | Buka `/dashboard` | Skin score muncul (bukan 0), ringkasan hari ini dari tracker |
 | 5 | Progress | Buka `/progress` → pilih "7 hari" / "30 hari" | Chart muncul kalau data tracker sudah ada |
 | 6 | AI Consult | Buka `/ai-consult` → tanya "Kenapa jerawat muncul?" | Dapat jawaban + sumber jurnal + disclaimer |
-| 7 | Payment | Settings → Kelola → Upgrade Bulanan → Buka Xendit | Invoice Xendit terbuka di tab baru |
+| 7 | Payment | Settings → Kelola → Upgrade Bulanan → Bayar QRIS | Payment page QRIS terbuka di tab baru |
 | 8 | Middleware | Buka Incognito → ketik `/dashboard` | Redirect ke `/login` |
 
 ---
@@ -127,7 +127,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 1.  B.  Set env vars di Cloudflare Pages (supabase URL + keys)
 2.  A.  Jalankan 3 migration SQL di Supabase
 3.  D.  Supabase Auth settings
-4.  C.  Register Xendit webhook
+4.  C.  Register SumoPod Payment webhook
 5.  E.  Jalankan ingest jurnal
 6.  F.  Testing end-to-end
 ```
@@ -141,7 +141,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | Register gagal "{}" / 500 | Jalankan migration 0002 dulu (INSERT policy + SECURITY DEFINER) |
 | AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set di Cloudflare / invalid key |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
-| Payment invoice gagal | `XENDIT_API_KEY` belum di-set / invalid |
+| Payment gagal | `SUMODOP_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
 | AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step E) / embeddings tidak match |

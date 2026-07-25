@@ -1,12 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyWebhookSignature } from "@/lib/payment/xendit";
+import { verifyWebhookToken, verifyWebhookSignature } from "@/lib/payment/sumopod";
+
+function parseOrderId(orderId: string): { userId: string; plan: string } | null {
+  const parts = orderId.split("-");
+  const timestampIdx = parts.findIndex((p, i) => i >= 1 && /^\d{13,}$/.test(p));
+  if (timestampIdx === -1 || timestampIdx < 2) return null;
+
+  const userId = parts.slice(0, timestampIdx - 1).join("-");
+  const plan = parts[timestampIdx - 1];
+
+  return { userId, plan };
+}
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
-  const signature = request.headers.get("x-callback-token") || "";
 
-  if (!verifyWebhookSignature(rawBody, signature)) {
+  const token = request.headers.get("x-webhook-token");
+  const svixId = request.headers.get("svix-id");
+  const svixTimestamp = request.headers.get("svix-timestamp");
+  const svixSignature = request.headers.get("svix-signature");
+
+  const tokenValid = token && verifyWebhookToken(token);
+  const signatureValid =
+    svixId && svixTimestamp && svixSignature
+      ? verifyWebhookSignature(rawBody, svixId, svixTimestamp, svixSignature)
+      : false;
+
+  if (!tokenValid && !signatureValid) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
@@ -17,25 +38,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const status = body.status as string | undefined;
-  const externalId = body.external_id as string | undefined;
+  const eventType = body.event_type as string | undefined;
+  const data = body.data as Record<string, unknown> | undefined;
 
-  if (status !== "PAID" || !externalId) {
-    return NextResponse.json({ message: "Not a paid invoice" });
+  if (eventType !== "payment.completed" || !data) {
+    return NextResponse.json({ message: "Not a completed payment" });
   }
 
-  const parts = externalId.split("-");
-  const timestampIdx = parts.findIndex((p, i) => i >= 1 && /^\d{13,}$/.test(p));
-  if (timestampIdx === -1 || timestampIdx < 2) {
-    return NextResponse.json({ error: "Invalid external_id format" }, { status: 400 });
+  const orderId = data.order_id as string | undefined;
+  if (!orderId) {
+    return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
   }
-  const userId = parts.slice(0, timestampIdx - 1).join("-");
-  const rawPlan = parts[timestampIdx - 1];
+
+  const parsed = parseOrderId(orderId);
+  if (!parsed) {
+    return NextResponse.json({ error: "Invalid order_id format" }, { status: 400 });
+  }
+
+  const { userId, plan } = parsed;
   const validPlans = ["premium_monthly", "premium_yearly", "pro_monthly", "pro_yearly"];
-  const plan = validPlans.includes(rawPlan) ? rawPlan : null;
-
-  if (!userId || !plan) {
-    return NextResponse.json({ error: "Invalid external_id" }, { status: 400 });
+  if (!validPlans.includes(plan)) {
+    return NextResponse.json({ error: "Invalid plan in order_id" }, { status: 400 });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
