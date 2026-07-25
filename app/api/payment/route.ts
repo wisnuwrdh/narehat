@@ -82,10 +82,13 @@ export async function POST(request: NextRequest) {
 
   const supabaseAuth = createClient(supabaseUrl, serviceKey);
 
-  await supabaseAuth
+  const { error: pmtErr } = await supabaseAuth
     .from("payments")
     .update({ status: "completed", updated_at: new Date().toISOString() })
     .eq("order_id", orderId);
+  if (pmtErr) {
+    return NextResponse.json({ error: "Failed to update payment: " + pmtErr.message }, { status: 500 });
+  }
 
   const { data: authUser, error: authError } = await supabaseAuth.auth.admin.getUserById(userId);
   if (authError || !authUser?.user) {
@@ -95,16 +98,24 @@ export async function POST(request: NextRequest) {
   const email = authUser.user.email || "";
   const now = new Date().toISOString();
 
-  const { data: existingUser } = await supabaseAuth
+  const { data: existingUser, error: selErr } = await supabaseAuth
     .from("users")
     .select("id")
     .eq("id", userId)
     .maybeSingle();
 
+  if (selErr) {
+    return NextResponse.json({ error: "Select user failed: " + selErr.message, hint: "Apakah tabel public.users sudah dibuat?" }, { status: 500 });
+  }
+
   if (existingUser) {
-    await supabaseAuth.from("users").update({ plan, updated_at: now }).eq("id", userId);
+    const { error: updErr } = await supabaseAuth.from("users").update({ plan, updated_at: now }).eq("id", userId);
+    if (updErr) return NextResponse.json({ error: "Update failed: " + updErr.message }, { status: 500 });
   } else {
-    await supabaseAuth.from("users").insert({ id: userId, email, plan, name: email.split("@")[0], updated_at: now });
+    const { error: insErr } = await supabaseAuth.from("users").insert({
+      id: userId, email, plan, name: email.split("@")[0], updated_at: now,
+    });
+    if (insErr) return NextResponse.json({ error: "Insert failed: " + insErr.message }, { status: 500 });
   }
 
   return NextResponse.json({ message: "Plan updated", userId, plan });
