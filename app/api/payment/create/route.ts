@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
   try {
     const { payment_url } = await createPayment(user.id, plan);
     return NextResponse.json({ payment_url });
-  } catch {
-    return NextResponse.json({ error: "Gagal membuat pembayaran. Periksa konfigurasi payment." }, { status: 500 });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    console.error("Payment create error:", message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
