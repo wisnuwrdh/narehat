@@ -138,6 +138,9 @@ export default function TrackerPage() {
       });
       if (res.ok) {
         showToast("Data berhasil disimpan!");
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Gagal menyimpan data", "error");
       }
 
       if (photoPreview && fileRef.current?.files?.[0]) {
@@ -147,8 +150,8 @@ export default function TrackerPage() {
         await fetch("/api/photos", { method: "POST", body: photoForm });
         setPhotoPreview(null);
       }
-    } catch {
-      // silently fail — user sees actual error only on console
+    } catch (e) {
+      showToast(e instanceof Error ? e.message : "Gagal terhubung ke server", "error");
     } finally {
       setLoading(false);
     }
