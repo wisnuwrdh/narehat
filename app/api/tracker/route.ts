@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { ensureUserProfile } from "@/lib/supabase/ensure-user";
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  await ensureUserProfile(supabase, user);
 
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
@@ -32,6 +35,8 @@ export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  await ensureUserProfile(supabase, user);
 
   const body = await request.json();
   const today = new Date().toISOString().split("T")[0];
@@ -66,6 +71,8 @@ export async function DELETE(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  await ensureUserProfile(supabase, user);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
