@@ -66,7 +66,7 @@ export async function createPayment(
   userId: string,
   plan: PlanType,
   baseUrl?: string
-): Promise<{ payment_url: string }> {
+): Promise<{ payment_url: string; order_id: string }> {
   if (!API_KEY) {
     throw new Error("SUMOPOD_PAYMENT_API_KEY not set");
   }
@@ -101,7 +101,7 @@ export async function createPayment(
   }
 
   const data = (await response.json()) as SumoPodPayment;
-  return { payment_url: data.payment_link_url };
+  return { payment_url: data.payment_link_url, order_id: orderId };
 }
 
 export function isValidPlan(plan: string): plan is PlanType {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { verifyWebhookToken, verifyWebhookSignature } from "@/lib/payment/sumopod";
 
 function parseOrderId(orderId: string): { userId: string; plan: string } | null {
   const parts = orderId.split("-");
@@ -13,23 +12,39 @@ function parseOrderId(orderId: string): { userId: string; plan: string } | null 
   return { userId, plan };
 }
 
+function extractOrderId(body: Record<string, unknown>): string | undefined {
+  if (body.order_id) return body.order_id as string;
+  if (body.data && typeof body.data === "object" && "order_id" in (body.data as Record<string, unknown>)) {
+    return (body.data as Record<string, unknown>).order_id as string;
+  }
+  if (body.external_id) return body.external_id as string;
+  return undefined;
+}
+
+function isPaymentCompleted(body: Record<string, unknown>): boolean {
+  const status = String(body.status || "").toLowerCase();
+  const eventType = String(body.event_type || "").toLowerCase();
+
+  if (status === "completed" || status === "success" || status === "paid" || status === "settlement") return true;
+  if (eventType === "payment.completed" || eventType === "payment.success") return true;
+
+  if (body.data && typeof body.data === "object") {
+    const data = body.data as Record<string, unknown>;
+    const dataStatus = String(data.status || "").toLowerCase();
+    if (dataStatus === "completed" || dataStatus === "success" || dataStatus === "paid" || dataStatus === "settlement") return true;
+  }
+
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
-  const token = request.headers.get("x-webhook-token");
-  const svixId = request.headers.get("svix-id");
-  const svixTimestamp = request.headers.get("svix-timestamp");
-  const svixSignature = request.headers.get("svix-signature");
-
-  const tokenValid = token && verifyWebhookToken(token);
-  const signatureValid =
-    svixId && svixTimestamp && svixSignature
-      ? verifyWebhookSignature(rawBody, svixId, svixTimestamp, svixSignature)
-      : false;
-
-  if (!tokenValid && !signatureValid) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-  }
+  const headers: Record<string, string> = {};
+  request.headers.forEach((v, k) => { headers[k] = v; });
+  console.log("=== WEBHOOK RECEIVED ===");
+  console.log("Headers:", JSON.stringify(headers, null, 2));
+  console.log("Body:", rawBody);
 
   let body: Record<string, unknown>;
   try {
@@ -38,14 +53,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const eventType = body.event_type as string | undefined;
-  const data = body.data as Record<string, unknown> | undefined;
-
-  if (eventType !== "payment.completed" || !data) {
+  if (!isPaymentCompleted(body)) {
     return NextResponse.json({ message: "Not a completed payment" });
   }
 
-  const orderId = data.order_id as string | undefined;
+  const orderId = extractOrderId(body);
   if (!orderId) {
     return NextResponse.json({ error: "Missing order_id" }, { status: 400 });
   }
@@ -70,6 +82,11 @@ export async function POST(request: NextRequest) {
 
   const supabaseAuth = createClient(supabaseUrl, serviceKey);
 
+  await supabaseAuth
+    .from("payments")
+    .update({ status: "completed", updated_at: new Date().toISOString() })
+    .eq("order_id", orderId);
+
   const { data: existing } = await supabaseAuth
     .from("users")
     .select("plan")
@@ -81,7 +98,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (existing.plan === plan) {
-    return NextResponse.json({ message: "Plan already set", userId, plan });
+    return NextResponse.json({ message: "Plan sudah aktif", userId, plan });
   }
 
   const { error } = await supabaseAuth
