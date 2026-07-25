@@ -67,7 +67,7 @@ export async function createPayment(
   plan: PlanType
 ): Promise<{ payment_url: string }> {
   if (!API_KEY) {
-    throw new Error("SUMODOP_PAYMENT_API_KEY not set");
+    throw new Error("SUMOPOD_PAYMENT_API_KEY not set");
   }
 
   const amount = amounts[plan];

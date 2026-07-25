@@ -33,8 +33,8 @@ Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` | (mungkin sudah ada) |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` (dari Supabase Dashboard → Settings → API → service_role) | Payment webhook — update plan user tanpa RLS |
 | `SUMOPOD_API_KEY` | `sk-...` (dari SumoPod Dashboard) | AI Consult — panggil SumoPod LLM |
-| `SUMODOP_PAYMENT_API_KEY` | `xxx` (dari SumoPod Payment Dashboard) | Buat payment QRIS via SumoPod |
-| `SUMODOP_PAYMENT_WEBHOOK_TOKEN` | `whtok_...` (dari SumoPod Payment Settings) | Verifikasi webhook dari SumoPod |
+| `SUMOPOD_PAYMENT_API_KEY` | `xxx` (dari SumoPod Payment Dashboard) | Buat payment QRIS via SumoPod |
+| `SUMOPOD_PAYMENT_WEBHOOK_TOKEN` | `whtok_...` (dari SumoPod Payment Settings) | Verifikasi webhook dari SumoPod |
 | `NEXT_PUBLIC_APP_URL` | `https://narehat.com` | Redirect URL setelah pembayaran sukses/gagal |
 | `NEXT_PUBLIC_SITE_URL` | `https://narehat.com` | URL publik situs (untuk metadata SEO) |
 | `R2_ACCESS_KEY_ID` | (dari Cloudflare R2 token) | Kredensial akses R2 |
@@ -51,8 +51,8 @@ Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add
 
 1. Buka **SumoPod Payment Dashboard → Settings → Webhooks**
 2. Tambahkan webhook URL: `https://narehat.com/api/payment`
-3. Copy webhook token yang dihasilkan → set ke `SUMODOP_PAYMENT_WEBHOOK_TOKEN` di Cloudflare Pages env
-4. *(Opsional)* Copy signing secret → set ke `SUMODOP_PAYMENT_WEBHOOK_SECRET`
+3. Copy webhook token yang dihasilkan → set ke `SUMOPOD_PAYMENT_WEBHOOK_TOKEN` di Cloudflare Pages env
+4. *(Opsional)* Copy signing secret → set ke `SUMOPOD_PAYMENT_WEBHOOK_SECRET`
 
 ---
 
@@ -141,7 +141,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | Register gagal "{}" / 500 | Jalankan migration 0002 dulu (INSERT policy + SECURITY DEFINER) |
 | AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set di Cloudflare / invalid key |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
-| Payment gagal | `SUMODOP_PAYMENT_API_KEY` belum di-set / invalid |
+| Payment gagal | `SUMOPOD_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
 | AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step E) / embeddings tidak match |

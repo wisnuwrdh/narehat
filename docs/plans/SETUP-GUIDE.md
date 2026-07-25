@@ -33,8 +33,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 SUMOPOD_API_KEY=sk-...
-SUMODOP_PAYMENT_API_KEY=xxx
-SUMODOP_PAYMENT_WEBHOOK_TOKEN=whtok_...
+SUMOPOD_PAYMENT_API_KEY=xxx
+SUMOPOD_PAYMENT_WEBHOOK_TOKEN=whtok_...
 NEXT_PUBLIC_APP_URL=https://narehat.com
 OPENAI_API_KEY=sk-...
 ```
@@ -72,15 +72,15 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ### 4.1 API Key
 
-**SumoPod Payment Dashboard → API Keys:** copy API key → set ke `SUMODOP_PAYMENT_API_KEY`
+**SumoPod Payment Dashboard → API Keys:** copy API key → set ke `SUMOPOD_PAYMENT_API_KEY`
 
 ### 4.2 Webhook Registration
 
 **SumoPod Payment Dashboard → Settings → Webhooks:**
 
 1. URL: `https://narehat.com/api/payment`
-2. Copy webhook token → set ke `SUMODOP_PAYMENT_WEBHOOK_TOKEN`
-3. *(Opsional)* Copy signing secret → set ke `SUMODOP_PAYMENT_WEBHOOK_SECRET`
+2. Copy webhook token → set ke `SUMOPOD_PAYMENT_WEBHOOK_TOKEN`
+3. *(Opsional)* Copy signing secret → set ke `SUMOPOD_PAYMENT_WEBHOOK_SECRET`
 
 ---
 
@@ -180,7 +180,7 @@ Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs
 | AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set / invalid |
 | AI Detect error "Gagal menganalisis foto" | `OPENAI_API_KEY` belum di-set / saldo habis |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
-| Payment gagal | `SUMODOP_PAYMENT_API_KEY` belum di-set / invalid |
+| Payment gagal | `SUMOPOD_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
 | AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step 7) / embeddings tidak match |
