@@ -8,7 +8,17 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await request.json();
-  const plan = (body.plan as string) || "premium_monthly";
+  const plan = (body.plan as string) || "";
+
+  if (!plan) {
+    const { data: p } = await supabase
+      .from("payments")
+      .select("plan")
+      .eq("user_id", user.id)
+      .eq("status", "pending")
+      .maybeSingle();
+    return NextResponse.json({ pending_plan: p?.plan || null });
+  }
 
   if (!isValidPlan(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
@@ -32,10 +42,13 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (pendingPayment) {
-    if (pendingPayment.payment_url) {
+    if (pendingPayment.plan === plan && pendingPayment.payment_url) {
       return NextResponse.json({ payment_url: pendingPayment.payment_url });
     }
-    await supabase.from("payments").delete().eq("id", pendingPayment.id);
+    await supabase
+      .from("payments")
+      .update({ status: "cancelled", updated_at: new Date().toISOString() })
+      .eq("id", pendingPayment.id);
   }
 
   try {

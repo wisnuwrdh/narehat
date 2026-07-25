@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { useToast } from "@/contexts/ToastContext";
@@ -68,6 +68,27 @@ export default function SubscriptionPage() {
   const [savingPlan, setSavingPlan] = useState<string | null>(null);
 
   const currentPlanId = user.plan === "free" ? "free" : user.plan.includes("pro") ? "pro" : "premium";
+  const [pendingPlan, setPendingPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/payment/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.pending_plan) setPendingPlan(d.pending_plan);
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCancel = async () => {
+    try {
+      const res = await fetch("/api/payment/cancel", { method: "POST" });
+      const data = await res.json();
+      showToast(data.message || data.error, res.ok ? "success" : "error");
+      if (res.ok) setPendingPlan(null);
+    } catch {
+      showToast("Gagal terhubung ke server.", "error");
+    }
+  };
 
   const handleUpgrade = async (plan: string) => {
     setSavingPlan(plan);
@@ -175,6 +196,18 @@ export default function SubscriptionPage() {
                 ) : isCurrent ? (
                   <div className="w-full py-3 text-center text-xs font-bold text-primary bg-primary-light rounded-2xl">
                     Plan Kamu Saat Ini
+                  </div>
+                ) : pendingPlan === apiPlan ? (
+                  <div className="space-y-2">
+                    <div className="w-full py-3 text-center text-xs font-bold text-amber-600 bg-amber-50 rounded-2xl">
+                      Menunggu Pembayaran
+                    </div>
+                    <button
+                      onClick={handleCancel}
+                      className="w-full py-2 text-xs font-semibold text-red-500 border border-red-200 rounded-2xl hover:bg-red-50 transition-colors"
+                    >
+                      Batalkan
+                    </button>
                   </div>
                 ) : (
                   <button

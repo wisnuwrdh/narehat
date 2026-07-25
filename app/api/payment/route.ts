@@ -87,27 +87,24 @@ export async function POST(request: NextRequest) {
     .update({ status: "completed", updated_at: new Date().toISOString() })
     .eq("order_id", orderId);
 
-  const { data: existing } = await supabaseAuth
+  const { data: authUser, error: authError } = await supabaseAuth.auth.admin.getUserById(userId);
+  if (authError || !authUser?.user) {
+    return NextResponse.json({ error: "Auth user not found" }, { status: 404 });
+  }
+
+  const email = authUser.user.email || "";
+  const now = new Date().toISOString();
+
+  const { data: existingUser } = await supabaseAuth
     .from("users")
-    .select("plan")
+    .select("id")
     .eq("id", userId)
     .maybeSingle();
 
-  if (!existing) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  if (existing.plan === plan) {
-    return NextResponse.json({ message: "Plan sudah aktif", userId, plan });
-  }
-
-  const { error } = await supabaseAuth
-    .from("users")
-    .update({ plan })
-    .eq("id", userId);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  if (existingUser) {
+    await supabaseAuth.from("users").update({ plan, updated_at: now }).eq("id", userId);
+  } else {
+    await supabaseAuth.from("users").insert({ id: userId, email, plan, name: email.split("@")[0], updated_at: now });
   }
 
   return NextResponse.json({ message: "Plan updated", userId, plan });
