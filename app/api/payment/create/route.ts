@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { payment_url } = await createPayment(user.id, plan);
+    const { payment_url } = await createPayment(user.id, plan, request.nextUrl.origin);
     return NextResponse.json({ payment_url });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error";

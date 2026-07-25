@@ -64,7 +64,8 @@ export function verifyWebhookSignature(
 
 export async function createPayment(
   userId: string,
-  plan: PlanType
+  plan: PlanType,
+  baseUrl?: string
 ): Promise<{ payment_url: string }> {
   if (!API_KEY) {
     throw new Error("SUMOPOD_PAYMENT_API_KEY not set");
@@ -75,6 +76,7 @@ export async function createPayment(
     throw new Error(`Invalid plan: ${plan}`);
   }
 
+  const origin = baseUrl || process.env.NEXT_PUBLIC_APP_URL || "";
   const orderId = `${userId}-${plan}-${Date.now()}`;
 
   const response = await fetch(API_URL, {
@@ -87,8 +89,8 @@ export async function createPayment(
       order_id: orderId,
       amount,
       currency: "IDR",
-      success_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-      cancel_return_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription`,
+      success_return_url: `${origin}/dashboard`,
+      cancel_return_url: `${origin}/subscription`,
       payment_method_type_code: "QRIS",
     }),
   });
