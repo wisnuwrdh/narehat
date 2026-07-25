@@ -10,14 +10,6 @@ CREATE TABLE IF NOT EXISTS public.payments (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-DO $$ BEGIN
-  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'users' AND table_schema = 'public') THEN
-    IF NOT EXISTS (SELECT FROM information_schema.table_constraints WHERE constraint_name = 'payments_user_id_fkey' AND table_schema = 'public') THEN
-      ALTER TABLE public.payments ADD CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
-    END IF;
-  END IF;
-END $$;
-
 CREATE INDEX IF NOT EXISTS idx_payments_user_status ON public.payments(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_payments_order_id ON public.payments(order_id);
 
