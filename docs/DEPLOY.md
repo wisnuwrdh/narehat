@@ -1,4 +1,4 @@
-# Deployment — Cloudflare Pages + OpenNext
+ # Deployment — Cloudflare Pages + OpenNext
 
 ## Arsitektur
 
