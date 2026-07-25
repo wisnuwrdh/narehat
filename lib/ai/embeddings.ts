@@ -1,25 +1,35 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import type { FeatureExtractionPipeline } from "@xenova/transformers";
 
-let embedderPromise: Promise<FeatureExtractionPipeline> | null = null;
-
-async function getEmbedder() {
-  if (!embedderPromise) {
-    embedderPromise = import("@xenova/transformers").then(({ pipeline }) =>
-      pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
-    );
-  }
-  return embedderPromise;
-}
+const SUMOPOD_BASE_URL = "https://ai.sumopod.com/v1";
 
 export async function generateEmbedding(text: string): Promise<number[]> {
   if (!text.trim()) return new Array(384).fill(0);
 
-  const pipe = await getEmbedder();
-  const result = await pipe(text, { pooling: "mean", normalize: true });
-  return Array.from(result.data);
+  const apiKey = process.env.SUMOPOD_API_KEY;
+  if (!apiKey) throw new Error("SUMOPOD_API_KEY not set");
+
+  const res = await fetch(`${SUMOPOD_BASE_URL}/embeddings`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "text-embedding-3-small",
+      input: text,
+      dimensions: 384,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Embedding API error: ${res.status} ${err}`);
+  }
+
+  const data = await res.json();
+  return data.data?.[0]?.embedding || new Array(384).fill(0);
 }
 
 interface MatchResult {

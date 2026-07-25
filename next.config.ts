@@ -5,7 +5,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  serverExternalPackages: ["sharp", "onnxruntime-node", "@xenova/transformers"],
+  serverExternalPackages: ["sharp", "onnxruntime-node"],
   outputFileTracingExcludes: {
     "*": ["**/onnxruntime-node/**", "**/sharp/**"],
   },

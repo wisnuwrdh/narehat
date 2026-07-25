@@ -4,7 +4,7 @@
  * Usage: npx tsx scripts/ingest-journals.ts
  *
  * Reads .txt files from data/journals/, chunks text,
- * generates embeddings via @xenova/transformers,
+ * generates embeddings via SumoPod API (text-embedding-3-small),
  * inserts into Supabase pgvector documents table.
  */
 
@@ -144,13 +144,32 @@ async function main() {
 
   console.log(`📚 Found ${files.length} files\n`);
 
-  console.log("🧠 Loading embedding model (all-MiniLM-L6-v2)...");
-  const { pipeline } = await import("@xenova/transformers");
-  const embedder = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  );
-  console.log("✅ Embedding model ready\n");
+  const apiKey = env.SUMOPOD_API_KEY;
+  if (!apiKey) {
+    console.error("❌ SUMOPOD_API_KEY not found in .env.local");
+    process.exit(1);
+  }
+
+  async function generateEmbedding(text: string): Promise<number[]> {
+    const res = await fetch("https://ai.sumopod.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "text-embedding-3-small",
+        input: text,
+        dimensions: 384,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Embedding API error: ${res.status} ${err}`);
+    }
+    const data = await res.json();
+    return data.data?.[0]?.embedding || new Array(384).fill(0);
+  }
 
   let totalChunks = 0;
   let errors = 0;
@@ -187,11 +206,7 @@ async function main() {
 
       let embedding: number[];
       try {
-        const result = await embedder(chunk, {
-          pooling: "mean",
-          normalize: true,
-        });
-        embedding = Array.from(result.data);
+        embedding = await generateEmbedding(chunk);
       } catch {
         errors++;
         continue;
