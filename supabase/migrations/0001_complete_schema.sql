@@ -19,6 +19,8 @@ CREATE TABLE IF NOT EXISTS public.users (
   goal TEXT NOT NULL DEFAULT 'clear_acne',
   plan TEXT NOT NULL DEFAULT 'free',
   theme TEXT DEFAULT 'default',
+  onboarding_completed BOOLEAN DEFAULT false,
+  role TEXT DEFAULT 'user',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -88,6 +90,9 @@ CREATE TABLE IF NOT EXISTS public.recommendations (
   affiliate_link TEXT NOT NULL DEFAULT '',
   image_url TEXT NOT NULL DEFAULT '',
   category TEXT NOT NULL DEFAULT '',
+  ingredients TEXT DEFAULT '',
+  is_active BOOLEAN DEFAULT true,
+  why TEXT DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -160,7 +165,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   INSERT INTO public.users (id, email, name)
-  VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'name', 'User'))
+  VALUES (NEW.id, COALESCE(NEW.email, ''), COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'User'))
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
 END;

@@ -50,7 +50,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       if (data.user) {
         const u = data.user;
         setUser({
-          name: u.name || u.email?.split("@")[0] || "User",
+          name: u.name || "User",
           email: u.email || "",
           skin_type: u.skin_type || "combination",
           acne_severity: u.acne_severity || "mild",

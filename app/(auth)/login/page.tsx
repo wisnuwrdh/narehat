@@ -94,16 +94,18 @@ export default function LoginPage() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mywisnuwardhana@gmail.com";
+        if (user.email === adminEmail) {
+          await supabase.from("users").update({ role: "admin" }).eq("id", user.id).catch(() => {});
+        }
+
         const { data: profile } = await supabase
           .from("users")
-          .select("skin_type,acne_severity,goal")
+          .select("onboarding_completed")
           .eq("id", user.id)
           .maybeSingle();
 
-        const needsOnboarding = !profile
-          || (profile.skin_type === "combination"
-              && profile.acne_severity === "mild"
-              && profile.goal === "clear_acne");
+        const needsOnboarding = !profile || !profile.onboarding_completed;
 
         if (needsOnboarding) {
           router.replace("/onboarding");

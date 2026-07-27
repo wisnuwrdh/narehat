@@ -6,6 +6,8 @@ export interface User {
   acne_severity: AcneSeverity;
   goal: Goal;
   plan: PlanType;
+  onboarding_completed: boolean;
+  role: "user" | "admin";
   created_at: string;
 }
 
@@ -71,6 +73,9 @@ export interface Recommendation {
   affiliate_link: string;
   image_url: string;
   category: string;
+  ingredients: string;
+  is_active: boolean;
+  why: string;
 }
 
 export interface OnboardingData {

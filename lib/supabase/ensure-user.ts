@@ -18,7 +18,7 @@ export async function ensureUserProfile(
     const { error: insErr } = await supabase.from("users").insert({
       id: user.id,
       email: user.email || "",
-      name: user.email?.split("@")[0] || "User",
+      name: "User",
     });
 
     if (insErr) {

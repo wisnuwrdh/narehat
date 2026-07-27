@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { compressImageOnClient } from "@/lib/image/client-compress";
+import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";
 
 interface SkinPhoto {
   id: string;
@@ -318,13 +319,14 @@ export default function ScanPage() {
               <p className="text-[10px] text-muted-light mt-1">⚠ Foto area berjerawat agar analisis akurat</p>
             </div>
           </div>
-          <input
-            type="text"
-            value={purgingProduct}
-            onChange={(e) => setPurgingProduct(e.target.value)}
-            placeholder="Nama produk baru yang dipakai..."
-            className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all mb-3"
-          />
+          <div className="mb-3">
+            <ProductAutocomplete
+              label=""
+              placeholder="Nama produk baru yang dipakai..."
+              value={purgingProduct}
+              onChange={(val) => setPurgingProduct(val)}
+            />
+          </div>
           <input ref={purgingRef} type="file" accept="image/*" onChange={handlePurgingPhoto} className="hidden" />
           {purgingPhoto ? (
             <div className="relative rounded-xl overflow-hidden mb-3">

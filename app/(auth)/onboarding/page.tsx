@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";
 
 const steps = [
   {
@@ -83,6 +84,7 @@ export default function OnboardingPage() {
     habits: [] as string[],
     goal: "clear_acne",
   });
+  const [selectedProducts, setSelectedProducts] = useState<Record<string, { name: string; brand: string; category: string; ingredients: string }>>({});
   const totalSteps = 5;
   const step = steps[currentStep - 1];
 
@@ -99,6 +101,51 @@ export default function OnboardingPage() {
     }));
   };
 
+  const handleProductChange = useCallback(
+    (field: string, _value: string, product?: { name: string; brand: string; category: string; ingredients: string }) => {
+      if (product) {
+        setSelectedProducts((prev) => ({ ...prev, [field]: product }));
+      } else {
+        setSelectedProducts((prev) => {
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        });
+      }
+    },
+    []
+  );
+
+  const saveSelectedProducts = async () => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const entries = Object.values(selectedProducts);
+    if (entries.length === 0) return;
+
+    const { data: existing } = await supabase
+      .from("skincare_products")
+      .select("name")
+      .eq("user_id", user.id);
+
+    const existingNames = new Set(existing?.map((p) => p.name.toLowerCase()) || []);
+
+    const newProducts = entries
+      .filter((p) => !existingNames.has(p.name.toLowerCase()))
+      .map((p) => ({
+        user_id: user.id,
+        name: p.name,
+        brand: p.brand,
+        category: p.category,
+        notes: p.ingredients,
+      }));
+
+    if (newProducts.length > 0) {
+      await supabase.from("skincare_products").insert(newProducts);
+    }
+  };
+
   const handleFinish = async () => {
     setLoading(true);
     try {
@@ -109,8 +156,10 @@ export default function OnboardingPage() {
           skin_type: answers.skin_type,
           acne_severity: answers.acne_severity,
           goal: answers.goal,
+          onboarding_completed: true,
         }),
       });
+      await saveSelectedProducts();
     } catch {}
     try {
       await createClient().auth.updateUser({ data: { onboarding_completed: true } });
@@ -154,7 +203,17 @@ export default function OnboardingPage() {
             <span className="material-symbols-outlined text-xl">arrow_back</span>
           </button>
           <span className="text-xs font-semibold text-muted">Langkah {currentStep}/{totalSteps}</span>
-          <button onClick={async () => { try { await createClient().auth.updateUser({ data: { onboarding_completed: true } }); } catch {} router.replace("/dashboard"); }} className="btn-press p-2 -mr-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold">
+          <button onClick={async () => {
+            try {
+              await fetch("/api/user", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ onboarding_completed: true }),
+              });
+              await createClient().auth.updateUser({ data: { onboarding_completed: true } });
+            } catch {}
+            router.replace("/dashboard");
+          }} className="btn-press p-2 -mr-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold">
             Lewati
           </button>
         </div>
@@ -227,13 +286,14 @@ export default function OnboardingPage() {
           <div className="space-y-3">
             {step.fields.map((f) => (
               <div key={f.name} className="p-4 bg-white border border-border-subtle rounded-2xl">
-                <label className="text-sm font-semibold text-slate-700 mb-2 block">{f.label}</label>
-                <input type="text" placeholder={f.placeholder} className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                <ProductAutocomplete
+                  label={f.label}
+                  placeholder={f.placeholder}
+                  value={selectedProducts[f.name]?.name || ""}
+                  onChange={(val, product) => handleProductChange(f.name, val, product)}
+                />
               </div>
             ))}
-            <button className="btn-press w-full py-3 mt-3 border-2 border-dashed border-border-light rounded-2xl text-sm font-semibold text-muted hover:border-primary/30 hover:text-primary transition-colors flex items-center justify-center gap-2">
-              <span className="material-symbols-outlined">add</span> Tambah produk lain
-            </button>
           </div>
         )}
 
