@@ -49,7 +49,6 @@ export default function TrackerPage() {
   const [notes, setNotes] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [loadedDates, setLoadedDates] = useState<Set<string>>(new Set());
   const [showDetail, setShowDetail] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const purgingRef = useRef<HTMLInputElement>(null);
@@ -83,10 +82,11 @@ export default function TrackerPage() {
   const selectedDateStr = days[activeDate].dateStr;
 
   useEffect(() => {
-    if (loadedDates.has(selectedDateStr)) return;
-    fetch(`/api/tracker?date=${selectedDateStr}`)
+    const date = selectedDateStr;
+    fetch(`/api/tracker?date=${date}`)
       .then((r) => r.json())
       .then((data) => {
+        if (date !== selectedDateStr) return;
         const log = data.logs?.[0];
         if (log) {
           setSleep(log.sleep_hours ?? 0);
@@ -101,8 +101,7 @@ export default function TrackerPage() {
         }
         setPhotoPreview(null);
       })
-      .catch(() => {})
-      .finally(() => setLoadedDates((s) => new Set(s).add(selectedDateStr)));
+      .catch(() => {});
   }, [selectedDateStr]);
 
   const adjSleep = (delta: number) => setSleep((s) => Math.min(12, Math.max(0, Math.round((s + delta) * 10) / 10)));
