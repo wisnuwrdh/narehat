@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. AI analysis
-  const result = await checkPurging(imageBase64, productName.trim());
+  const result = await checkPurging(imageBase64, productName.trim()).catch(() => null);
 
   const today = new Date().toISOString().split("T")[0];
 

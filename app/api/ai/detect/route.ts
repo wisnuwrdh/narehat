@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 2. AI analysis
-  const result = await detectAcne(imageBase64);
+  const result = await detectAcne(imageBase64).catch(() => null);
 
   const today = new Date().toISOString().split("T")[0];
 
