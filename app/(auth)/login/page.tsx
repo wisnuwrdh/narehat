@@ -96,7 +96,7 @@ export default function LoginPage() {
       if (user) {
         const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mywisnuwardhana@gmail.com";
         if (user.email === adminEmail) {
-          await supabase.from("users").update({ role: "admin" }).eq("id", user.id).catch(() => {});
+          try { await supabase.from("users").update({ role: "admin" }).eq("id", user.id); } catch {}
         }
 
         const { data: profile } = await supabase
