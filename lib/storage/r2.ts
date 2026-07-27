@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
