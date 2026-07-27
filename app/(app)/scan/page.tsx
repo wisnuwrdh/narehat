@@ -134,7 +134,7 @@ export default function ScanPage() {
       }
       setPurgingResult(data);
     } catch {
-      setPurgingError("Gagal terhubung ke server.");
+      setPurgingError("Gagal terhubung ke server. Periksa koneksi kamu.");
     } finally {
       setPurgingLoading(false);
     }
