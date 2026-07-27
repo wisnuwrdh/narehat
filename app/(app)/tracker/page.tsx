@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
-import { compressImageOnClient } from "@/lib/image/client-compress";
 
 interface Day {
   day: string;
@@ -49,21 +48,6 @@ export default function TrackerPage() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const purgingRef = useRef<HTMLInputElement>(null);
-
-  const [showPurging, setShowPurging] = useState(false);
-  const [purgingProduct, setPurgingProduct] = useState("");
-  const [purgingPhoto, setPurgingPhoto] = useState<string | null>(null);
-  const [purgingResult, setPurgingResult] = useState<{
-    type: string;
-    typeDisplay: string;
-    confidence: number;
-    description: string;
-    recommendations: string[];
-    disclaimer: string;
-  } | null>(null);
-  const [purgingLoading, setPurgingLoading] = useState(false);
-  const [purgingError, setPurgingError] = useState("");
 
   const selectedDateStr = days[activeDate].dateStr;
 
@@ -135,39 +119,6 @@ export default function TrackerPage() {
     setSkincareMorning(false);
     setSkincareEvening(false);
     setNotes("");
-  };
-
-  const handlePurgingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setPurgingPhoto(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handlePurgingCheck = async () => {
-    if (!purgingRef.current?.files?.[0] || !purgingProduct.trim() || purgingLoading) return;
-    setPurgingLoading(true);
-    setPurgingError("");
-    setPurgingResult(null);
-    try {
-      const compressed = await compressImageOnClient(purgingRef.current.files[0]);
-      const fd = new FormData();
-      fd.append("file", compressed);
-      fd.append("product_name", purgingProduct.trim());
-      const res = await fetch("/api/ai/purging", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setPurgingError(data.error || "Gagal cek purging. Coba lagi.");
-        return;
-      }
-      setPurgingResult(data);
-    } catch {
-      setPurgingError("Gagal terhubung ke server.");
-    } finally {
-      setPurgingLoading(false);
-    }
   };
 
   return (
@@ -388,105 +339,6 @@ export default function TrackerPage() {
 
       </>
       )}
-
-      <section className="px-6 mb-6">
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
-              <span className="material-symbols-outlined text-amber-500">science</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-slate-800">Purging Checker</h3>
-              <p className="text-xs text-muted">Ini purging atau breakout?</p>
-            </div>
-            <button
-              onClick={() => { setShowPurging(!showPurging); setPurgingResult(null); setPurgingError(""); }}
-              className="btn-press px-3 py-1.5 bg-white border border-border-light text-xs font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              {showPurging ? "Tutup" : "Cek"}
-            </button>
-          </div>
-          {showPurging && (
-          <div className="mt-4 pt-4 border-t border-border-subtle space-y-3">
-            <input
-              type="text"
-              value={purgingProduct}
-              onChange={(e) => setPurgingProduct(e.target.value)}
-              placeholder="Nama produk baru yang dipakai..."
-              className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-            <input ref={purgingRef} type="file" accept="image/*" onChange={handlePurgingPhoto} className="hidden" />
-            {purgingPhoto ? (
-              <div className="relative rounded-xl overflow-hidden">
-                <img src={purgingPhoto} alt="Preview" className="w-full h-40 object-cover rounded-xl" />
-                <button onClick={() => setPurgingPhoto(null)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg text-xs">Hapus</button>
-              </div>
-            ) : (
-              <button onClick={() => purgingRef.current?.click()} className="btn-press w-full py-6 border-2 border-dashed border-border-light rounded-xl flex flex-col items-center gap-1 hover:border-primary/30 hover:bg-primary-light/10 transition-all">
-                <span className="material-symbols-outlined text-2xl text-muted-light">add_a_photo</span>
-                <span className="text-xs text-muted">Upload foto kondisi kulit saat ini</span>
-              </button>
-            )}
-            {!purgingResult && !purgingLoading && (
-              <button
-                onClick={handlePurgingCheck}
-                disabled={!purgingPhoto || !purgingProduct.trim()}
-                className={`btn-press w-full py-3 rounded-xl text-sm font-bold transition-colors ${
-                  purgingPhoto && purgingProduct.trim()
-                    ? "bg-primary text-white hover:bg-primary/90"
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }`}
-              >
-                Cek Purging vs Breakout
-              </button>
-            )}
-            {purgingLoading && (
-              <div className="flex items-center justify-center gap-3 py-3">
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
-                </div>
-                <span className="text-sm text-muted">Menganalisis...</span>
-              </div>
-            )}
-            {purgingError && (
-              <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">error</span>
-                {purgingError}
-              </div>
-            )}
-            {purgingResult && (
-              <div className="space-y-3">
-                <div className={`p-4 rounded-2xl border-2 ${purgingResult.type === "purging" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`material-symbols-outlined ${purgingResult.type === "purging" ? "text-emerald-600" : "text-red-600"}`}>
-                      {purgingResult.type === "purging" ? "check_circle" : "warning"}
-                    </span>
-                    <span className={`text-sm font-bold ${purgingResult.type === "purging" ? "text-emerald-700" : "text-red-700"}`}>
-                      {purgingResult.typeDisplay}
-                    </span>
-                    <span className="ml-auto text-[10px] text-muted">{Math.round(purgingResult.confidence * 100)}% confidence</span>
-                  </div>
-                  <p className="text-sm text-slate-700">{purgingResult.description}</p>
-                </div>
-                {purgingResult.recommendations.length > 0 && (
-                  <div className="p-3 bg-slate-50 rounded-xl">
-                    <span className="text-xs font-bold text-slate-700 block mb-2">Rekomendasi:</span>
-                    {purgingResult.recommendations.map((r, i) => (
-                      <p key={i} className="text-xs text-slate-600 flex items-start gap-1 mb-1">
-                        <span className="text-primary font-bold shrink-0">{i + 1}.</span> {r}
-                      </p>
-                    ))}
-                  </div>
-                )}
-                <p className="text-[10px] text-muted italic">{purgingResult.disclaimer}</p>
-              </div>
-            )}
-          </div>
-          )}
-        </div>
-      </section>
 
       {showDetail && (
       <>
