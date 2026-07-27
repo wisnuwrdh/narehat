@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
+import { compressImageOnClient } from "@/lib/image/client-compress";
 
 interface Day {
   day: string;
@@ -144,11 +145,17 @@ export default function TrackerPage() {
       }
 
       if (photoPreview && fileRef.current?.files?.[0]) {
+        const compressed = await compressImageOnClient(fileRef.current.files[0]);
         const photoForm = new FormData();
-        photoForm.append("file", fileRef.current.files[0]);
+        photoForm.append("file", compressed);
         photoForm.append("date", days[activeDate].dateStr);
-        await fetch("/api/photos", { method: "POST", body: photoForm });
-        setPhotoPreview(null);
+        const photoRes = await fetch("/api/photos", { method: "POST", body: photoForm });
+        if (!photoRes.ok) {
+          const errData = await photoRes.json().catch(() => ({}));
+          showToast(errData.error || "Gagal upload foto", "error");
+        } else {
+          setPhotoPreview(null);
+        }
       }
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Gagal terhubung ke server", "error");
@@ -169,21 +176,15 @@ export default function TrackerPage() {
   };
 
   const handleAIDetect = async () => {
-    if (!photoPreview || aiDetecting) return;
+    if (!fileRef.current?.files?.[0] || aiDetecting) return;
     setAiDetecting(true);
     setAiError("");
     setAiResult(null);
     try {
-      const base64 = photoPreview.includes("base64,")
-        ? photoPreview
-        : photoPreview.startsWith("data:")
-          ? photoPreview
-          : `data:image/jpeg;base64,${photoPreview}`;
-      const res = await fetch("/api/ai/detect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64 }),
-      });
+      const compressed = await compressImageOnClient(fileRef.current.files[0]);
+      const fd = new FormData();
+      fd.append("file", compressed);
+      const res = await fetch("/api/ai/detect", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
         setAiError(data.error || "Gagal analisis. Coba lagi.");
@@ -207,19 +208,16 @@ export default function TrackerPage() {
   };
 
   const handlePurgingCheck = async () => {
-    if (!purgingPhoto || !purgingProduct.trim() || purgingLoading) return;
+    if (!purgingRef.current?.files?.[0] || !purgingProduct.trim() || purgingLoading) return;
     setPurgingLoading(true);
     setPurgingError("");
     setPurgingResult(null);
     try {
-      const res = await fetch("/api/ai/purging", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: purgingPhoto,
-          product_name: purgingProduct.trim(),
-        }),
-      });
+      const compressed = await compressImageOnClient(purgingRef.current.files[0]);
+      const fd = new FormData();
+      fd.append("file", compressed);
+      fd.append("product_name", purgingProduct.trim());
+      const res = await fetch("/api/ai/purging", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
         setPurgingError(data.error || "Gagal cek purging. Coba lagi.");

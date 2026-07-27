@@ -42,11 +42,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
 
-  if (!rawBuffer && file) {
-    const ab = await file.arrayBuffer();
-    rawBuffer = new Uint8Array(ab);
-  }
-
   let photoUrl = imageBase64;
   if (rawBuffer) {
     try {

@@ -51,7 +51,7 @@ Valid triggers: hormonal, diet, stress, skincare, maskne, sleep, hygiene, fricti
             },
             {
               type: "image_url",
-              image_url: { url: imageBase64, detail: "high" },
+              image_url: { url: imageBase64, detail: "low" },
             },
           ],
         },

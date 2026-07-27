@@ -46,7 +46,7 @@ FORMAT JSON:
             },
             {
               type: "image_url",
-              image_url: { url: imageBase64, detail: "high" },
+              image_url: { url: imageBase64, detail: "low" },
             },
           ],
         },
