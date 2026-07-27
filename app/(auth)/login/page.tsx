@@ -137,6 +137,17 @@ export default function LoginPage() {
         </div>
       )}
 
+      {step === "email" && (
+        <button
+          type="button"
+          onClick={() => { setError(""); setStep("choose"); }}
+          className="self-start flex items-center gap-1 text-sm text-muted-light hover:text-slate-700 transition-colors mb-4 -ml-1 animate-fade-in-up"
+        >
+          <span className="material-symbols-outlined text-base">arrow_back</span>
+          Kembali
+        </button>
+      )}
+
       {step === "choose" ? (
         <div className="space-y-3 animate-fade-in-up delay-100">
           <button
@@ -159,64 +170,53 @@ export default function LoginPage() {
           </button>
         </div>
       ) : (
-        <>
-          <button
-            type="button"
-            onClick={() => { setError(""); setStep("choose"); }}
-            className="flex items-center gap-1 text-sm text-muted-light hover:text-slate-700 transition-colors mb-4 animate-fade-in-up"
-          >
-            <span className="material-symbols-outlined text-base">arrow_back</span>
-            Kembali
-          </button>
-
-          <form className="space-y-4 animate-fade-in-up delay-100" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+        <form className="space-y-4 animate-fade-in-up delay-100" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email</label>
+            <input
+              type="email"
+              placeholder="nama@email.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+            <div className="relative">
               <input
-                type="email"
-                placeholder="nama@email.com"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-light"
+              >
+                <span className="material-symbols-outlined text-lg">
+                  {showPassword ? "visibility" : "visibility_off"}
+                </span>
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-4 py-3.5 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all pr-12"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-light"
-                >
-                  <span className="material-symbols-outlined text-lg">
-                    {showPassword ? "visibility" : "visibility_off"}
-                  </span>
-                </button>
-              </div>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary" />
-                <span className="text-slate-600">Ingat saya</span>
-              </label>
-              <Link href="/forgot-password" className="text-primary font-semibold">Lupa password?</Link>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Masuk..." : "Masuk"}
-            </button>
-          </form>
-        </>
+          </div>
+          <div className="flex justify-between items-center text-xs">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" className="w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary" />
+              <span className="text-slate-600">Ingat saya</span>
+            </label>
+            <Link href="/forgot-password" className="text-primary font-semibold">Lupa password?</Link>
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Masuk..." : "Masuk"}
+          </button>
+        </form>
       )}
 
       <p className="text-center text-sm text-muted mt-8 animate-fade-in-up delay-200">
