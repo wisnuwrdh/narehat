@@ -15,6 +15,10 @@ interface SkinPhoto {
     location?: string;
     triggers?: string[];
     analyzed_at?: string;
+    type?: string;
+    description?: string;
+    recommendations?: string[];
+    product_name?: string;
   } | null;
   analysis_type: string | null;
 }
@@ -424,19 +428,27 @@ export default function ScanPage() {
             <div className="space-y-2">
               {scansWithAnalysis.slice(0, 5).map((scan) => {
                 const a = scan.ai_analysis;
-                const severityColor = a?.severity === "mild" ? "bg-emerald-50 text-emerald-700" : a?.severity === "moderate" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600";
-                const severityLabel = a?.severity === "mild" ? "Ringan" : a?.severity === "moderate" ? "Sedang" : a?.severity ? "Observasi" : "-";
+                const isPurging = scan.analysis_type === "purging";
+                const label = isPurging
+                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : "Belum dianalisis"
+                  : a?.types?.join(", ") || "Belum dianalisis";
+                const badgeColor = isPurging
+                  ? a?.type === "purging" ? "bg-emerald-50 text-emerald-700" : a?.type === "breakout" ? "bg-red-50 text-red-700" : "bg-slate-50 text-slate-600"
+                  : a?.severity === "mild" ? "bg-emerald-50 text-emerald-700" : a?.severity === "moderate" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600";
+                const badgeLabel = isPurging
+                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : "-"
+                  : a?.severity === "mild" ? "Ringan" : a?.severity === "moderate" ? "Sedang" : a?.severity ? "Observasi" : "-";
                 return (
                   <div key={scan.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200">
                       <img src={scan.url} alt="" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-700 truncate">{a?.types?.join(", ") || "Belum dianalisis"}</p>
-                      <p className="text-[10px] text-muted">{scan.date}</p>
+                      <p className="text-xs font-bold text-slate-700 truncate">{label}</p>
+                      <p className="text-[10px] text-muted">{scan.date}{isPurging && a?.product_name ? ` · ${a.product_name}` : ""}</p>
                     </div>
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${severityColor}`}>
-                      {severityLabel}
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${badgeColor}`}>
+                      {badgeLabel}
                     </span>
                     <button onClick={() => handleDelete(scan.id)} className="btn-press p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                       <span className="material-symbols-outlined text-sm">delete</span>
