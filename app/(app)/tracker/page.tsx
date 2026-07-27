@@ -2,8 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
-import { compressImageOnClient } from "@/lib/image/client-compress";
-import Link from "next/link";
 
 interface Day {
   day: string;
@@ -48,10 +46,8 @@ export default function TrackerPage() {
   const [skincareMorning, setSkincareMorning] = useState(false);
   const [skincareEvening, setSkincareEvening] = useState(false);
   const [notes, setNotes] = useState("");
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const purgingRef = useRef<HTMLInputElement>(null);
 
   const [showPurging, setShowPurging] = useState(false);
@@ -88,7 +84,6 @@ export default function TrackerPage() {
         } else {
           handleReset();
         }
-        setPhotoPreview(null);
       })
       .catch(() => {});
   }, [selectedDateStr]);
@@ -100,15 +95,6 @@ export default function TrackerPage() {
   const waterCups = Math.floor(water / 0.5);
   const sleepPct = Math.round((sleep / 8) * 100);
   const exercisePct = Math.round((exercise / 30) * 100);
-
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setPhotoPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -133,20 +119,6 @@ export default function TrackerPage() {
         const data = await res.json();
         showToast(data.error || "Gagal menyimpan data", "error");
       }
-
-      if (photoPreview && fileRef.current?.files?.[0]) {
-        const compressed = await compressImageOnClient(fileRef.current.files[0]);
-        const photoForm = new FormData();
-        photoForm.append("file", compressed);
-        photoForm.append("date", days[activeDate].dateStr);
-        const photoRes = await fetch("/api/photos", { method: "POST", body: photoForm });
-        if (!photoRes.ok) {
-          const errData = await photoRes.json().catch(() => ({}));
-          showToast(errData.error || "Gagal upload foto", "error");
-        } else {
-          setPhotoPreview(null);
-        }
-      }
     } catch (e) {
       showToast(e instanceof Error ? e.message : "Gagal terhubung ke server", "error");
     } finally {
@@ -162,7 +134,6 @@ export default function TrackerPage() {
     setSkincareMorning(false);
     setSkincareEvening(false);
     setNotes("");
-    setPhotoPreview(null);
   };
 
   const handlePurgingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -415,61 +386,6 @@ export default function TrackerPage() {
       </section>
 
       </>
-      )}
-
-      {/* Photo */}
-      <section className="px-6 mb-6">
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
-              <span className="material-symbols-outlined text-rose-500">photo_camera</span>
-            </div>
-            <div>
-              <h3 className="font-bold text-slate-800">Foto Kulit</h3>
-              <p className="text-xs text-muted">Upload foto untuk tracking progress</p>
-            </div>
-            {photoPreview && (
-              <button onClick={() => setPhotoPreview(null)} className="btn-press ml-auto p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors">
-                <span className="material-symbols-outlined text-sm">delete</span>
-              </button>
-            )}
-          </div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
-          {photoPreview ? (
-            <div className="relative rounded-2xl overflow-hidden">
-              <img src={photoPreview} alt="Preview" className="w-full h-48 object-cover rounded-2xl" />
-            </div>
-          ) : (
-            <button onClick={() => fileRef.current?.click()} className="btn-press w-full py-8 border-2 border-dashed border-border-light rounded-2xl flex flex-col items-center gap-2 hover:border-primary/30 hover:bg-primary-light/10 transition-all">
-              <span className="material-symbols-outlined text-3xl text-muted-light">add_a_photo</span>
-              <span className="text-sm font-semibold text-slate-600">Tap untuk upload foto</span>
-              <span className="text-xs text-muted">Front face, good lighting, no filter</span>
-            </button>
-          )}
-        </div>
-      </section>
-
-      {photoPreview && (
-      <section className="px-6 mb-6">
-        <div className="bg-white border border-primary/10 rounded-3xl p-5 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
-              <span className="material-symbols-outlined text-primary">smart_toy</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-slate-800">Scan Kulit</h3>
-              <p className="text-xs text-muted">Analisis jerawat dengan AI</p>
-            </div>
-          </div>
-          <Link
-            href="/scan"
-            className="btn-press mt-4 w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-lg">auto_awesome</span>
-            Buka Scan untuk Analisis
-          </Link>
-        </div>
-      </section>
       )}
 
       <section className="px-6 mb-6">

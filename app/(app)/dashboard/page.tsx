@@ -56,7 +56,7 @@ const quickActions = [
   { href: "/tracker", icon: "edit_calendar", label: "Tracker", tier: "free" as const },
   { href: "/progress", icon: "trending_up", label: "Progress", tier: "free" as const },
   { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", tier: "premium" as const },
-  { href: "/tracker", icon: "photo_camera", label: "AI Deteksi", tier: "premium" as const },
+  { href: "/scan", icon: "photo_camera", label: "AI Deteksi", tier: "premium" as const },
   { href: "/routine", icon: "auto_awesome", label: "Routine", tier: "pro" as const },
 ];
 
