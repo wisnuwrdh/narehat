@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { compressImageOnClient } from "@/lib/image/client-compress";
 import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";

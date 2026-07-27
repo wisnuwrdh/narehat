@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { ProductForm } from "@/components/admin/ProductForm";
+import { ProductForm, ProductFormData } from "@/components/admin/ProductForm";
 
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
-  const [initialData, setInitialData] = useState<Record<string, unknown> | null>(null);
+  const [initialData, setInitialData] = useState<(ProductFormData & { id?: string }) | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,19 +14,20 @@ export default function EditProductPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.product) {
+          const p = data.product;
           setInitialData({
-            id: data.product.id,
-            name: data.product.name,
-            brand: data.product.brand,
-            category: data.product.category,
-            description: data.product.description,
-            price: String(data.product.price || ""),
-            rating: String(data.product.rating || ""),
-            reviews: String(data.product.reviews || ""),
-            affiliate_link: data.product.affiliate_link || "",
-            image_url: data.product.image_url || "",
-            ingredients: data.product.ingredients || "",
-            why: data.product.why || "",
+            id: p.id,
+            name: p.name,
+            brand: p.brand,
+            category: p.category,
+            description: p.description || "",
+            price: String(p.price || ""),
+            rating: String(p.rating || ""),
+            reviews: String(p.reviews || ""),
+            affiliate_link: p.affiliate_link || "",
+            image_url: p.image_url || "",
+            ingredients: p.ingredients || "",
+            why: p.why || "",
           });
         }
         setLoading(false);
@@ -55,5 +56,5 @@ export default function EditProductPage() {
     );
   }
 
-  return <ProductForm initialData={initialData as any} />;
+  return <ProductForm initialData={initialData} />;
 }

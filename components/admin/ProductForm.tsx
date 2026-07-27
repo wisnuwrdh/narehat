@@ -5,7 +5,7 @@ import { useState } from "react";
 
 const CATEGORIES = ["Cleanser", "Moisturizer", "Sunscreen", "Treatment"];
 
-interface ProductFormData {
+export interface ProductFormData {
   name: string;
   brand: string;
   category: string;
@@ -33,7 +33,7 @@ const emptyForm: ProductFormData = {
   why: "",
 };
 
-interface ProductFormProps {
+export interface ProductFormProps {
   initialData?: ProductFormData & { id?: string };
 }
 
