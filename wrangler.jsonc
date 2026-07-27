@@ -10,7 +10,5 @@
       "bucket_name": "narehat-photos"
     }
   ],
-  "vars": {
-    "R2_PUBLIC_URL": "https://photos.narehat.com"
-  }
+  "vars": {}
 }
