@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
+import { compressImageOnClient } from "@/lib/image/client-compress";
 
 interface Day {
   day: string;
