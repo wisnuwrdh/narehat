@@ -41,6 +41,7 @@ export default function ScanPage() {
 
   const [purgingProduct, setPurgingProduct] = useState("");
   const [purgingPhoto, setPurgingPhoto] = useState<string | null>(null);
+  const [purgingFile, setPurgingFile] = useState<File | null>(null);
   const [purgingResult, setPurgingResult] = useState<{
     type: string;
     typeDisplay: string;
@@ -108,6 +109,7 @@ export default function ScanPage() {
   const handlePurgingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPurgingFile(file);
       const reader = new FileReader();
       reader.onload = () => setPurgingPhoto(reader.result as string);
       reader.readAsDataURL(file);
@@ -115,12 +117,12 @@ export default function ScanPage() {
   };
 
   const handlePurgingCheck = async () => {
-    if (!purgingRef.current?.files?.[0] || !purgingProduct.trim() || purgingLoading) return;
+    if (!purgingFile || !purgingProduct.trim() || purgingLoading) return;
     setPurgingLoading(true);
     setPurgingError("");
     setPurgingResult(null);
     try {
-      const compressed = await compressImageOnClient(purgingRef.current.files[0]);
+      const compressed = await compressImageOnClient(purgingFile);
       const fd = new FormData();
       fd.append("file", compressed);
       fd.append("product_name", purgingProduct.trim());
@@ -321,7 +323,7 @@ export default function ScanPage() {
           {purgingPhoto ? (
             <div className="relative rounded-xl overflow-hidden mb-3">
               <img src={purgingPhoto} alt="Preview" className="w-full h-40 object-cover rounded-xl" />
-              <button onClick={() => setPurgingPhoto(null)} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg text-xs">Hapus</button>
+              <button onClick={() => { setPurgingPhoto(null); setPurgingFile(null); }} className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg text-xs">Hapus</button>
             </div>
           ) : (
             <button onClick={() => purgingRef.current?.click()} className="btn-press w-full py-6 border-2 border-dashed border-border-light rounded-xl flex flex-col items-center gap-1 hover:border-primary/30 hover:bg-primary-light/10 transition-all mb-3">
