@@ -279,7 +279,7 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 | Hosting | Cloudflare Pages + Workers (via OpenNext adapter) |
 | Adapter | `@opennextjs/cloudflare` — Next.js → CF Workers |
 | Static Assets | `env.ASSETS` binding via Cloudflare Pages |
-| Storage Foto | Cloudflare R2 (S3-compatible, egress gratis) |
+| Storage Foto | Cloudflare R2 (Workers binding, proxy serve via `/api/photos/serve`) |
 | Build Tool | Custom `scripts/build-pages.mjs` |
 | Platform | Android Termux (build lokal) → Cloudflare x86 Linux (deploy) |
 
@@ -315,7 +315,7 @@ narehat/
   │   └── api/
   │       ├── auth/                  # ⚠️ Auth callback
   │       ├── tracker/               # CRUD daily_logs
-  │       ├── photos/                # ⚠️ Upload ke Cloudflare R2
+  │       ├── photos/                # CRUD + proxy serve via /api/photos/serve
   │       ├── user/                  # Profile read/update
   │       ├── ai/
   │       │   ├── detect/            # ⚠️ AI deteksi jerawat (GPT-4o-mini)
@@ -337,9 +337,9 @@ narehat/
   ├── lib/
 │   ├── supabase/                  # client.ts, server.ts
 │   ├── storage/
-│   │   └── r2.ts                  # Cloudflare R2 client (upload, delete, public URL)
+│   │   └── r2.ts                  # Upload/delete via R2 Workers binding, return proxy URL
 │   ├── image/
-│   │   └── compress.ts            # Kompresi WebP (~1600px, quality 75%)
+│   │   └── client-compress.ts     # Client-side WebP compression (1200px max, quality 0.85)
 │   ├── utils/
 │   │   ├── binary.ts              # arrayBufferToBase64 (Workers-safe)
 │   │   └── utils.ts               # cn() classname helper

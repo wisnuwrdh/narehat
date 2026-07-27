@@ -67,17 +67,15 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_DB_URL=
-R2_ACCESS_KEY_ID=
-R2_SECRET_ACCESS_KEY=
-R2_ENDPOINT=
-R2_BUCKET_NAME=
 SUMOPOD_API_KEY=
 OPENAI_API_KEY=
 SUMOPOD_PAYMENT_API_KEY=
 SUMOPOD_PAYMENT_WEBHOOK_TOKEN=
-SUMOPOD_PAYMENT_API_URL=https://api-pay-sandbox.sumopod.com/api/v1/payments
+SUMOPOD_PAYMENT_API_URL=https://api-pay-sandbox.sumopod.com/api/v1/v1/payments
 NEXT_PUBLIC_SITE_URL=https://narehat.com
 ```
+
+> R2 bucket binding dikonfigurasi lewat `wrangler.jsonc` (binding name `R2_BUCKET`), bukan environment variable. Set di Cloudflare Pages dashboard → Settings → Functions → R2 bucket bindings — isi binding name `R2_BUCKET` dan pilih bucket `narehat-photos`.
 
 ## Wrangler Config (`wrangler.jsonc`)
 

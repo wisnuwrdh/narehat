@@ -68,7 +68,21 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ---
 
-## 4. SumoPod Payment Setup
+## 4. Cloudflare R2 Binding Setup
+
+Setelah project Cloudflare Pages dibuat:
+
+1. Buka **Cloudflare Dashboard → R2** → buat bucket `narehat-photos`
+2. Buka **Cloudflare Pages Dashboard → project → Settings → Functions → R2 bucket bindings**
+3. Isi:
+   - **Binding name:** `R2_BUCKET`
+   - **Bucket:** `narehat-photos`
+4. Binding ini dibaca oleh `lib/storage/r2.ts` via `getCloudflareContext().env.R2_BUCKET` — tidak perlu API key atau endpoint.
+5. Foto disajikan via proxy endpoint `/api/photos/serve?key=...`, bukan public URL.
+
+---
+
+## 5. SumoPod Payment Setup
 
 ### 4.1 API Key
 
@@ -84,7 +98,7 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ---
 
-## 5. OpenAI Setup
+## 6. OpenAI Setup
 
 1. Buka https://platform.openai.com/api-keys
 2. Buat API key baru
@@ -93,7 +107,7 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ---
 
-## 6. SumoPod Setup
+## 7. SumoPod Setup
 
 1. Buka https://ai.sumopod.com
 2. Dapatkan API key
@@ -101,7 +115,7 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 
 ---
 
-## 7. Journal Data (RAG)
+## 8. Journal Data (RAG)
 
 AI Consult tidak akan berfungsi tanpa data jurnal dermatologi.
 
@@ -141,7 +155,7 @@ Script akan:
 
 ---
 
-## 8. Deploy ke Cloudflare Pages
+## 9. Deploy ke Cloudflare Pages
 
 ```bash
 # Build untuk Cloudflare
@@ -155,7 +169,7 @@ Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs
 
 ---
 
-## 9. Testing Checklist
+## 10. Testing Checklist
 
 | # | Flow | Langkah | Expected Result |
 |---|------|---------|-----------------|
@@ -172,7 +186,7 @@ Atau connect repo GitHub ke Cloudflare Pages, set build command `npx @opennextjs
 
 ---
 
-## 10. Troubleshooting
+## 11. Troubleshooting
 
 | Masalah | Cek |
 |---------|-----|
