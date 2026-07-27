@@ -57,21 +57,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Mohon sebutkan nama produk yang baru dipakai" }, { status: 400 });
   }
 
+  // 1. Upload to R2 first (fail fast)
+  let photoUrl = "";
+  if (rawBuffer) {
+    const compressed = await compressToWebP(rawBuffer);
+    const filePath = `${user.id}/${Date.now()}-purging.webp`;
+    photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+  }
+
+  // 2. AI analysis
   const result = await checkPurging(imageBase64, productName.trim());
 
-  if (!result) {
-    return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
-}
+  const today = new Date().toISOString().split("T")[0];
 
-  let photoUrl = imageBase64;
-  if (rawBuffer) {
-    try {
-      const compressed = await compressToWebP(rawBuffer);
-      const filePath = `${user.id}/${Date.now()}-purging.webp`;
-      photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
-    } catch (err) {
-      console.error("R2 upload failed:", err);
+  if (!result) {
+    if (photoUrl) {
+      await supabase.from("skin_photos").insert({
+        user_id: user.id,
+        url: photoUrl,
+        date: today,
+        notes: `Purging check: ${productName} (gagal)`,
+        analysis_type: "purging",
+        ai_analysis: null,
+      });
     }
+    return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
 
   const { data: photo, error: insertErr } = await supabase
@@ -79,7 +89,7 @@ export async function POST(request: NextRequest) {
     .insert({
       user_id: user.id,
       url: photoUrl,
-      date: new Date().toISOString().split("T")[0],
+      date: today,
       notes: `Purging check: ${productName}`,
       analysis_type: "purging",
       ai_analysis: {

@@ -37,23 +37,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No image provided" }, { status: 400 });
   }
 
+  // 1. Upload to R2 first (fail fast)
+  let photoUrl = "";
+  if (rawBuffer) {
+    const compressed = await compressToWebP(rawBuffer);
+    const filePath = `${user.id}/${Date.now()}-detect.webp`;
+    photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+  }
+
+  // 2. AI analysis
   const result = await detectAcne(imageBase64);
+
+  const today = new Date().toISOString().split("T")[0];
+
   if (!result) {
+    if (photoUrl) {
+      await supabase.from("skin_photos").insert({
+        user_id: user.id,
+        url: photoUrl,
+        date: today,
+        notes: "AI Detection (gagal)",
+        analysis_type: "detect",
+        ai_analysis: null,
+      });
+    }
     return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
   }
-
-  let photoUrl = imageBase64;
-  if (rawBuffer) {
-    try {
-      const compressed = await compressToWebP(rawBuffer);
-      const filePath = `${user.id}/${Date.now()}-detect.webp`;
-      photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
-    } catch (err) {
-      console.error("R2 upload failed:", err);
-    }
-  }
-
-  rawBuffer = null;
 
   const analysisData = {
     types: result.types,
@@ -67,7 +76,7 @@ export async function POST(request: NextRequest) {
   await supabase.from("skin_photos").insert({
     user_id: user.id,
     url: photoUrl,
-    date: new Date().toISOString().split("T")[0],
+    date: today,
     notes: "AI Detection",
     analysis_type: "detect",
     ai_analysis: analysisData,
