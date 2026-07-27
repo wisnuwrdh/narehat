@@ -26,7 +26,7 @@ export async function uploadPhoto(
   buffer: Uint8Array | Buffer,
   contentType: string
 ): Promise<string> {
-  const { env } = getCloudflareContext();
+  const env = getCloudflareContext().env as any;
   await env.R2_BUCKET.put(key, buffer, {
     httpMetadata: { contentType },
   });
@@ -36,12 +36,12 @@ export async function uploadPhoto(
 export async function deletePhoto(url: string): Promise<void> {
   const key = extractKeyFromUrl(url);
   if (!key) return;
-  const { env } = getCloudflareContext();
+  const env = getCloudflareContext().env as any;
   await env.R2_BUCKET.delete(key);
 }
 
 export async function deletePhotos(urls: string[]): Promise<void> {
-  const { env } = getCloudflareContext();
+  const env = getCloudflareContext().env as any;
   await Promise.all(
     urls.map((url) => {
       const key = extractKeyFromUrl(url);
