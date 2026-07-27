@@ -1,4 +1,7 @@
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import withSerwist from "@serwist/next";
+
+initOpenNextCloudflareForDev();
 
 const nextConfig = {
   reactStrictMode: true,

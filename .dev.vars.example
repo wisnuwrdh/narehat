@@ -6,11 +6,7 @@
 # NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 # SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# Cloudflare R2
-# R2_ACCESS_KEY_ID=xxx
-# R2_SECRET_ACCESS_KEY=xxx
-# R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
-# R2_BUCKET_NAME=narehat-photos
+# Cloudflare R2 public URL (custom domain atau r2.dev subdomain)
 # R2_PUBLIC_URL=https://photos.narehat.com
 
 # AI

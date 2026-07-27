@@ -3,5 +3,14 @@
   "name": "narehat",
   "compatibility_date": "2026-07-18",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".open-next"
+  "pages_build_output_dir": ".open-next",
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "narehat-photos"
+    }
+  ],
+  "vars": {
+    "R2_PUBLIC_URL": "https://photos.narehat.com"
+  }
 }
