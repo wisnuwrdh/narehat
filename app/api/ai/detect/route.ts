@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { detectAcne } from "@/lib/ai/vision";
 import { uploadPhoto } from "@/lib/storage/r2";
-import { compressToWebP } from "@/lib/image/compress";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
 export async function POST(request: NextRequest) {
@@ -41,9 +40,8 @@ export async function POST(request: NextRequest) {
   let photoUrl = "";
   if (rawBuffer) {
     try {
-      const compressed = await compressToWebP(rawBuffer);
       const filePath = `${user.id}/${Date.now()}-detect.webp`;
-      photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+      photoUrl = await uploadPhoto(filePath, rawBuffer, "image/webp");
     } catch (err) {
       console.error("R2 upload failed:", err);
       return NextResponse.json(
