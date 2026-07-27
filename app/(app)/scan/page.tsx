@@ -138,6 +138,15 @@ export default function ScanPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus scan ini?")) return;
+    try {
+      const res = await fetch(`/api/photos?id=${id}`, { method: "DELETE" });
+      if (!res.ok) return;
+      setHistory((prev) => prev.filter((p) => p.id !== id));
+    } catch {}
+  };
+
   const scansWithAnalysis = history.filter((p) => p.ai_analysis);
   const latestScan = scansWithAnalysis[0];
 
@@ -425,6 +434,9 @@ export default function ScanPage() {
                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${severityColor}`}>
                       {severityLabel}
                     </span>
+                    <button onClick={() => handleDelete(scan.id)} className="btn-press p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
                   </div>
                 );
               })}
