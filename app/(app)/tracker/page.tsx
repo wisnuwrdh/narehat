@@ -61,6 +61,8 @@ export default function TrackerPage() {
     confidence: number;
     location: string;
     triggers: string[];
+    tips: string[];
+    trend: string | null;
     disclaimer: string;
   } | null>(null);
   const [aiError, setAiError] = useState("");
@@ -520,10 +522,34 @@ export default function TrackerPage() {
           )}
           {aiResult && (
             <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                  aiResult.confidence >= 0.7
+                    ? "bg-emerald-50 text-emerald-700"
+                    : aiResult.confidence >= 0.4
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-red-50 text-red-700"
+                }`}>
+                  <span className="material-symbols-outlined text-[12px]">psychology</span>
+                  {Math.round(aiResult.confidence * 100)}% yakin
+                </span>
+                {aiResult.trend && (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    aiResult.trend === "membaik"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-700"
+                  }`}>
+                    <span className="material-symbols-outlined text-[12px]">
+                      {aiResult.trend === "membaik" ? "trending_down" : "trending_up"}
+                    </span>
+                    {aiResult.trend === "membaik" ? "Membaik" : "Memburuk"}
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-3 bg-indigo-50 rounded-xl">
                   <span className="text-[10px] text-muted block mb-1">Jenis</span>
-                  <span className="text-xs font-bold text-slate-800">{aiResult.typesDisplay.join(", ")}</span>
+                  <span className="text-xs font-bold text-slate-800">{aiResult.typesDisplay.join(", ") || "-"}</span>
                 </div>
                 <div className="p-3 bg-amber-50 rounded-xl">
                   <span className="text-[10px] text-muted block mb-1">Severity</span>
@@ -538,6 +564,18 @@ export default function TrackerPage() {
                   <span className="text-xs font-bold text-slate-800">{aiResult.triggers.join(", ") || "-"}</span>
                 </div>
               </div>
+              {aiResult.tips.length > 0 && (
+                <div className="p-3 bg-sky-50 rounded-xl">
+                  <span className="text-[10px] font-bold text-sky-700 block mb-2">
+                    <span className="material-symbols-outlined text-[12px] align-text-bottom">lightbulb</span> Tips
+                  </span>
+                  {aiResult.tips.map((tip, i) => (
+                    <p key={i} className="text-[11px] text-slate-700 flex items-start gap-1 mb-1 last:mb-0">
+                      <span className="text-sky-500 font-bold shrink-0">•</span> {tip}
+                    </p>
+                  ))}
+                </div>
+              )}
               <p className="text-[10px] text-muted italic mt-2">{aiResult.disclaimer}</p>
               <button
                 onClick={() => { setAiResult(null); setAiError(""); }}

@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
   const severityLabels: Record<string, string> = {
     mild: "Ringan",
     moderate: "Sedang",
-    informative: "Informatif",
+    informative: "Perlu Observasi",
   };
 
   const typeLabels: Record<string, string> = {
@@ -89,6 +89,54 @@ export async function POST(request: NextRequest) {
     whiteheads: "Komedo putih",
   };
 
+  const typeTips: Record<string, string[]> = {
+    papules: ["Hindari menyentuh atau memencet — bisa infeksi", "Kompres dingin bantu redakan peradangan"],
+    pustules: ["Jangan pecahkan pustula — risiko bekas luka", "Hindari scrub kasar di area ini"],
+    nodules: ["Nodul adalah jerawat dalam, butuh waktu sembuh lebih lama", "Konsultasi ke dokter untuk penanganan lanjut"],
+    cystic: ["Kistik butuh penanganan medis — jangan dipencet", "Segera konsultasi ke dokter kulit"],
+    comedonal: ["Eksfoliasi rutin (AHA/BHA) bisa membantu", "Pastikan membersihkan wajah 2× sehari"],
+    blackheads: ["Eksfoliasi rutin bisa membantu", "Hindari pore strip berlebihan"],
+    whiteheads: ["Produk dengan salicylic acid bisa membantu", "Jaga kelembapan kulit tetap seimbang"],
+  };
+
+  const severityTips: Record<string, string[]> = {
+    mild: ["Kondisi masih terkendali, lanjutkan rutinitas skincare", "Catat perkembangan setiap minggu"],
+    moderate: ["Perhatikan perubahan — jika memburuk dalam 2 minggu, konsultasi ke dokter", "Pastikan produk yang dipakai cocok"],
+    informative: ["Tidak terdeteksi jerawat aktif yang signifikan", "Tetap jaga rutinitas skincare harian"],
+  };
+
+  // Trend tracking: compare with previous scan
+  const { data: prevPhoto } = await supabase
+    .from("skin_photos")
+    .select("ai_analysis")
+    .eq("user_id", user.id)
+    .eq("analysis_type", "detect")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let trend: string | null = null;
+  if (prevPhoto?.ai_analysis) {
+    const prev = prevPhoto.ai_analysis as { severity?: string };
+    if (prev.severity && result.severity !== prev.severity) {
+      const rank: Record<string, number> = { mild: 0, moderate: 1, informative: 2 };
+      const curRank = rank[result.severity] ?? 1;
+      const prevRank = rank[prev.severity] ?? 1;
+      if (curRank < prevRank) trend = "membaik";
+      else if (curRank > prevRank) trend = "memburuk";
+    }
+  }
+
+  // Collect tips based on detected types + severity
+  const tipsSet = new Set<string>();
+  for (const t of result.types) {
+    const tT = typeTips[t];
+    if (tT) tT.forEach((tip: string) => tipsSet.add(tip));
+  }
+  if (severityTips[result.severity]) {
+    severityTips[result.severity].forEach((tip: string) => tipsSet.add(tip));
+  }
+
   return NextResponse.json({
     types: result.types,
     typesDisplay: result.types.map((t: string) => typeLabels[t] || t),
@@ -97,6 +145,8 @@ export async function POST(request: NextRequest) {
     confidence: result.confidence,
     location: result.location,
     triggers: result.triggers,
+    tips: Array.from(tipsSet),
+    trend,
     disclaimer:
       "Hasil ini bersifat informatif, bukan diagnosis medis. Konsultasikan ke dokter kulit untuk evaluasi lebih lanjut.",
   });

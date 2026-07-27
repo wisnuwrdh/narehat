@@ -1,5 +1,5 @@
 const MAX_DIMENSION = 1200;
-const QUALITY = 0.7;
+const QUALITY = 0.85;
 
 export async function compressImageOnClient(file: File): Promise<File> {
   const bitmap = await createImageBitmap(file);
