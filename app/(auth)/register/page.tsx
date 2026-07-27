@@ -128,6 +128,17 @@ export default function RegisterPage() {
 
   return (
     <div className="flex-1 flex flex-col justify-center px-6 py-12 max-w-md lg:max-w-lg mx-auto w-full min-h-screen">
+      {step === "email" && (
+        <button
+          type="button"
+          onClick={() => { setError(""); setStep("choose"); }}
+          className="self-start flex items-center gap-1 text-sm text-muted-light hover:text-slate-700 transition-colors mb-6 -ml-1 animate-fade-in-up"
+        >
+          <span className="material-symbols-outlined text-base">arrow_back</span>
+          Kembali
+        </button>
+      )}
+
       <div className="text-center mb-8 animate-fade-in-up">
         <div className="inline-flex items-center justify-center mb-2">
           <Logo size={48} showText={false} />
@@ -146,17 +157,6 @@ export default function RegisterPage() {
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-600 animate-scale-in">
           {success}
         </div>
-      )}
-
-      {step === "email" && (
-        <button
-          type="button"
-          onClick={() => { setError(""); setStep("choose"); }}
-          className="self-start flex items-center gap-1 text-sm text-muted-light hover:text-slate-700 transition-colors mb-4 -ml-1 animate-fade-in-up"
-        >
-          <span className="material-symbols-outlined text-base">arrow_back</span>
-          Kembali
-        </button>
       )}
 
       {step === "choose" ? (
