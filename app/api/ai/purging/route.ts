@@ -57,12 +57,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Mohon sebutkan nama produk yang baru dipakai" }, { status: 400 });
   }
 
-  // 1. Upload to R2 first (fail fast)
+  // 1. Upload to R2 first (fail fast, proper error message)
   let photoUrl = "";
   if (rawBuffer) {
-    const compressed = await compressToWebP(rawBuffer);
-    const filePath = `${user.id}/${Date.now()}-purging.webp`;
-    photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+    try {
+      const compressed = await compressToWebP(rawBuffer);
+      const filePath = `${user.id}/${Date.now()}-purging.webp`;
+      photoUrl = await uploadPhoto(filePath, compressed, "image/webp");
+    } catch (err) {
+      console.error("R2 upload failed:", err);
+      return NextResponse.json(
+        { error: "Gagal mengupload foto ke storage. Cek konfigurasi R2." },
+        { status: 500 }
+      );
+    }
   }
 
   // 2. AI analysis
