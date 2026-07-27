@@ -177,6 +177,7 @@ export default function ScanPage() {
             <div className="flex-1">
               <h3 className="font-bold text-slate-800">Upload Foto</h3>
               <p className="text-xs text-muted">Front face, good lighting, no filter</p>
+              <p className="text-[10px] text-muted-light mt-1">⚠ Foto area berjerawat agar analisis akurat</p>
             </div>
             {photoPreview && (
               <button onClick={() => { setPhotoPreview(null); setPhotoFile(null); setDetectResult(null); setDetectError(""); }} className="btn-press p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors">
@@ -310,6 +311,7 @@ export default function ScanPage() {
             <div className="flex-1">
               <h3 className="font-bold text-slate-800">Purging Checker</h3>
               <p className="text-xs text-muted">Ini purging atau breakout?</p>
+              <p className="text-[10px] text-muted-light mt-1">⚠ Foto area berjerawat agar analisis akurat</p>
             </div>
           </div>
           <input
