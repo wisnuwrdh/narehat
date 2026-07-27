@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useToast } from "@/contexts/ToastContext";
 import { compressImageOnClient } from "@/lib/image/client-compress";
+import Link from "next/link";
 
 interface Day {
   day: string;
@@ -53,18 +54,6 @@ export default function TrackerPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const purgingRef = useRef<HTMLInputElement>(null);
 
-  const [aiDetecting, setAiDetecting] = useState(false);
-  const [aiResult, setAiResult] = useState<{
-    typesDisplay: string[];
-    severityDisplay: string;
-    confidence: number;
-    location: string;
-    triggers: string[];
-    tips: string[];
-    trend: string | null;
-    disclaimer: string;
-  } | null>(null);
-  const [aiError, setAiError] = useState("");
   const [showPurging, setShowPurging] = useState(false);
   const [purgingProduct, setPurgingProduct] = useState("");
   const [purgingPhoto, setPurgingPhoto] = useState<string | null>(null);
@@ -174,29 +163,6 @@ export default function TrackerPage() {
     setSkincareEvening(false);
     setNotes("");
     setPhotoPreview(null);
-  };
-
-  const handleAIDetect = async () => {
-    if (!fileRef.current?.files?.[0] || aiDetecting) return;
-    setAiDetecting(true);
-    setAiError("");
-    setAiResult(null);
-    try {
-      const compressed = await compressImageOnClient(fileRef.current.files[0]);
-      const fd = new FormData();
-      fd.append("file", compressed);
-      const res = await fetch("/api/ai/detect", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setAiError(data.error || "Gagal analisis. Coba lagi.");
-        return;
-      }
-      setAiResult(data);
-    } catch {
-      setAiError("Gagal terhubung ke server.");
-    } finally {
-      setAiDetecting(false);
-    }
   };
 
   const handlePurgingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -485,105 +451,23 @@ export default function TrackerPage() {
 
       {photoPreview && (
       <section className="px-6 mb-6">
-        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="bg-white border border-primary/10 rounded-3xl p-5 shadow-sm">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary-light rounded-xl flex items-center justify-center">
               <span className="material-symbols-outlined text-primary">smart_toy</span>
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-slate-800">Deteksi AI</h3>
-              <p className="text-xs text-muted">Analisis jerawat dari foto</p>
+              <h3 className="font-bold text-slate-800">Scan Kulit</h3>
+              <p className="text-xs text-muted">Analisis jerawat dengan AI</p>
             </div>
-            {!aiResult && !aiDetecting && (
-              <button
-                onClick={handleAIDetect}
-                className="btn-press px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 transition-colors"
-              >
-                Analisis AI
-              </button>
-            )}
           </div>
-          {aiDetecting && (
-            <div className="flex items-center gap-3 py-4">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.15s" }} />
-                <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.3s" }} />
-              </div>
-              <span className="text-sm text-muted">Menganalisis foto...</span>
-            </div>
-          )}
-          {aiError && (
-            <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">error</span>
-              {aiError}
-            </div>
-          )}
-          {aiResult && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  aiResult.confidence >= 0.7
-                    ? "bg-emerald-50 text-emerald-700"
-                    : aiResult.confidence >= 0.4
-                      ? "bg-amber-50 text-amber-700"
-                      : "bg-red-50 text-red-700"
-                }`}>
-                  <span className="material-symbols-outlined text-[12px]">psychology</span>
-                  {Math.round(aiResult.confidence * 100)}% yakin
-                </span>
-                {aiResult.trend && (
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                    aiResult.trend === "membaik"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-red-50 text-red-700"
-                  }`}>
-                    <span className="material-symbols-outlined text-[12px]">
-                      {aiResult.trend === "membaik" ? "trending_down" : "trending_up"}
-                    </span>
-                    {aiResult.trend === "membaik" ? "Membaik" : "Memburuk"}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-indigo-50 rounded-xl">
-                  <span className="text-[10px] text-muted block mb-1">Jenis</span>
-                  <span className="text-xs font-bold text-slate-800">{aiResult.typesDisplay.join(", ") || "-"}</span>
-                </div>
-                <div className="p-3 bg-amber-50 rounded-xl">
-                  <span className="text-[10px] text-muted block mb-1">Severity</span>
-                  <span className="text-xs font-bold text-slate-800">{aiResult.severityDisplay}</span>
-                </div>
-                <div className="p-3 bg-emerald-50 rounded-xl">
-                  <span className="text-[10px] text-muted block mb-1">Lokasi</span>
-                  <span className="text-xs font-bold text-slate-800">{aiResult.location || "-"}</span>
-                </div>
-                <div className="p-3 bg-rose-50 rounded-xl">
-                  <span className="text-[10px] text-muted block mb-1">Pemicu</span>
-                  <span className="text-xs font-bold text-slate-800">{aiResult.triggers.join(", ") || "-"}</span>
-                </div>
-              </div>
-              {aiResult.tips.length > 0 && (
-                <div className="p-3 bg-sky-50 rounded-xl">
-                  <span className="text-[10px] font-bold text-sky-700 block mb-2">
-                    <span className="material-symbols-outlined text-[12px] align-text-bottom">lightbulb</span> Tips
-                  </span>
-                  {aiResult.tips.map((tip, i) => (
-                    <p key={i} className="text-[11px] text-slate-700 flex items-start gap-1 mb-1 last:mb-0">
-                      <span className="text-sky-500 font-bold shrink-0">•</span> {tip}
-                    </p>
-                  ))}
-                </div>
-              )}
-              <p className="text-[10px] text-muted italic mt-2">{aiResult.disclaimer}</p>
-              <button
-                onClick={() => { setAiResult(null); setAiError(""); }}
-                className="btn-press text-xs font-bold text-primary hover:underline"
-              >
-                Analisis ulang
-              </button>
-            </div>
-          )}
+          <Link
+            href="/scan"
+            className="btn-press mt-4 w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-lg">auto_awesome</span>
+            Buka Scan untuk Analisis
+          </Link>
         </div>
       </section>
       )}

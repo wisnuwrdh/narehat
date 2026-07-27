@@ -9,13 +9,13 @@ const navItems = [
   { href: "/dashboard", icon: "home", label: "Beranda" },
   { href: "/tracker", icon: "edit_calendar", label: "Tracker" },
   { href: "/progress", icon: "trending_up", label: "Progress" },
-  { href: "/ai-consult", icon: "smart_toy", label: "AI" },
+  { href: "/scan", icon: "smart_toy", label: "Scan" },
   { href: "/settings", icon: "person", label: "Akun" },
 ];
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult") || pathname.startsWith("/routine") || pathname.startsWith("/subscription") || pathname.startsWith("/profile");
+  const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult") || pathname.startsWith("/routine") || pathname.startsWith("/subscription") || pathname.startsWith("/profile") || pathname.startsWith("/scan");
   const { user } = useUser();
   const isPremium = user.plan !== "free";
 
@@ -54,7 +54,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                     >
                       {item.label}
                     </span>
-                    {item.href === "/ai-consult" && !isPremium && (
+                    {item.href === "/scan" && !isPremium && (
                       <span className="absolute -top-0.5 -right-0.5 px-1 py-0.5 bg-primary text-white text-[7px] font-bold rounded-md leading-none">
                         PREMIUM
                       </span>
@@ -99,7 +99,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                   >
                     {item.label}
                   </span>
-                  {item.href === "/ai-consult" && !isPremium && (
+                  {item.href === "/scan" && !isPremium && (
                     <span className="absolute -top-0.5 right-1 px-1 py-0.5 bg-primary text-white text-[7px] font-bold rounded-md leading-none">
                       PRO
                     </span>
