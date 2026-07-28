@@ -235,7 +235,7 @@ export default function RegisterPage() {
               className="mt-0.5 w-4 h-4 rounded-lg border-border-light text-primary focus:ring-primary"
             />
             <span className="text-xs text-slate-500 leading-relaxed">
-              Saya setuju dengan <a href="#" className="text-primary font-semibold">Syarat &amp; Ketentuan</a> dan <a href="#" className="text-primary font-semibold">Kebijakan Privasi</a> Narehat
+              Saya setuju dengan <Link href="/terms" className="text-primary font-semibold">Syarat &amp; Ketentuan</Link> dan <Link href="/privacy" className="text-primary font-semibold">Kebijakan Privasi</Link> Narehat
             </span>
           </label>
           <button
