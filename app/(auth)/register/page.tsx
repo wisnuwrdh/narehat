@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
+import { Turnstile } from "@/components/ui/Turnstile";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -30,6 +31,8 @@ function GoogleIcon() {
   );
 }
 
+const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
+
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState<"choose" | "email">("choose");
@@ -39,6 +42,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -75,6 +79,24 @@ export default function RegisterPage() {
     if (!form.agreed) {
       setError("Kamu harus menyetujui Syarat & Ketentuan.");
       return;
+    }
+
+    if (SITE_KEY && !turnstileToken) {
+      setError("Mohon verifikasi bahwa kamu bukan robot.");
+      return;
+    }
+
+    if (SITE_KEY && turnstileToken) {
+      const verifyRes = await fetch("/api/turnstile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: turnstileToken }),
+      })
+      if (!verifyRes.ok) {
+        setLoading(false)
+        setError("Verifikasi keamanan gagal. Coba lagi.")
+        return
+      }
     }
 
     setLoading(true);
@@ -212,9 +234,14 @@ export default function RegisterPage() {
               Saya setuju dengan <Link href="/terms" className="text-primary font-semibold">Syarat &amp; Ketentuan</Link> dan <Link href="/privacy" className="text-primary font-semibold">Kebijakan Privasi</Link> Narehat
             </span>
           </label>
+          {SITE_KEY && (
+            <div className="flex justify-center">
+              <Turnstile siteKey={SITE_KEY} onToken={setTurnstileToken} />
+            </div>
+          )}
           <button
             type="submit"
-            disabled={loading || !!success}
+            disabled={loading || !!success || (!!SITE_KEY && !turnstileToken)}
             className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Mendaftarkan..." : "Daftar Sekarang"}

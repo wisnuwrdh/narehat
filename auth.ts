@@ -67,7 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const { data: existing } = await supabase
           .from("users")
           .select("id")
-          .eq("id", user.id)
+          .eq("email", user.email!)
           .maybeSingle()
         if (!existing) {
           await supabase.from("users").insert({
@@ -80,13 +80,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mywisnuwardhana@gmail.com"
       if (user.email === adminEmail) {
-        await supabase.from("users").update({ role: "admin" }).eq("id", user.id)
+        const { data: target } = await supabase
+          .from("users")
+          .select("id")
+          .eq("email", adminEmail)
+          .maybeSingle()
+        if (target) {
+          await supabase.from("users").update({ role: "admin" }).eq("id", target.id)
+        }
       }
 
       return true
     },
-    async jwt({ token, user }) {
-      if (user) token.id = user.id
+    async jwt({ token, account, user }) {
+      if (user) {
+        if (account?.provider === "google") {
+          const { createClient } = await import("@supabase/supabase-js")
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          )
+          const { data: dbUser } = await supabase
+            .from("users")
+            .select("id")
+            .eq("email", user.email!)
+            .maybeSingle()
+          token.id = dbUser?.id || user.id
+        } else {
+          token.id = user.id
+        }
+      }
       return token
     },
     async session({ session, token }) {
