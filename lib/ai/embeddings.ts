@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createDBClient } from "@/lib/supabase/server";
 
 const SUMOPOD_BASE_URL = "https://ai.sumopod.com/v1";
 
@@ -45,7 +45,7 @@ export async function querySimilar(
   limit = 5,
   threshold = 0.75
 ): Promise<MatchResult[]> {
-  const supabase = await createClient();
+  const supabase = createDBClient();
   const { data, error } = await supabase.rpc("match_documents", {
     query_embedding: embedding,
     match_threshold: threshold,
