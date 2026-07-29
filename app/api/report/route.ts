@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
   const endLabel = new Date(rangeEnd).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
   return NextResponse.json({
-    userName: profile?.name || user.email?.split("@")[0] || "User",
+    userName: profile?.name || session.user.email?.split("@")[0] || "User",
     skinType: skinLabels[profile?.skin_type || ""] || "Kombinasi",
     rangeLabel: `${startLabel} - ${endLabel}`,
     avgScore,
