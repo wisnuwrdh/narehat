@@ -1,11 +1,11 @@
 # CHECKLIST TEKNIS — NarehatSaas v0.1
 
 **Tujuan:** Setup infrastruktur + deployment agar Narehat berfungsi penuh.
-**Status:** OpenCode selesai — ini giliran kamu.
+**Status:** Opencode selesai — ini giliran kamu.
 
 ---
 
-## A. Supabase — Migration (3 file)
+## A. Supabase — Migration (4 file)
 
 Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 
@@ -14,12 +14,13 @@ Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 | 1 | `supabase/migrations/0003_storage_and_seed.sql` | Seed 8 produk rekomendasi (storage bucket R2 — tidak perlu Supabase Storage) |
 | 2 | `supabase/migrations/0004_fix_plan_rls.sql` | Fix RLS policy: user tidak bisa ubah plan sendiri (WITH CHECK) |
 | 3 | `supabase/migrations/0005_add_theme_column.sql` | Tambah kolom `theme` ke `users` table |
+| 4 | `supabase/migrations/0003_email_verification.sql` | Tambah kolom `email_verified`, `verify_token`, `verify_token_expiry` |
 
 **Cara:**
 1. Buka https://supabase.com/dashboard/project/<your-project>/sql/new
 2. Copy seluruh isi dari file migration di repo → paste ke editor
 3. Klik "Run" (Ctrl+Enter)
-4. Ulangi untuk ketiga file
+4. Ulangi untuk keempat file
 
 ---
 
@@ -27,49 +28,88 @@ Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 
 Buka **Cloudflare Pages Dashboard → Settings → Environment Variables → Add New**:
 
+### Supabase
 | Key | Value | Untuk Apa |
 |-----|-------|-----------|
 | `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | (mungkin sudah ada) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJ...` | (mungkin sudah ada) |
 | `SUPABASE_SERVICE_ROLE_KEY` | `eyJ...` (dari Supabase Dashboard → Settings → API → service_role) | Payment webhook — update plan user tanpa RLS |
-| `SUMOPOD_API_KEY` | `sk-...` (dari SumoPod Dashboard) | AI Consult — panggil SumoPod LLM |
-| `SUMOPOD_PAYMENT_API_KEY` | `xxx` (dari SumoPod Payment Dashboard) | Buat payment QRIS via SumoPod |
-| `SUMOPOD_PAYMENT_WEBHOOK_TOKEN` | `whtok_...` (dari SumoPod Payment Settings) | Verifikasi webhook dari SumoPod |
-| `NEXT_PUBLIC_APP_URL` | `https://narehat.com` | Redirect URL setelah pembayaran sukses/gagal |
-| `NEXT_PUBLIC_SITE_URL` | `https://narehat.com` | URL publik situs (untuk metadata SEO) |
-| `R2_ACCESS_KEY_ID` | (dari Cloudflare R2 token) | Kredensial akses R2 |
-| `R2_SECRET_ACCESS_KEY` | (dari Cloudflare R2 token) | Kredensial akses R2 |
-| `R2_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` | Endpoint S3 R2 |
-| `R2_BUCKET_NAME` | `narehat-photos` | Nama bucket foto |
-| `R2_PUBLIC_URL` | `https://photos.narehat.com` | URL publik foto (custom domain R2) |
+
+### NextAuth
+| Key | Value | Untuk Apa |
+|-----|-------|-----------|
+| `AUTH_SECRET` | `openssl rand -hex 32` | Enkripsi JWT session |
+| `AUTH_GOOGLE_ID` | (dari Google Cloud Console → OAuth) | Google OAuth Client ID |
+| `AUTH_GOOGLE_SECRET` | (dari Google Cloud Console → OAuth) | Google OAuth Client Secret |
+| `AUTH_URL` | `https://narehat.com` | URL site (wajib) |
+
+### Turnstile (CAPTCHA)
+| Key | Value | Untuk Apa |
+|-----|-------|-----------|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | (dari Cloudflare Turnstile widget) | CAPTCHA di halaman register |
+| `TURNSTILE_SECRET` | (dari Cloudflare Turnstile widget) | Server-side verify CAPTCHA |
+
+### Email (Resend)
+| Key | Value | Untuk Apa |
+|-----|-------|-----------|
+| `RESEND_API_KEY` | `re_xxx` (dari Resend Dashboard) | Kirim email forgot password & verifikasi |
+
+### AI + Payment
+| Key | Value |
+|-----|-------|
+| `SUMOPOD_API_KEY` | `sk-...` (dari SumoPod Dashboard) |
+| `SUMOPOD_PAYMENT_API_KEY` | `xxx` (dari SumoPod Payment Dashboard) |
+| `SUMOPOD_PAYMENT_WEBHOOK_TOKEN` | `whtok_...` (dari SumoPod Payment Settings) |
+| `NEXT_PUBLIC_SITE_URL` | `https://narehat.com` |
+| `OPENAI_API_KEY` | `sk-...` |
+| `NEXT_PUBLIC_ADMIN_EMAIL` | `mywisnuwardhana@gmail.com` |
+
+**R2 credentials (sudah tidak perlu — binding via wrangler.jsonc):**
+> R2 bucket binding `R2_BUCKET` sudah dikonfigurasi di `wrangler.jsonc`. Tidak perlu env vars `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET_NAME`.
 
 **Setelah semua diisi → klik "Save" lalu "Redeploy" di tab Deployments.**
 
 ---
 
-## C. SumoPod Payment — Webhook Registration
+## C. Google Cloud Console — OAuth Setup
+
+1. Buka https://console.cloud.google.com → APIs & Services → Credentials
+2. Buat OAuth client ID (Web application)
+3. **Authorized redirect URIs:**
+   - `https://narehat.com/api/auth/callback/google`
+4. Set `AUTH_GOOGLE_ID` dan `AUTH_GOOGLE_SECRET` di Cloudflare Pages env vars
+
+---
+
+## D. Turnstile — Widget Setup
+
+1. Buka Cloudflare Dashboard → Turnstile → Add Widget
+2. **Widget name:** `Narehat Register`
+3. **Hostname:** `narehat.com`, `localhost`
+4. **Mode:** Managed
+5. Copy Site Key → `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+6. Copy Secret Key → `TURNSTILE_SECRET`
+
+---
+
+## E. Resend — Email Setup
+
+1. Daftar di resend.com
+2. Add domain `narehat.com`
+3. Tambah DKIM TXT record di Cloudflare DNS
+4. Create API Key → set `RESEND_API_KEY`
+
+---
+
+## F. SumoPod Payment — Webhook Registration
 
 1. Buka **SumoPod Payment Dashboard → Settings → Webhooks**
 2. Tambahkan webhook URL: `https://narehat.com/api/payment`
 3. Copy webhook token yang dihasilkan → set ke `SUMOPOD_PAYMENT_WEBHOOK_TOKEN` di Cloudflare Pages env
-4. *(Opsional)* Copy signing secret → set ke `SUMOPOD_PAYMENT_WEBHOOK_SECRET`
 
 ---
 
-## D. Supabase — Auth Settings
-
-**Supabase Dashboard → Authentication → Settings:**
-
-| Setting | Nilai | Kenapa |
-|---------|-------|--------|
-| Site URL | `https://narehat.com` | Redirect URL setelah auth |
-| Redirect URLs | `https://narehat.com/**` | Allowed redirect patterns |
-| Confirm email | **Disabled** (untuk MVP/testing) | User langsung login setelah register |
-| Minimum password length | 8 | Sesuai validasi di register page |
-
----
-
-## E. Jurnal Dermatologi — Data RAG
+## G. Jurnal Dermatologi — Data RAG
 
 PENTING: AI Consult TIDAK AKAN BERFUNGSI tanpa step ini. Jurnal harus di-embed dulu ke pgvector.
 
@@ -106,11 +146,11 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 
 ---
 
-## F. Testing Checklist
+## H. Testing Checklist
 
 | # | Flow | Langkah | Expected Result |
 |---|------|---------|-----------------|
-| 1 | Register | Buka `/register` → isi form → klik Daftar | Redirect ke `/onboarding` (atau pesan "Cek email" kalau email confirmation on) |
+| 1 | Register | Buka `/register` → isi form → Turnstile → klik Daftar | Redirect ke `/onboarding`, email verifikasi terkirim |
 | 2 | Onboarding | Isi 5 step → klik Selesai | Buka `/settings`, cek skin type sudah sesuai pilihan |
 | 3 | Tracker | Buka `/tracker` → isi tidur/air/stress/skincare → Simpan | Tampil pesan "Data berhasil disimpan" |
 | 4 | Dashboard | Buka `/dashboard` | Skin score muncul (bukan 0), ringkasan hari ini dari tracker |
@@ -118,33 +158,39 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | 6 | AI Consult | Buka `/ai-consult` → tanya "Kenapa jerawat muncul?" | Dapat jawaban + sumber jurnal + disclaimer |
 | 7 | Payment | Settings → Kelola → Upgrade Bulanan → Bayar QRIS | Payment page QRIS terbuka di tab baru |
 | 8 | Middleware | Buka Incognito → ketik `/dashboard` | Redirect ke `/login` |
+| 9 | Email Reset | Buka `/forgot-password` → masukkan email | Email reset terkirim (cek inbox) |
+| 10 | Email Verif | Daftar dengan email → cek inbox | Email verifikasi masuk, klik link → login page banner hijau |
 
 ---
 
-## G. Urutan Eksekusi
+## I. Urutan Eksekusi
 
 ```
-1.  B.  Set env vars di Cloudflare Pages (supabase URL + keys)
-2.  A.  Jalankan 3 migration SQL di Supabase
-3.  D.  Supabase Auth settings
-4.  C.  Register SumoPod Payment webhook
-5.  E.  Jalankan ingest jurnal
-6.  F.  Testing end-to-end
+1.  D.  Buat Turnstile widget di Cloudflare Dashboard
+2.  C.  Setup Google OAuth di console.cloud.google.com
+3.  B.  Set semua env vars di Cloudflare Pages
+4.  A.  Jalankan 4 migration SQL di Supabase
+5.  E.  Setup Resend.com (domain + API key)
+6.  F.  Register SumoPod Payment webhook
+7.  G.  Jalankan ingest jurnal
+8.  H.  Testing end-to-end
 ```
 
 ---
 
-## H. Troubleshooting
+## J. Troubleshooting
 
 | Masalah | Cek |
 |---------|-----|
 | Register gagal "{}" / 500 | Jalankan migration 0002 dulu (INSERT policy + SECURITY DEFINER) |
-| AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set di Cloudflare / invalid key |
+| AI Consult error "SumoPod" | `SUMOPOD_API_KEY` belum di-set / invalid key |
 | Dashboard skin score 0 terus | Belum ada data `daily_logs` — isi tracker dulu |
 | Payment gagal | `SUMOPOD_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
 | AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step E) / embeddings tidak match |
+| CAPTCHA tidak muncul | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` belum di-set / invalid |
+| Email tidak terkirim | `RESEND_API_KEY` belum di-set / Resend domain belum verified |
 
 ---
 

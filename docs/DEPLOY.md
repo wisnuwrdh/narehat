@@ -7,7 +7,7 @@ GitHub Push
     ↓
 Cloudflare Pages (x86 Linux)           Android Termux (build lokal)
     ↓ build command                           ↓
-node scripts/build-pages.mjs           node scripts/build-pages.mjs
+npx @opennextjs/cloudflare build        node scripts/build-pages.mjs
     ↓                                       ↓
 .next/ → OpenNext adapter              .next/ → OpenNext adapter
     ↓                                       ↓
@@ -60,22 +60,60 @@ OpenNext taruh static assets di `.open-next/assets/_next/static/`. Cloudflare Pa
 
 ## Environment Variables
 
-Set di Cloudflare Pages dashboard → Settings → Environment Variables:
+Set di **Cloudflare Pages Dashboard → Settings → Environment Variables (Production)**:
 
+### Supabase
 ```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_DB_URL=
-SUMOPOD_API_KEY=
-OPENAI_API_KEY=
-SUMOPOD_PAYMENT_API_KEY=
-SUMOPOD_PAYMENT_WEBHOOK_TOKEN=
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+### NextAuth
+```
+AUTH_SECRET=<random-string>           # NextAuth encryption key
+AUTH_GOOGLE_ID=<google-client-id>     # Google OAuth Client ID
+AUTH_GOOGLE_SECRET=<google-secret>    # Google OAuth Client Secret
+AUTH_URL=https://narehat.com          # Site URL
+```
+
+### Turnstile (CAPTCHA)
+```
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x000...
+TURNSTILE_SECRET=0x000...
+```
+
+### Email (Resend)
+```
+RESEND_API_KEY=re_xxx
+```
+
+### AI (SumoPod + OpenAI)
+```
+SUMOPOD_API_KEY=sk-...
+OPENAI_API_KEY=sk-...
+```
+
+### Payment (SumoPod)
+```
+SUMOPOD_PAYMENT_API_KEY=xxx
+SUMOPOD_PAYMENT_WEBHOOK_TOKEN=whtok_...
 SUMOPOD_PAYMENT_API_URL=https://api-pay-sandbox.sumopod.com/api/v1/v1/payments
-NEXT_PUBLIC_SITE_URL=https://narehat.com
 ```
 
-> R2 bucket binding dikonfigurasi lewat `wrangler.jsonc` (binding name `R2_BUCKET`), bukan environment variable. Set di Cloudflare Pages dashboard → Settings → Functions → R2 bucket bindings — isi binding name `R2_BUCKET` dan pilih bucket `narehat-photos`.
+### Site
+```
+NEXT_PUBLIC_SITE_URL=https://narehat.com
+NEXT_PUBLIC_ADMIN_EMAIL=mywisnuwardhana@gmail.com
+```
+
+### Bindings (diatur via wrangler.jsonc, bukan env vars)
+
+| Binding | Type | Name | Resource |
+|---------|------|------|----------|
+| R2 Bucket | `r2_buckets` | `R2_BUCKET` | `narehat-photos` |
+
+Binding dikonfigurasi di `wrangler.jsonc` — tidak perlu set manual di Dashboard.
 
 ## Wrangler Config (`wrangler.jsonc`)
 
@@ -85,7 +123,13 @@ NEXT_PUBLIC_SITE_URL=https://narehat.com
   "name": "narehat",
   "compatibility_date": "2026-07-18",
   "compatibility_flags": ["nodejs_compat"],
-  "pages_build_output_dir": ".open-next"
+  "pages_build_output_dir": ".open-next",
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "narehat-photos"
+    }
+  ]
 }
 ```
 
@@ -109,3 +153,4 @@ JWT=$(curl -s -X POST \
 | `onnxruntime-node` dikosongin | AI endpoints (detect, purging) error | — |
 | `@ast-grep/napi` mock | ISR/Cache revalidation patches skip | Static pages gak revalidate |
 | `workerd` gak support Android | `wrangler` CLI gak bisa jalan di Termux | Deploy via Git push / API |
+| `send_email` binding gak dipake | Ganti pakai Resend API | Set `RESEND_API_KEY` di env vars |

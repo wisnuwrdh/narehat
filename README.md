@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.9 (Cloudflare Pages + OpenNext)
+**Versi:** 0.9 (Cloudflare Pages + OpenNext + NextAuth)
 **Terakhir diperbarui:** Juli 2026
 
 ---
@@ -145,9 +145,9 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ### Auth Pages
 ```
 /login              → Masuk (2-step: Google/Email → form Email)
-/register           → Daftar akun baru (2-step: Google/Email → form Email)
-/forgot-password    → Lupa password (resetPasswordForEmail → redirect /reset-password)
-/reset-password     → Buat password baru (session check → updateUser)
+/register           → Daftar akun baru (2-step: Google/Email → form Email, Turnstile CAPTCHA)
+/forgot-password    → Lupa password — kirim link reset ke email (via Resend)
+/reset-password     → Buat password baru (token dari email)
 /auth/callback      → Google OAuth callback (code exchange → onboarding check)
 /onboarding         → Setup awal (hanya muncul sekali, cek lewat profile fields)
 ```
@@ -268,19 +268,22 @@ GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI result
 |-------|-----------|
 | Frontend | Next.js 15 App Router + TypeScript + Tailwind CSS |
 | Backend | Next.js API Routes |
-| Auth | Supabase Auth (email/password + Google OAuth) |
-| Database | Supabase (PostgreSQL + RLS) |
+| Auth | NextAuth.js v5 (Google OAuth + email/password via Credentials) |
+| Database | Supabase (PostgreSQL) — RLS dihapus, authorization via API routes + session |
 | Vector DB | Supabase pgvector |
 | Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
 | LLM Provider | SumoPod AI (deepseek-v4-flash) |
 | Vision | OpenAI GPT-4o-mini |
 | Payment | SumoPod (QRIS-based, webhook HMAC + token verification) |
+| CAPTCHA | Cloudflare Turnstile |
+| Email | Resend (API) |
 | Animasi | Framer Motion |
 | Hosting | Cloudflare Pages + Workers (via OpenNext adapter) |
 | Adapter | `@opennextjs/cloudflare` — Next.js → CF Workers |
 | Static Assets | `env.ASSETS` binding via Cloudflare Pages |
 | Storage Foto | Cloudflare R2 (Workers binding, proxy serve via `/api/photos/serve`) |
 | Build Tool | Custom `scripts/build-pages.mjs` |
+| Domain | `narehat.com` (Cloudflare DNS + Pages custom domain) |
 | Platform | Android Termux (build lokal) → Cloudflare x86 Linux (deploy) |
 
 ---
@@ -295,70 +298,82 @@ narehat/
 │   │   ├── pricing/page.tsx       → /pricing
 │   │   └── about/page.tsx         → /about
 │   ├── (auth)/
-  │   │   ├── login/page.tsx         → /login
-  │   │   ├── register/page.tsx      → /register
-  │   │   ├── forgot-password/page.tsx → /forgot-password
-  │   │   ├── reset-password/page.tsx  → /reset-password
-  │   │   ├── onboarding/page.tsx    → /onboarding
-  │   │   └── callback/route.ts      → /auth/callback (Google OAuth)
-  │   ├── (app)/
-  │   │   ├── dashboard/page.tsx      → /dashboard
-  │   │   ├── tracker/page.tsx        → /tracker
-  │   │   ├── progress/page.tsx       → /progress
-  │   │   ├── ai-consult/page.tsx     → /ai-consult
-  │   │   ├── routine/page.tsx        → /routine [PRO]
-  │   │   ├── recommendations/page.tsx → /recommendations
-  │   │   ├── settings/page.tsx       → /settings
-  │   │   ├── subscription/page.tsx   → /subscription
-  │   │   ├── profile/page.tsx        → /profile
-  │   │   └── layout.tsx              # Auth guard + bottom nav (mobile) / left sidebar (md+) + UserProvider
-  │   └── api/
-  │       ├── auth/                  # ⚠️ Auth callback
-  │       ├── tracker/               # CRUD daily_logs
-  │       ├── photos/                # CRUD + proxy serve via /api/photos/serve
-  │       ├── user/                  # Profile read/update
-  │       ├── ai/
-  │       │   ├── detect/            # ⚠️ AI deteksi jerawat (GPT-4o-mini)
-  │       │   ├── consult/           # ⚠️ RAG chat (pgvector + SumoPod LLM)
-  │       │   ├── purging/           # ⚠️ Purging vs breakout checker (GPT-4o-mini)
-  │       │   ├── routine-analyze/   # ⚠️ AI analisis rutinitas (SumoPod LLM)
-  │       │   ├── routine-build/     # ⚠️ AI builder rutinitas (SumoPod LLM)
-  │   │       └── quota/             # GET remaining AI quota (ai_usage table)
-  │   │   ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
-  │   │   ├── export/                # Export semua data user (JSON data provider)
-  │   │   ├── recommendations/       # Produk rekomendasi
-   │   │   └── payment/               # SumoPod payment + webhook
-  │
-  ├── components/landing/            # Landing page sections
-  ├── components/ui/                 # Base components
-  ├── components/onboarding/         # Step wizard
-  ├── contexts/                      # React Context providers (UserContext, ToastContext)
-  │
-  ├── lib/
+│   │   ├── login/page.tsx         → /login
+│   │   ├── register/page.tsx      → /register (Turnstile CAPTCHA)
+│   │   ├── forgot-password/page.tsx → /forgot-password (kirim email)
+│   │   ├── reset-password/page.tsx  → /reset-password
+│   │   ├── onboarding/page.tsx    → /onboarding
+│   │   └── callback/route.ts      → /auth/callback (Google OAuth)
+│   ├── (app)/
+│   │   ├── dashboard/page.tsx      → /dashboard
+│   │   ├── tracker/page.tsx        → /tracker
+│   │   ├── progress/page.tsx       → /progress
+│   │   ├── ai-consult/page.tsx     → /ai-consult
+│   │   ├── routine/page.tsx        → /routine [PRO]
+│   │   ├── recommendations/page.tsx → /recommendations
+│   │   ├── settings/page.tsx       → /settings
+│   │   ├── subscription/page.tsx   → /subscription
+│   │   ├── profile/page.tsx        → /profile
+│   │   └── layout.tsx              # Auth guard + bottom nav (mobile) / left sidebar (md+) + UserProvider
+│   └── api/
+│       ├── auth/
+│       │   ├── [...nextauth]/      # NextAuth handler
+│       │   ├── forgot-password/    # Generate token + kirim email reset
+│       │   ├── send-verification/  # Kirim email verifikasi setelah register
+│       │   ├── verify-email/       # Handle link verifikasi
+│       │   └── callback/           # Google OAuth callback
+│       ├── turnstile/              # Server-side Turnstile verify
+│       ├── tracker/               # CRUD daily_logs
+│       ├── photos/                # CRUD + proxy serve via /api/photos/serve
+│       ├── user/                  # Profile read/update
+│       ├── ai/
+│       │   ├── detect/            # AI deteksi jerawat (GPT-4o-mini)
+│       │   ├── consult/           # RAG chat (pgvector + SumoPod LLM)
+│       │   ├── purging/           # Purging vs breakout checker (GPT-4o-mini)
+│       │   ├── routine-analyze/   # AI analisis rutinitas (SumoPod LLM)
+│       │   ├── routine-build/     # AI builder rutinitas (SumoPod LLM)
+│       │   └── quota/             # GET remaining AI quota (ai_usage table)
+│       ├── report/                # Skin report (range 7/30/90, aggregate + HTML print)
+│       ├── export/                # Export semua data user (JSON data provider)
+│       ├── recommendations/       # Produk rekomendasi
+│       └── payment/               # SumoPod payment + webhook
+│
+├── components/landing/            # Landing page sections
+├── components/ui/                 # Base components (Turnstile, Logo, dll)
+├── components/onboarding/         # Step wizard
+├── contexts/                      # React Context providers (UserContext, ToastContext)
+│
+├── lib/
 │   ├── supabase/                  # client.ts, server.ts
 │   ├── storage/
 │   │   └── r2.ts                  # Upload/delete via R2 Workers binding, return proxy URL
 │   ├── image/
 │   │   └── client-compress.ts     # Client-side WebP compression (1200px max, quality 0.85)
+│   ├── email/
+│   │   ├── send.ts                # Kirim email via Resend API
+│   │   └── templates.ts           # HTML template reset password & verifikasi
+│   ├── turnstile/
+│   │   └── verify.ts              # Server-side Turnstile siteverify
 │   ├── utils/
 │   │   ├── binary.ts              # arrayBufferToBase64 (Workers-safe)
 │   │   └── utils.ts               # cn() classname helper
 │   ├── ai/
-  │   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
-  │   │   ├── rag.ts                 # RAG pipeline + SumoPod call
-  │   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
-  │   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
-  │   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
-  │   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
-  │   ├── export/formatters.ts       # CSV & PDF formatter (label Indonesia)
-   │   ├── payment/sumopod.ts         # SumoPod payment + webhook verify
-  │   └── security/                  # Rate limiter, file validation
-  │
-  ├── supabase/migrations/           # 9 migration files (0000-0008)
-  ├── types/                         # TypeScript types
-  ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
-  ├── middleware.ts                  # Auth guard
-  └── public/                        # Static assets
+│   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
+│   │   ├── rag.ts                 # RAG pipeline + SumoPod call
+│   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
+│   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
+│   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
+│   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
+│   ├── export/formatters.ts       # CSV & PDF formatter (label Indonesia)
+│   ├── payment/sumopod.ts         # SumoPod payment + webhook verify
+│   └── security/                  # Rate limiter, file validation
+│
+├── auth.ts                        # NextAuth config (Google + Credentials, JWT)
+├── middleware.ts                  # Auth guard (NextAuth authorized callback)
+├── supabase/migrations/           # 10 migration files (0000-0009)
+├── types/                         # TypeScript types
+├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
+└── public/                        # Static assets
 ```
 
 ⚠️ = high-risk area, perlu review manual
@@ -422,8 +437,8 @@ Jalankan dengan: `npm run ingest`
 ## 9. KEAMANAN
 
 ### Sudah Diimplementasikan
-- Supabase RLS di semua tabel (owner-based access)
-- Middleware auth guard (redirect unauthenticated ke /login; onboarding check via profile fields di login page & callback — no longer in middleware)
+- NextAuth session-based authorization (di API routes via `auth()` helper)
+- Middleware auth guard (redirect unauthenticated ke /login; onboarding check via profile fields di login page & callback)
 - Payload validation + file type check (magic bytes, extension, MIME, size, filename)
 - Rate limiter AI endpoints (5 req/menit)
 - SumoPod webhook HMAC-SHA256 + token verification
@@ -473,10 +488,11 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | AI Vision Detection | ✅ Done | GPT-4o-mini: acne detection, purging checker |
 | AI Routine Analyzer | ✅ Done | SumoPod LLM: conflict detection, routine builder |
 | Weekly Skin Report | ✅ Done | Aggregate → HTML → print PDF |
-| Auth & Security | ✅ Done | Supabase Auth, middleware, RLS, rate limiter, quota enforcement |
+| Auth & Security | ✅ Done | NextAuth.js v5, middleware, Turnstile CAPTCHA, rate limiter, quota enforcement |
 | Payment Integration | ✅ Done | SumoPod QRIS + webhook |
 | Perf Optimization | ✅ Done | Batched API calls (127→1), UserContext caching |
-| Cloudflare Migration | ✅ Done | Pages + Workers via OpenNext, R2 storage, custom build script |
+| Cloudflare Migration | ✅ Done | Pages + Workers via OpenNext, R2 storage, custom build script, custom domain |
+| Email System | ✅ Done | Resend: forgot password + email verification + Email Routing (hello@/support@/noreply@) |
 | Soft Launch | 🔜 | 50-100 user pertama dari audiens TikTok |
 | Iterasi | 🔜 | Feedback → perbaikan → monetisasi |
 
@@ -498,29 +514,34 @@ User bisa mendownload semua data mereka dari halaman Settings:
 
 **Fase 2 — Deploy ke Preview URL**
 - [x] Connect repo GitHub ke Cloudflare Pages
-- [x] Set semua env vars di Cloudflare Pages dashboard (termasuk R2 credentials)
-- [x] Build command: `node scripts/build-pages.mjs` — output dir: `.open-next`
-- [x] Patches: native modules (`sharp`, `onnxruntime-node`, `@ast-grep/napi`) dikosongin untuk Android compat
-- [x] Worker: `env.ASSETS.fetch()` untuk serve `/_next/static/*`
-- [x] **SEMENTARA:** tambahkan preview URL (`*.pages.dev`) ke Supabase Auth Redirect URLs (jangan hapus `narehat.com`)
-- [ ] Smoke test 14 flow di preview URL (register, login, OAuth, tracker, AI detect, purging, dll)
-- [ ] Fix bug kalau ada → redeploy → tes ulang
+- [x] Set semua env vars di Cloudflare Pages dashboard
+- [x] Build command: `npx @opennextjs/cloudflare build` — output dir: `.open-next`
+- [x] Patches: native modules dikosongin untuk Android compat
+- [x] **SEMENTARA:** tambahkan preview URL ke Google OAuth redirect URIs
+- [x] Smoke test 14 flow di preview URL
 
-**Fase 3 — Cutover Domain (setelah testing lolos)**
-- [ ] Update Supabase Auth Settings: Site URL → `https://narehat.com`, Redirect URLs → `https://narehat.com/**`
-- [ ] ⚠️ **Hapus preview URL dari Supabase Redirect URLs** (jangan dibiarkan nempel)
-- [ ] Set SumoPod Payment webhook URL → `https://narehat.com/api/payment`
-- [ ] Set `NEXT_PUBLIC_SITE_URL=https://narehat.com` di Cloudflare Pages env
-- [ ] Arahkan DNS domain `narehat.com` ke Cloudflare Pages
-- [ ] Smoke test ulang di domain final
-- [ ] Monitor error log 24-48 jam
+**Fase 3 — Cutover Domain (selesai)**
+- [x] Beli domain `narehat.com` via Rumah Web, nameserver → Cloudflare
+- [x] Custom domain di Pages → `narehat.com`
+- [x] Update Google OAuth redirect URI → `https://narehat.com/api/auth/callback/google`
+- [x] Set `AUTH_URL=https://narehat.com` di Cloudflare Pages env
+- [x] Migrasi auth: Supabase Auth → NextAuth.js v5 (Google + Credentials, JWT)
+- [x] Update Google OAuth consent screen (production status)
+- [x] Smoke test ulang di domain final
 
-**Fase 4 — Cleanup (setelah stabil 3-7 hari)**
+**Fase 4 — Email & Security**
+- [x] Setup Email Routing: `hello@`, `support@`, `noreply@` → forward ke Gmail
+- [x] Setup Email Sending via Resend (forgot password, email verification)
+- [x] Setup Turnstile CAPTCHA di halaman register
+- [x] Fix duplicate Google accounts (signIn + jwt callback)
+
+**Fase 5 — Cleanup (setelah stabil 3-7 hari)**
 - [x] Hapus project dari Vercel
 - [ ] Hapus bucket `skin_photos` di Supabase Storage
 - [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
 - [ ] Register SumoPod webhook URL final (kalau belum)
 
+---
 
 - [x] Copywriting: hapus em dash (—) di landing + about + privacy + terms
 - [x] Halaman legal: /privacy, /terms, /contact, /blog (dengan back button)
@@ -540,7 +561,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [x] Hapus Akun: delete file storage + semua tabel termasuk ai_usage & notifikasi
 - [x] Progress: modal thumbnail picker ganti prompt() untuk bandingkan foto
 - [x] AI Detect dari timeline: gunakan photo_id untuk update row existing (hindari duplikat)
-- [x] Password Reset flow (Supabase Auth) + Forgot Password page
+- [x] Password Reset flow (NextAuth) + Forgot Password page (kirim email via Resend)
 - [x] Google OAuth login dengan 2-step UI (Google/Email → form Email) + callback route
 - [x] Onboarding check via profile fields (login page & callback) — removed from middleware
 - [x] DB enum: tambah pro_monthly, pro_yearly
@@ -560,7 +581,10 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | Gap Analysis | `docs/plans/threat-model/GAP-ANALYSIS.md` | 7 functional gaps + fixes |
 | Business Model Canvas | `docs/plans/BUSINESS-MODEL-CANVAS.md` | 9 building blocks + unit economics |
 | Checklist Teknis | `docs/plans/CHECKLIST-TEKNIS.md` | Manual setup guide (env, migration, testing) |
+| Setup Guide | `docs/plans/SETUP-GUIDE.md` | Setup ulang dari nol |
+| Deploy Guide | `docs/DEPLOY.md` | Deployment pipeline & env vars reference |
 
 ---
 
-*Dokumen ini diperbarui Juli 2026 — setelah phase 1-3 development selesai, sebelum soft launch.*
+*Dokumen ini diperbarui Juli 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover.*
+
