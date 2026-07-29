@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { useSession } from "next-auth/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";
 
@@ -76,6 +77,7 @@ const steps = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [answers, setAnswers] = useState({
@@ -117,9 +119,9 @@ export default function OnboardingPage() {
   );
 
   const saveSelectedProducts = async () => {
+    const userId = session?.user?.id;
+    if (!userId) return;
     const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
 
     const entries = Object.values(selectedProducts);
     if (entries.length === 0) return;
@@ -127,14 +129,14 @@ export default function OnboardingPage() {
     const { data: existing } = await supabase
       .from("skincare_products")
       .select("name")
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     const existingNames = new Set(existing?.map((p) => p.name.toLowerCase()) || []);
 
     const newProducts = entries
       .filter((p) => !existingNames.has(p.name.toLowerCase()))
       .map((p) => ({
-        user_id: user.id,
+        user_id: userId,
         name: p.name,
         brand: p.brand,
         category: p.category,
@@ -160,9 +162,6 @@ export default function OnboardingPage() {
         }),
       });
       await saveSelectedProducts();
-    } catch {}
-    try {
-      await createClient().auth.updateUser({ data: { onboarding_completed: true } });
     } catch {}
     setLoading(false);
 
@@ -210,7 +209,6 @@ export default function OnboardingPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ onboarding_completed: true }),
               });
-              await createClient().auth.updateUser({ data: { onboarding_completed: true } });
             } catch {}
             router.replace("/dashboard");
           }} className="btn-press p-2 -mr-2 text-muted hover:text-slate-700 rounded-xl hover:bg-slate-50 transition-colors text-xs font-bold">
