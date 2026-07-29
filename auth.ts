@@ -57,12 +57,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
+      const { createClient } = await import("@supabase/supabase-js")
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+
       if (account?.provider === "google") {
-        const { createClient } = await import("@supabase/supabase-js")
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        )
         const { data: existing } = await supabase
           .from("users")
           .select("id")
@@ -76,6 +77,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
         }
       }
+
+      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mywisnuwardhana@gmail.com"
+      if (user.email === adminEmail) {
+        await supabase.from("users").update({ role: "admin" }).eq("id", user.id)
+      }
+
       return true
     },
     async jwt({ token, user }) {

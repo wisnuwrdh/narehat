@@ -3,27 +3,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { signIn } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     const msg = error.message;
-    if (!msg || msg === "{}") return "Gagal terhubung ke server. Periksa konfigurasi Supabase.";
-    if (msg.includes("already registered") || msg.includes("already exists")) return "Email ini sudah terdaftar.";
+    if (!msg || msg === "{}") return "Gagal terhubung ke server.";
+    if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("Email sudah terdaftar"))
+      return "Email ini sudah terdaftar.";
     if (msg.includes("password")) return "Password minimal 6 karakter.";
     if (msg.includes("valid email")) return "Format email tidak valid.";
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
-}
-
-function logError(context: string, err: unknown) {
-  try {
-    console.log("[DEBUG]", context, JSON.stringify(err));
-  } catch {
-    console.log("[DEBUG]", context, String(err));
-  }
 }
 
 function GoogleIcon() {
@@ -59,21 +52,9 @@ export default function RegisterPage() {
     setGoogleLoading(true);
     setError("");
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (authError) {
-        logError("googleSignUp error", authError);
-        setError("Gagal daftar dengan Google. Coba lagi.");
-        setGoogleLoading(false);
-      }
+      await signIn("google", { callbackUrl: "/auth/callback" });
     } catch (err) {
-      logError("googleSignUp exception", err);
-      setError("Gagal terhubung ke server.");
+      setError("Gagal daftar dengan Google. Coba lagi.");
       setGoogleLoading(false);
     }
   };
@@ -98,31 +79,24 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { data, error: authError } = await supabase.auth.signUp({
+      const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
-        options: { data: { name: form.name } },
+        name: form.name,
+        action: "register",
+        redirect: false,
       });
       setLoading(false);
 
-      if (authError) {
-        logError("signUp authError", authError);
-        setError(getErrorMessage(authError));
+      if (result?.error) {
+        setError(getErrorMessage(new Error(result.error)));
         return;
       }
 
-      if (data.session) {
-        router.replace("/onboarding");
-      } else {
-        setError("");
-        setForm({ name: "", email: "", password: "", agreed: false });
-        setSuccess("Cek email kamu untuk verifikasi, lalu login kembali.");
-      }
+      router.replace("/onboarding");
     } catch (err) {
-      logError("signUp exception", err);
       setLoading(false);
-      setError("Gagal terhubung ke server. Periksa konfigurasi Supabase.");
+      setError("Gagal terhubung ke server.");
     }
   };
 

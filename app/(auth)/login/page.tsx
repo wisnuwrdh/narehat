@@ -3,26 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { signIn } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     const msg = error.message;
-    if (!msg || msg === "{}") return "Gagal terhubung ke server. Periksa konfigurasi Supabase.";
-    if (msg.includes("Invalid login") || msg.includes("Invalid credentials")) return "Email atau password salah.";
+    if (!msg || msg === "{}") return "Gagal terhubung ke server.";
+    if (msg.includes("Invalid login") || msg.includes("Invalid credentials") || msg.includes("CredentialsSignin"))
+      return "Email atau password salah.";
     if (msg.includes("Email not confirmed")) return "Email belum diverifikasi. Cek inbox kamu.";
+    if (msg.includes("Email sudah terdaftar")) return msg;
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
-}
-
-function logError(context: string, err: unknown) {
-  try {
-    console.log("[DEBUG]", context, JSON.stringify(err));
-  } catch {
-    console.log("[DEBUG]", context, String(err));
-  }
 }
 
 function GoogleIcon() {
@@ -49,21 +43,9 @@ export default function LoginPage() {
     setGoogleLoading(true);
     setError("");
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (authError) {
-        logError("googleSignIn error", authError);
-        setError("Gagal login dengan Google. Coba lagi.");
-        setGoogleLoading(false);
-      }
+      await signIn("google", { callbackUrl: "/auth/callback" });
     } catch (err) {
-      logError("googleSignIn exception", err);
-      setError("Gagal terhubung ke server.");
+      setError("Gagal login dengan Google. Coba lagi.");
       setGoogleLoading(false);
     }
   };
@@ -79,47 +61,30 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
+        redirect: false,
       });
       setLoading(false);
 
-      if (authError) {
-        logError("signIn authError", authError);
-        setError(getErrorMessage(authError));
+      if (result?.error) {
+        setError(getErrorMessage(new Error(result.error)));
         return;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || "mywisnuwardhana@gmail.com";
-        if (user.email === adminEmail) {
-          try { await supabase.from("users").update({ role: "admin" }).eq("id", user.id); } catch {}
-        }
+      const res = await fetch("/api/user");
+      const data = await res.json();
+      const needsOnboarding = !data.user?.onboarding_completed;
 
-        const { data: profile } = await supabase
-          .from("users")
-          .select("onboarding_completed")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        const needsOnboarding = !profile || !profile.onboarding_completed;
-
-        if (needsOnboarding) {
-          router.replace("/onboarding");
-        } else {
-          await supabase.auth.updateUser({ data: { onboarding_completed: true } }).catch(() => {});
-          router.replace("/dashboard");
-        }
+      if (needsOnboarding) {
+        router.replace("/onboarding");
       } else {
         router.replace("/dashboard");
       }
     } catch (err) {
-      logError("signIn exception", err);
       setLoading(false);
-      setError("Gagal terhubung ke server. Periksa konfigurasi Supabase.");
+      setError("Gagal terhubung ke server.");
     }
   };
 
