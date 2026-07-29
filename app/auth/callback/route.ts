@@ -1,13 +1,27 @@
 import { NextResponse } from "next/server"
+import { auth } from "@/auth"
+import { createDBClient } from "@/lib/supabase/server"
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get("code")
-  const next = searchParams.get("next") ?? "/dashboard"
+  const { origin } = new URL(request.url)
+  const session = await auth()
 
-  if (code) {
-    return NextResponse.redirect(`${origin}/api/auth/callback?code=${code}`)
+  if (!session?.user) {
+    return NextResponse.redirect(`${origin}/login?error=not_authenticated`)
   }
 
-  return NextResponse.redirect(`${origin}${next}`)
+  const supabase = createDBClient()
+  const { data: profile } = await supabase
+    .from("users")
+    .select("onboarding_completed")
+    .eq("id", session.user.id)
+    .maybeSingle()
+
+  const needsOnboarding = !profile || !profile.onboarding_completed
+
+  if (needsOnboarding) {
+    return NextResponse.redirect(`${origin}/onboarding`)
+  }
+
+  return NextResponse.redirect(`${origin}/dashboard`)
 }
