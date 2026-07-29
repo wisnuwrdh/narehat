@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/ui/Logo";
 
 export default function ForgotPasswordPage() {
@@ -10,13 +9,11 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [resetLink, setResetLink] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setResetLink("");
 
     if (!email.trim()) {
       setError("Email wajib diisi.");
@@ -25,32 +22,21 @@ export default function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      const supabase = createClient();
-
-      const { data: found, error: findError } = await supabase
-        .from("users")
-        .select("id")
-        .eq("email", email.trim())
-        .maybeSingle();
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
 
       setLoading(false);
+      const data = await res.json();
 
-      if (findError || !found) {
-        setError("Email tidak ditemukan.");
+      if (!res.ok) {
+        setError(data.error || "Gagal mengirim email reset password.");
         return;
       }
 
-      const token = crypto.randomUUID();
-      const expiry = new Date(Date.now() + 3600000).toISOString();
-
-      await supabase
-        .from("users")
-        .update({ reset_token: token, reset_token_expiry: expiry })
-        .eq("email", email.trim());
-
-      const link = `${window.location.origin}/reset-password?token=${token}`;
-      setResetLink(link);
-      setSuccess("Link reset password telah dibuat. Karena email service belum aktif, gunakan link di bawah ini:");
+      setSuccess("Link reset password telah dikirim ke email kamu.");
       setEmail("");
     } catch {
       setLoading(false);
@@ -75,15 +61,8 @@ export default function ForgotPasswordPage() {
       )}
 
       {success && (
-        <div className="mb-4 space-y-3 animate-scale-in">
-          <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-600">
-            {success}
-          </div>
-          {resetLink && (
-            <div className="p-3 bg-slate-50 border border-border-light rounded-xl text-xs break-all">
-              <a href={resetLink} className="text-primary font-semibold">{resetLink}</a>
-            </div>
-          )}
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-sm text-green-600 animate-scale-in">
+          {success}
         </div>
       )}
 

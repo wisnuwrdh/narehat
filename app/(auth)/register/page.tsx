@@ -115,6 +115,8 @@ export default function RegisterPage() {
         return;
       }
 
+      fetch("/api/auth/send-verification", { method: "POST" }).catch(() => {});
+
       router.replace("/onboarding");
     } catch (err) {
       setLoading(false);

@@ -31,3 +31,7 @@ data/journals/*
 .wrangler/
 .dev.vars
 
+# opencode
+.opencode/
+.agents/
+
