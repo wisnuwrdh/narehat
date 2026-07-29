@@ -6,7 +6,7 @@ export function resetPasswordEmail(link: string): { html: string; text: string }
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
 <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
 <tr><td style="padding:40px 32px 32px;text-align:center">
-<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2IiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiPjxyZWN0IHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiByeD0iNDgiIGZpbGw9IiMzNTI1Q0QiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjIsMCkiPjxwYXRoIGQ9Ik02NCAyMDggVjY0IEM2NCA0NCA4MCAyOCAxMDAgMjggQzExNiAyOCAxMjYgMzQgMTM2IDQ2IEwxODggMTEwIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMTYgMTA4IEwxNzYgMTgwIEMxODggMTk0IDIwNCAxOTggMjIwIDE5MCBDMjMwIDE4NCAyMzYgMTcyIDIzNiAxNTggVjY0IiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjM2IiByPSIxNCIgZmlsbD0iI0ZGRkZGRiIvPjwvZz48L3N2Zz4=" alt="Narehat" width="48" height="48" style="border-radius:12px;margin-bottom:16px"/>
+<img src="https://narehat.com/email-logo.png" alt="Narehat" width="48" height="48" style="border-radius:12px;margin-bottom:16px"/>
 <h1 style="font-size:20px;color:#1e293b;margin:0 0 8px">Reset Password</h1>
 <p style="font-size:14px;color:#64748b;margin:0 0 24px;line-height:1.5">
 Kami menerima permintaan reset password untuk akun Narehat kamu. Klik tombol di bawah untuk membuat password baru.
@@ -33,7 +33,7 @@ export function verifyEmailEmail(link: string): { html: string; text: string } {
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px">
 <table width="480" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.08)">
 <tr><td style="padding:40px 32px 32px;text-align:center">
-<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2IiB3aWR0aD0iNDgiIGhlaWdodD0iNDgiPjxyZWN0IHdpZHRoPSIyNTYiIGhlaWdodD0iMjU2IiByeD0iNDgiIGZpbGw9IiMzNTI1Q0QiLz48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjIsMCkiPjxwYXRoIGQ9Ik02NCAyMDggVjY0IEM2NCA0NCA4MCAyOCAxMDAgMjggQzExNiAyOCAxMjYgMzQgMTM2IDQ2IEwxODggMTEwIiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0xMTYgMTA4IEwxNzYgMTgwIEMxODggMTk0IDIwNCAxOTggMjIwIDE5MCBDMjMwIDE4NCAyMzYgMTcyIDIzNiAxNTggVjY0IiBzdHJva2U9IiNGRkZGRkYiIHN0cm9rZS13aWR0aD0iMjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxjaXJjbGUgY3g9IjIzNiIgY3k9IjM2IiByPSIxNCIgZmlsbD0iI0ZGRkZGRiIvPjwvZz48L3N2Zz4=" alt="Narehat" width="48" height="48" style="border-radius:12px;margin-bottom:16px"/>
+<img src="https://narehat.com/email-logo.png" alt="Narehat" width="48" height="48" style="border-radius:12px;margin-bottom:16px"/>
 <h1 style="font-size:20px;color:#1e293b;margin:0 0 8px">Verifikasi Email</h1>
 <p style="font-size:14px;color:#64748b;margin:0 0 24px;line-height:1.5">
 Terima kasih sudah mendaftar di Narehat. Klik tombol di bawah untuk memverifikasi alamat email kamu.
