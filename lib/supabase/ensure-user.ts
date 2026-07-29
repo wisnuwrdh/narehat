@@ -1,28 +1,21 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js"
 
-export async function ensureUserProfile(
-  supabase: SupabaseClient,
-  user: { id: string; email?: string }
-) {
-  const { data: existing, error: selErr } = await supabase
+export async function ensureUserProfile(userId: string, email: string) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+  const { data: existing } = await supabase
     .from("users")
     .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (selErr && !selErr.message.includes("not found")) {
-    console.error("ensureUserProfile select error:", selErr.message);
-  }
+    .eq("id", userId)
+    .maybeSingle()
 
   if (!existing) {
-    const { error: insErr } = await supabase.from("users").insert({
-      id: user.id,
-      email: user.email || "",
+    await supabase.from("users").insert({
+      id: userId,
+      email: email || "",
       name: "User",
-    });
-
-    if (insErr) {
-      console.error("ensureUserProfile insert error:", insErr.message);
-    }
+    })
   }
 }

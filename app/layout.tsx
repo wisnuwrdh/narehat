@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { SessionProvider } from "@/components/SessionProvider";
 import "./globals.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://narehat.com";
@@ -99,7 +100,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="overflow-x-hidden">{children}</body>
+      <body className="overflow-x-hidden">
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }
