@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
@@ -6,15 +7,14 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
 
-  if (!user) redirect("/login");
-
+  const supabase = createDBClient();
   const { data: profile } = await supabase
     .from("users")
     .select("role")
-    .eq("id", user.id)
+    .eq("id", session.user.id)
     .single();
 
   if (profile?.role !== "admin") redirect("/dashboard");

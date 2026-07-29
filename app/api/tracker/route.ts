@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { ensureUserProfile } from "@/lib/supabase/ensure-user";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  await ensureUserProfile(supabase, user);
+  const supabase = createDBClient();
+  await ensureUserProfile(userId, session.user.email || "");
 
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
   const datesParam = searchParams.get("dates");
 
-  let query = supabase.from("daily_logs").select("*").eq("user_id", user.id);
+  let query = supabase.from("daily_logs").select("*").eq("user_id", userId);
 
   if (datesParam) {
     const dates = datesParam.split(",").map((d) => d.trim()).filter(Boolean);
@@ -32,11 +34,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  await ensureUserProfile(supabase, user);
+  const supabase = createDBClient();
+  await ensureUserProfile(userId, session.user.email || "");
 
   const body = await request.json();
   const today = new Date().toISOString().split("T")[0];
@@ -50,7 +53,7 @@ export async function POST(request: NextRequest) {
   const notes = String(body.notes ?? "").slice(0, 500);
 
   const { error } = await supabase.from("daily_logs").upsert({
-    user_id: user.id,
+    user_id: userId,
     date: today,
     sleep_hours,
     water_ml,
@@ -68,11 +71,12 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
-  await ensureUserProfile(supabase, user);
+  const supabase = createDBClient();
+  await ensureUserProfile(userId, session.user.email || "");
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
@@ -82,10 +86,10 @@ export async function DELETE(request: NextRequest) {
       .from("daily_logs")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   } else {
-    const { error } = await supabase.from("daily_logs").delete().eq("user_id", user.id);
+    const { error } = await supabase.from("daily_logs").delete().eq("user_id", userId);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
+
+  const supabase = createDBClient();
 
   const range = Math.min(90, Math.max(7, Number(request.nextUrl.searchParams.get("range")) || 7));
   const dates: string[] = [];
@@ -16,11 +19,11 @@ export async function GET(request: NextRequest) {
   dates.reverse();
 
   const [profileRes, logsRes, photosRes, insightsRes, aiPhotosRes] = await Promise.all([
-    supabase.from("users").select("name, skin_type, goal").eq("id", user.id).maybeSingle(),
-    supabase.from("daily_logs").select("*").eq("user_id", user.id).in("date", dates).order("date", { ascending: true }),
-    supabase.from("skin_photos").select("url, date, notes").eq("user_id", user.id).order("date", { ascending: false }).limit(2),
-    supabase.from("insights").select("title, description, type").eq("user_id", user.id).order("created_at", { ascending: false }).limit(5),
-    supabase.from("skin_photos").select("ai_analysis, date").eq("user_id", user.id).not("ai_analysis", "is", null).order("date", { ascending: false }).limit(3),
+    supabase.from("users").select("name, skin_type, goal").eq("id", userId).maybeSingle(),
+    supabase.from("daily_logs").select("*").eq("user_id", userId).in("date", dates).order("date", { ascending: true }),
+    supabase.from("skin_photos").select("url, date, notes").eq("user_id", userId).order("date", { ascending: false }).limit(2),
+    supabase.from("insights").select("title, description, type").eq("user_id", userId).order("created_at", { ascending: false }).limit(5),
+    supabase.from("skin_photos").select("ai_analysis, date").eq("user_id", userId).not("ai_analysis", "is", null).order("date", { ascending: false }).limit(3),
   ]);
 
   const profile = profileRes.data;

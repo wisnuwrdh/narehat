@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { uploadPhoto, deletePhoto } from "@/lib/storage/r2";
 import { compressToWebP } from "@/lib/image/compress";
 
@@ -38,14 +39,15 @@ function sanitiseName(filename: string): string {
 }
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
+  const supabase = createDBClient();
   const { data, error } = await supabase
     .from("skin_photos")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .order("date", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -54,10 +56,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
+  const supabase = createDBClient();
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const date = (formData.get("date") as string) || new Date().toISOString().split("T")[0];
@@ -82,7 +85,7 @@ export async function POST(request: NextRequest) {
   const compressed = await compressToWebP(buffer);
 
   const safeName = sanitiseName(file.name).replace(/\.[^.]+$/, ".webp");
-  const filePath = `${user.id}/${Date.now()}-${safeName}`;
+  const filePath = `${userId}/${Date.now()}-${safeName}`;
 
   let publicUrl: string;
   try {
@@ -95,7 +98,7 @@ export async function POST(request: NextRequest) {
   const { error: insertError } = await supabase
     .from("skin_photos")
     .insert({
-      user_id: user.id,
+      user_id: userId,
       url: publicUrl,
       date,
       notes,
@@ -113,10 +116,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
+  const supabase = createDBClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Photo ID required" }, { status: 400 });
@@ -125,7 +129,7 @@ export async function DELETE(request: NextRequest) {
     .from("skin_photos")
     .select("url")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (!photo) return NextResponse.json({ error: "Photo not found" }, { status: 404 });
@@ -136,7 +140,7 @@ export async function DELETE(request: NextRequest) {
     .from("skin_photos")
     .delete()
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("user_id", userId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ message: "Photo deleted" });

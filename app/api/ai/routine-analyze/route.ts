@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { analyzeRoutine } from "@/lib/ai/routine";
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session.user.id;
 
+  const supabase = createDBClient();
   const { data: profile } = await supabase
     .from("users")
     .select("plan")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle();
 
   if (!profile || !profile.plan.includes("pro")) {

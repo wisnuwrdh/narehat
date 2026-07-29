@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { detectAcne } from "@/lib/ai/vision";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = session.user.id;
+
+    const supabase = createDBClient();
 
     const { data: profile } = await supabase
       .from("users")
       .select("plan")
-      .eq("id", user.id)
+      .eq("id", userId)
       .maybeSingle();
 
     if (!profile || profile.plan === "free") {
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
     let photoUrl = "";
     if (rawBuffer) {
       try {
-        const filePath = `${user.id}/${Date.now()}-detect.webp`;
+        const filePath = `${userId}/${Date.now()}-detect.webp`;
         photoUrl = await uploadPhoto(filePath, rawBuffer, "image/webp");
       } catch (err) {
         console.error("R2 upload failed:", err);
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (!result) {
       if (photoUrl) {
         await supabase.from("skin_photos").insert({
-          user_id: user.id,
+          user_id: userId,
           url: photoUrl,
           date: today,
           notes: "AI Detection (gagal)",
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
     };
 
     await supabase.from("skin_photos").insert({
-      user_id: user.id,
+      user_id: userId,
       url: photoUrl,
       date: today,
       notes: "AI Detection",
@@ -125,7 +128,7 @@ export async function POST(request: NextRequest) {
     const { data: prevPhoto } = await supabase
       .from("skin_photos")
       .select("ai_analysis")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("analysis_type", "detect")
       .order("created_at", { ascending: false })
       .limit(1)

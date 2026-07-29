@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { checkPurging } from "@/lib/ai/purging";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = session.user.id;
 
+    const supabase = createDBClient();
     const { data: profile } = await supabase
       .from("users")
       .select("plan")
-      .eq("id", user.id)
+      .eq("id", userId)
       .maybeSingle();
 
     if (!profile) return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
       const { data: usageRows } = await supabase
         .from("ai_usage")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("feature", "purging");
 
       if ((usageRows || []).length >= 1) {
@@ -57,11 +59,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Mohon sebutkan nama produk yang baru dipakai" }, { status: 400 });
     }
 
-    // 1. Upload to R2 first (fail fast, proper error message)
     let photoUrl = "";
     if (rawBuffer) {
       try {
-        const filePath = `${user.id}/${Date.now()}-purging.webp`;
+        const filePath = `${userId}/${Date.now()}-purging.webp`;
         photoUrl = await uploadPhoto(filePath, rawBuffer, "image/webp");
       } catch (err) {
         console.error("R2 upload failed:", err);
@@ -72,7 +73,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 2. AI analysis
     const result = await checkPurging(imageBase64, productName.trim()).catch(() => null);
 
     const today = new Date().toISOString().split("T")[0];
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!result) {
       if (photoUrl) {
         await supabase.from("skin_photos").insert({
-          user_id: user.id,
+          user_id: userId,
           url: photoUrl,
           date: today,
           notes: `Purging check: ${productName} (gagal)`,
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
     const { data: photo, error: insertErr } = await supabase
       .from("skin_photos")
       .insert({
-        user_id: user.id,
+        user_id: userId,
         url: photoUrl,
         date: today,
         notes: `Purging check: ${productName}`,
@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPro) {
       const { error: insertErr } = await supabase.from("ai_usage").insert({
-        user_id: user.id,
+        user_id: userId,
         feature: "purging",
       });
       if (insertErr) console.error("ai_usage insert failed:", insertErr);

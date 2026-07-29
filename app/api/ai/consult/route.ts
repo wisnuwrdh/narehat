@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { createDBClient } from "@/lib/supabase/server";
 import { consult } from "@/lib/ai/rag";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -34,19 +35,15 @@ const FREE_MONTHLY_LIMIT = 10;
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = session.user.id;
 
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const supabase = createDBClient();
     const { data: profile } = await supabase
       .from("users")
       .select("plan")
-      .eq("id", user.id)
+      .eq("id", userId)
       .maybeSingle();
 
     const isPaying = profile && profile.plan !== "free";
@@ -55,7 +52,7 @@ export async function POST(request: NextRequest) {
       const { data: usageRows } = await supabase
         .from("ai_usage")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("feature", "consult")
         .gte("created_at", firstDayOfMonth());
 
@@ -71,7 +68,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!checkRateLimit(user.id)) {
+    if (!checkRateLimit(userId)) {
       return NextResponse.json(
         { error: "Terlalu banyak request. Coba lagi dalam 1 menit." },
         { status: 429 }
@@ -111,7 +108,7 @@ export async function POST(request: NextRequest) {
     const { data: recentInsights } = await supabase
       .from("insights")
       .select("title, description, type, date")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("date", { ascending: false })
       .limit(3);
 
@@ -128,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPaying) {
       const { error: insertErr } = await supabase.from("ai_usage").insert({
-        user_id: user.id,
+        user_id: userId,
         feature: "consult",
       });
       if (insertErr) console.error("ai_usage insert failed:", insertErr);
@@ -136,7 +133,7 @@ export async function POST(request: NextRequest) {
       const { data: afterRows } = await supabase
         .from("ai_usage")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("feature", "consult")
         .gte("created_at", firstDayOfMonth());
 
