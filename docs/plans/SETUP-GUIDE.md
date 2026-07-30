@@ -81,7 +81,6 @@ Buka **Supabase Dashboard → SQL Editor → New Query**, jalankan file ini SATU
 | 1 | `supabase/migrations/0003_storage_and_seed.sql` | Seed 8 produk rekomendasi (foto di R2) |
 | 2 | `supabase/migrations/0004_fix_plan_rls.sql` | Fix RLS policy: user tidak bisa ubah plan sendiri |
 | 3 | `supabase/migrations/0005_add_theme_column.sql` | Tambah kolom `theme` untuk sync tema |
-| 4 | `supabase/migrations/0003_email_verification.sql` | Tambah `email_verified`, `verify_token`, `verify_token_expiry` |
 
 ### 3.2 Catatan Auth
 

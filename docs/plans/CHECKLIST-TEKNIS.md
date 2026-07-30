@@ -5,7 +5,7 @@
 
 ---
 
-## A. Supabase — Migration (4 file)
+## A. Supabase — Migration (3 file)
 
 Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 
@@ -14,7 +14,6 @@ Jalankan SEMUA file ini di **Supabase Dashboard → SQL Editor → New Query**:
 | 1 | `supabase/migrations/0003_storage_and_seed.sql` | Seed 8 produk rekomendasi (storage bucket R2 — tidak perlu Supabase Storage) |
 | 2 | `supabase/migrations/0004_fix_plan_rls.sql` | Fix RLS policy: user tidak bisa ubah plan sendiri (WITH CHECK) |
 | 3 | `supabase/migrations/0005_add_theme_column.sql` | Tambah kolom `theme` ke `users` table |
-| 4 | `supabase/migrations/0003_email_verification.sql` | Tambah kolom `email_verified`, `verify_token`, `verify_token_expiry` |
 
 **Cara:**
 1. Buka https://supabase.com/dashboard/project/<your-project>/sql/new
@@ -150,7 +149,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 
 | # | Flow | Langkah | Expected Result |
 |---|------|---------|-----------------|
-| 1 | Register | Buka `/register` → isi form → Turnstile → klik Daftar | Redirect ke `/onboarding`, email verifikasi terkirim |
+| 1 | Register | Buka `/register` → isi form → Turnstile → klik Daftar | Redirect ke `/onboarding` |
 | 2 | Onboarding | Isi 5 step → klik Selesai | Buka `/settings`, cek skin type sudah sesuai pilihan |
 | 3 | Tracker | Buka `/tracker` → isi tidur/air/stress/skincare → Simpan | Tampil pesan "Data berhasil disimpan" |
 | 4 | Dashboard | Buka `/dashboard` | Skin score muncul (bukan 0), ringkasan hari ini dari tracker |
@@ -159,7 +158,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | 7 | Payment | Settings → Kelola → Upgrade Bulanan → Bayar QRIS | Payment page QRIS terbuka di tab baru |
 | 8 | Middleware | Buka Incognito → ketik `/dashboard` | Redirect ke `/login` |
 | 9 | Email Reset | Buka `/forgot-password` → masukkan email | Email reset terkirim (cek inbox) |
-| 10 | Email Verif | Daftar dengan email → cek inbox | Email verifikasi masuk, klik link → login page banner hijau |
+
 
 ---
 
@@ -169,7 +168,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 1.  D.  Buat Turnstile widget di Cloudflare Dashboard
 2.  C.  Setup Google OAuth di console.cloud.google.com
 3.  B.  Set semua env vars di Cloudflare Pages
-4.  A.  Jalankan 4 migration SQL di Supabase
+4.  A.  Jalankan 3 migration SQL di Supabase
 5.  E.  Setup Resend.com (domain + API key)
 6.  F.  Register SumoPod Payment webhook
 7.  G.  Jalankan ingest jurnal

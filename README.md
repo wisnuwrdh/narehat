@@ -319,8 +319,6 @@ narehat/
 │       ├── auth/
 │       │   ├── [...nextauth]/      # NextAuth handler
 │       │   ├── forgot-password/    # Generate token + kirim email reset
-│       │   ├── send-verification/  # Kirim email verifikasi setelah register
-│       │   ├── verify-email/       # Handle link verifikasi
 │       │   └── callback/           # Google OAuth callback
 │       ├── turnstile/              # Server-side Turnstile verify
 │       ├── tracker/               # CRUD daily_logs

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ToastProvider } from "@/contexts/ToastContext";
 import { UserProvider, useUser } from "@/contexts/UserContext";
-import { VerifyEmailBanner } from "@/components/ui/VerifyEmailBanner";
 
 const navItems = [
   { href: "/dashboard", icon: "home", label: "Beranda" },
@@ -23,7 +22,6 @@ function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-white">
       <div className={!hideNav ? "pb-32 md:pb-0 md:ml-[72px]" : ""}>
-        <VerifyEmailBanner />
         {children}
       </div>
       {!hideNav && (
