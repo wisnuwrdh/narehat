@@ -1,21 +1,19 @@
 const MAX_DIMENSION = 1200;
 const QUALITY = 0.85;
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
-function readAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Gagal membaca file"));
-    reader.readAsDataURL(file);
-  });
-}
-
-function imageFromDataURL(dataUrl: string): Promise<HTMLImageElement> {
+function imageFromURL(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Format gambar tidak didukung"));
-    img.src = dataUrl;
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Format gambar tidak didukung"));
+    };
+    img.src = url;
   });
 }
 
@@ -32,8 +30,8 @@ async function decodeImage(file: File): Promise<{
     });
     return { source: bitmap, width: bitmap.width, height: bitmap.height };
   } catch {
-    const dataUrl = await readAsDataURL(file);
-    const img = await imageFromDataURL(dataUrl);
+    const url = URL.createObjectURL(file);
+    const img = await imageFromURL(url);
     return { source: img, width: img.naturalWidth, height: img.naturalHeight };
   }
 }
@@ -68,6 +66,10 @@ function compressToWebP(
 }
 
 export async function compressImageOnClient(file: File): Promise<File> {
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("Ukuran file melebihi 15MB. Pilih foto dengan resolusi lebih rendah.");
+  }
+
   const { source, width, height } = await decodeImage(file);
 
   let dstW = width;

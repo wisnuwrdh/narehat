@@ -33,6 +33,7 @@ const userFriendlyError = (e: unknown): string => {
     "Format gambar tidak didukung": "Format gambar tidak didukung oleh browser. Gunakan JPG atau PNG.",
     "Canvas tidak didukung": "Browser tidak mendukung kompresi gambar. Coba browser lain (Chrome).",
     "Gagal memproses gambar": "Gagal memproses gambar. Coba foto lain.",
+    "Ukuran file melebihi 15MB. Pilih foto dengan resolusi lebih rendah.": "Ukuran file terlalu besar (maks 15MB). Pilih foto dengan resolusi lebih rendah.",
   };
   return map[msg] || msg || "Gagal terhubung ke server.";
 };
