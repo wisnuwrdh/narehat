@@ -15,6 +15,8 @@ function getErrorMessage(error: unknown): string {
       return "Email ini sudah terdaftar.";
     if (msg.includes("password")) return "Password minimal 6 karakter.";
     if (msg.includes("valid email")) return "Format email tidak valid.";
+    if (msg.includes("Configuration"))
+      return "Konfigurasi server tidak valid. Silakan coba lagi.";
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
@@ -111,6 +113,7 @@ export default function RegisterPage() {
       setLoading(false);
 
       if (result?.error) {
+        setTurnstileToken("");
         setError(getErrorMessage(new Error(result.error)));
         return;
       }
@@ -120,6 +123,7 @@ export default function RegisterPage() {
       router.replace("/onboarding");
     } catch (err) {
       setLoading(false);
+      setTurnstileToken("");
       console.error("[Register Fetch Error]", err);
       setError("Gagal terhubung ke server.");
     }
