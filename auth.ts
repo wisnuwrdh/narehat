@@ -3,6 +3,7 @@ import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import { createClient } from "@supabase/supabase-js"
 import { hashPassword, verifyPassword } from "@/lib/crypto/password"
+import { CredentialsSignin } from "@auth/core/errors"
 
 function getSupabase() {
   return createClient(
@@ -34,14 +35,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .select("id")
               .eq("email", email)
               .maybeSingle()
-            if (checkError) throw new Error(`DB check gagal: ${checkError.message}`)
-            if (existing) throw new Error("Email sudah terdaftar")
+            if (checkError) {
+              const err = new CredentialsSignin()
+              err.code = `DB check gagal: ${checkError.message}`
+              throw err
+            }
+            if (existing) {
+              const err = new CredentialsSignin()
+              err.code = "Email sudah terdaftar"
+              throw err
+            }
 
             let password_hash: string
             try {
               password_hash = await hashPassword(password)
             } catch {
-              throw new Error("Hash password gagal: Web Crypto API tidak tersedia")
+              const err = new CredentialsSignin()
+              err.code = "Hash password gagal: Web Crypto API tidak tersedia"
+              throw err
             }
 
             const { data: newUser, error: insertError } = await supabase
@@ -49,9 +60,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .insert({ email, name, password_hash })
               .select("id, email, name")
               .single()
-            if (insertError) throw new Error(`DB insert gagal: ${insertError.message}`)
+            if (insertError) {
+              const err = new CredentialsSignin()
+              err.code = `DB insert gagal: ${insertError.message}`
+              throw err
+            }
 
-            if (!newUser) throw new Error("Gagal mendaftarkan akun")
+            if (!newUser) {
+              const err = new CredentialsSignin()
+              err.code = "Gagal mendaftarkan akun"
+              throw err
+            }
             return { id: newUser.id, email: newUser.email, name: newUser.name }
           }
 
@@ -60,7 +79,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .select("id, email, name, password_hash")
             .eq("email", email)
             .single()
-          if (loginError) throw new Error(`DB login gagal: ${loginError.message}`)
+          if (loginError) {
+            const err = new CredentialsSignin()
+            err.code = `DB login gagal: ${loginError.message}`
+            throw err
+          }
 
           if (!user?.password_hash) return null
 
@@ -68,13 +91,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           try {
             valid = await verifyPassword(password, user.password_hash)
           } catch {
-            throw new Error("Verify password gagal: Web Crypto API tidak tersedia")
+            const err = new CredentialsSignin()
+            err.code = "Verify password gagal: Web Crypto API tidak tersedia"
+            throw err
           }
           if (!valid) return null
           return { id: user.id, email: user.email, name: user.name }
         } catch (err) {
           console.error("[Auth Error]", err)
-          throw err
+          if (err instanceof CredentialsSignin) throw err
+          const wrapped = new CredentialsSignin()
+          wrapped.code = err instanceof Error ? err.message : "Terjadi kesalahan"
+          throw wrapped
         }
       },
     }),

@@ -15,10 +15,8 @@ function getErrorMessage(error: unknown): string {
       return "Email ini sudah terdaftar.";
     if (msg.includes("password")) return "Password minimal 6 karakter.";
     if (msg.includes("valid email")) return "Format email tidak valid.";
-    if (msg.includes("Configuration"))
+    if (msg.includes("Configuration") || msg === "CredentialsSignin")
       return "Konfigurasi server tidak valid. Silakan coba lagi.";
-    if (msg.includes("DB check gagal") || msg.includes("DB insert gagal") || msg.includes("DB login gagal") || msg.includes("Hash password gagal") || msg.includes("Verify password gagal"))
-      return msg;
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";
@@ -116,7 +114,8 @@ export default function RegisterPage() {
 
       if (result?.error) {
         setTurnstileToken("");
-        setError(getErrorMessage(new Error(result.error)));
+        const msg = result.code || result.error;
+        setError(getErrorMessage(new Error(msg)));
         return;
       }
 
