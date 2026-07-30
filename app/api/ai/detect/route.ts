@@ -32,11 +32,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Ukuran foto terlalu besar. Maks 10MB." }, { status: 413 });
     }
 
+    if (file && !/\.(jpg|jpeg|png|webp)$/i.test(file.name)) {
+      return NextResponse.json({ error: "Format file tidak didukung. Gunakan JPG, PNG, atau WebP." }, { status: 400 });
+    }
+
     let rawBuffer: Uint8Array | null = null;
 
     if (file) {
       const arrayBuffer = await file.arrayBuffer();
       rawBuffer = new Uint8Array(arrayBuffer);
+      if (rawBuffer.length < 4 || !(
+        (rawBuffer[0] === 0xFF && rawBuffer[1] === 0xD8) ||
+        (rawBuffer[0] === 0x89 && rawBuffer[1] === 0x50 && rawBuffer[2] === 0x4E && rawBuffer[3] === 0x47) ||
+        (rawBuffer[0] === 0x52 && rawBuffer[1] === 0x49 && rawBuffer[2] === 0x46 && rawBuffer[3] === 0x46)
+      )) {
+        return NextResponse.json({ error: "File bukan gambar yang valid." }, { status: 400 });
+      }
       const mime = file.type || "image/jpeg";
       imageBase64 = `data:${mime};base64,${arrayBufferToBase64(arrayBuffer)}`;
     }

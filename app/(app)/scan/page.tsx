@@ -29,6 +29,10 @@ const userFriendlyError = (e: unknown): string => {
   const map: Record<string, string> = {
     "The source image could not be decoded": "Format gambar tidak didukung. Coba gunakan foto JPG/PNG biasa.",
     "Image compression failed": "Gagal mengompres gambar. Coba foto lain.",
+    "Gagal membaca file": "File terlalu besar atau tidak bisa dibaca. Coba foto dengan resolusi lebih rendah.",
+    "Format gambar tidak didukung": "Format gambar tidak didukung oleh browser. Gunakan JPG atau PNG.",
+    "Canvas tidak didukung": "Browser tidak mendukung kompresi gambar. Coba browser lain (Chrome).",
+    "Gagal memproses gambar": "Gagal memproses gambar. Coba foto lain.",
   };
   return map[msg] || msg || "Gagal terhubung ke server.";
 };
@@ -85,6 +89,7 @@ export default function ScanPage() {
       setPhotoFile(file);
       const reader = new FileReader();
       reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.onerror = () => setDetectError("Gagal membaca file. Coba foto lain.");
       reader.readAsDataURL(file);
       setDetectResult(null);
       setDetectError("");
@@ -127,6 +132,7 @@ export default function ScanPage() {
       setPurgingFile(file);
       const reader = new FileReader();
       reader.onload = () => setPurgingPhoto(reader.result as string);
+      reader.onerror = () => setPurgingError("Gagal membaca file. Coba foto lain.");
       reader.readAsDataURL(file);
     }
   };
@@ -200,7 +206,7 @@ export default function ScanPage() {
               </button>
             )}
           </div>
-          <input ref={fileRef} type="file" accept="image/*" onChange={handlePhoto} className="hidden" />
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePhoto} className="hidden" />
           {photoPreview ? (
             <div className="relative rounded-2xl overflow-hidden mb-4">
               <img src={photoPreview} alt="Preview" className="w-full h-56 object-cover rounded-2xl" />
@@ -337,7 +343,7 @@ export default function ScanPage() {
               onChange={(val) => setPurgingProduct(val)}
             />
           </div>
-          <input ref={purgingRef} type="file" accept="image/*" onChange={handlePurgingPhoto} className="hidden" />
+          <input ref={purgingRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handlePurgingPhoto} className="hidden" />
           {purgingPhoto ? (
             <div className="relative rounded-xl overflow-hidden mb-3">
               <img src={purgingPhoto} alt="Preview" className="w-full h-40 object-cover rounded-xl" />

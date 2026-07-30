@@ -25,7 +25,11 @@ async function decodeImage(file: File): Promise<{
   height: number;
 }> {
   try {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await createImageBitmap(file, {
+      resizeWidth: MAX_DIMENSION,
+      resizeHeight: MAX_DIMENSION,
+      resizeQuality: "high",
+    });
     return { source: bitmap, width: bitmap.width, height: bitmap.height };
   } catch {
     const dataUrl = await readAsDataURL(file);
