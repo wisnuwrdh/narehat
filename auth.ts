@@ -1,6 +1,15 @@
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
+import { createClient } from "@supabase/supabase-js"
+import { hash, compare } from "bcryptjs"
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  )
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -17,11 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             action?: string
             name?: string
           }
-          const { createClient } = await import("@supabase/supabase-js")
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          )
+          const supabase = getSupabase()
 
           if (action === "register") {
             const { data: existing } = await supabase
@@ -31,7 +36,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .maybeSingle()
             if (existing) throw new Error("Email sudah terdaftar")
 
-            const { hash } = await import("bcryptjs")
             const password_hash = await hash(password, 10)
             const { data: newUser } = await supabase
               .from("users")
@@ -50,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .single()
 
           if (!user?.password_hash) return null
-          const valid = await (await import("bcryptjs")).compare(password, user.password_hash)
+          const valid = await compare(password, user.password_hash)
           if (!valid) return null
           return { id: user.id, email: user.email, name: user.name }
         } catch (err) {
@@ -62,11 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      const { createClient } = await import("@supabase/supabase-js")
-      const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      )
+      const supabase = getSupabase()
 
       if (account?.provider === "google") {
         const { data: existing } = await supabase
@@ -100,11 +100,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, account, user }) {
       if (user) {
         if (account?.provider === "google") {
-          const { createClient } = await import("@supabase/supabase-js")
-          const supabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          )
+          const supabase = getSupabase()
           const { data: dbUser } = await supabase
             .from("users")
             .select("id")

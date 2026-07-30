@@ -1,7 +1,7 @@
 "use client"
 
 import Script from "next/script"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 declare global {
   interface Window {
@@ -20,27 +20,33 @@ export function Turnstile({
   onToken: (token: string) => void
   siteKey: string
 }) {
-  const [widgetId, setWidgetId] = useState<string | null>(null)
+  const [ready, setReady] = useState(false)
+  const widgetRef = useRef<string | null>(null)
+  const onTokenRef = useRef(onToken)
+  onTokenRef.current = onToken
 
   useEffect(() => {
+    if (!ready || widgetRef.current) return
     const id = window.turnstile?.render("#cf-turnstile-container", {
       sitekey: siteKey,
-      callback: (token: string) => onToken(token),
-      "expired-callback": () => onToken(""),
+      callback: (token: string) => onTokenRef.current(token),
+      "expired-callback": () => onTokenRef.current(""),
     })
-    if (id) setWidgetId(id)
+    if (id) widgetRef.current = id
     return () => {
-      if (widgetId) window.turnstile?.reset(widgetId)
+      if (widgetRef.current) {
+        window.turnstile?.reset(widgetRef.current)
+        widgetRef.current = null
+      }
     }
-  }, [siteKey])
+  }, [ready, siteKey])
 
   return (
     <>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
-        async
-        defer
+        onLoad={() => setReady(true)}
       />
       <div id="cf-turnstile-container" className="flex justify-center" />
     </>
