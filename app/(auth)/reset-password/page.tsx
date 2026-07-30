@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Logo } from "@/components/ui/Logo";
+import { hashPassword } from "@/lib/crypto/password";
 
 function Inner() {
   const router = useRouter();
@@ -62,8 +63,7 @@ function Inner() {
 
     setLoading(true);
     try {
-      const { hash } = await import("bcryptjs");
-      const password_hash = await hash(password, 12);
+      const password_hash = await hashPassword(password);
 
       const supabase = createClient();
       const { error: updateError } = await supabase

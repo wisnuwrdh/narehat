@@ -2,6 +2,7 @@ import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import { createClient } from "@supabase/supabase-js"
+import { hashPassword, verifyPassword } from "@/lib/crypto/password"
 
 function getSupabase() {
   return createClient(
@@ -35,8 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               .maybeSingle()
             if (existing) throw new Error("Email sudah terdaftar")
 
-            const { hash } = await import("bcryptjs")
-            const password_hash = await hash(password, 10)
+            const password_hash = await hashPassword(password)
             const { data: newUser } = await supabase
               .from("users")
               .insert({ email, name, password_hash })
@@ -54,8 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .single()
 
           if (!user?.password_hash) return null
-          const { compare } = await import("bcryptjs")
-          const valid = await compare(password, user.password_hash)
+          const valid = await verifyPassword(password, user.password_hash)
           if (!valid) return null
           return { id: user.id, email: user.email, name: user.name }
         } catch (err) {
