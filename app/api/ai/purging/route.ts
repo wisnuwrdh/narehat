@@ -42,6 +42,10 @@ export async function POST(request: NextRequest) {
     const productName = (formData.get("product_name") as string) || "";
     let imageBase64 = formData.get("image") as string | null;
 
+    if (file && file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "Ukuran foto terlalu besar. Maks 10MB." }, { status: 413 });
+    }
+
     let rawBuffer: Uint8Array | null = null;
 
     if (file) {
@@ -126,7 +130,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       id: photo?.id,
       type: result.type,
-      typeDisplay: result.type === "purging" ? "Purging (Reaksi Normal)" : "Breakout (Reaksi Negatif)",
+      typeDisplay: result.type === "purging" ? "Purging (Reaksi Normal)" : result.type === "normal" ? "Normal (Tidak Ada Reaksi)" : "Breakout (Reaksi Negatif)",
       confidence: result.confidence,
       description: result.description,
       recommendations: result.recommendations,

@@ -11,7 +11,11 @@ export async function detectAcne(imageBase64: string): Promise<{
     return null;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
+
   const response = await fetch("https://ai.sumopod.com/v1/chat/completions", {
+    signal: controller.signal,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -23,12 +27,15 @@ export async function detectAcne(imageBase64: string): Promise<{
         {
           role: "system",
           content: `Kamu adalah AI dermatologi untuk analisis jerawat dari foto. Tugasmu: analisis foto kulit wajah dan return JSON.
+Akurasi sangat penting. Jangan MEMAKSA mendeteksi jerawat jika memang tidak ada.
 
 ATURAN PENTING:
 - JANGAN memberikan diagnosis medis
 - JANGAN menyatakan keparahan sebagai "ringan/sedang/parah" — gunakan "mild/moderate/informative" sebagai deskripsi objektif
 - JANGAN merekomendasikan obat
 - Fokus pada OBSERVASI objektif: jenis lesi, lokasi, estimasi faktor pemicu
+- Jika kulit bersih / tidak ada jerawat: types = [], severity = "informative", confidence = 0.9-1.0, location = "", triggers = []
+- JANGAN paksa mengisi location atau triggers jika tidak relevan
 
 RESPONSE FORMAT (JSON only, no markdown):
 {
@@ -40,26 +47,34 @@ RESPONSE FORMAT (JSON only, no markdown):
 }
 
 Valid types: papules, pustules, nodules, cystic, comedonal, blackheads, whiteheads
-Valid triggers: hormonal, diet, stress, skincare, maskne, sleep, hygiene, friction`,
+Valid triggers: hormonal, diet, stress, skincare, maskne, sleep, hygiene, friction
+
+Contoh response benar untuk kulit bersih:
+{"types":[],"severity":"informative","confidence":0.97,"location":"","triggers":[]}
+
+Contoh response benar untuk kulit berjerawat:
+{"types":["papules","pustules"],"severity":"moderate","confidence":0.8,"location":"dagu, pipi kiri","triggers":["hormonal","stress"]}`,
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Analisis foto kulit ini. Identifikasi jenis jerawat, lokasi, dan estimasi faktor pemicu. Return JSON sesuai format.",
+              text: "Analisis foto kulit ini. Apakah ada jerawat? Jika ada, identifikasi jenis, lokasi, dan faktor pemicu. Jika tidak ada, return sesuai aturan. Return JSON.",
             },
             {
               type: "image_url",
-              image_url: { url: imageBase64, detail: "low" },
+              image_url: { url: imageBase64, detail: "auto" },
             },
           ],
         },
       ],
-      max_tokens: 300,
-      temperature: 0.3,
+      max_tokens: 500,
+      temperature: 0.1,
     }),
   });
+
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     const err = await response.text();

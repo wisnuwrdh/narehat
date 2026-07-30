@@ -41,6 +41,7 @@ export default function ScanPage() {
     tips: string[];
     trend: string | null;
     disclaimer: string;
+    is_clean_skin?: boolean;
   } | null>(null);
   const [detectError, setDetectError] = useState("");
 
@@ -104,8 +105,8 @@ export default function ScanPage() {
         .then((r) => r.json())
         .then((d) => setHistory(d.photos || []))
         .catch(() => {});
-    } catch {
-      setDetectError("Gagal terhubung ke server.");
+    } catch (e) {
+      setDetectError(e instanceof Error ? e.message : "Gagal terhubung ke server.");
     } finally {
       setDetecting(false);
     }
@@ -138,8 +139,8 @@ export default function ScanPage() {
         return;
       }
       setPurgingResult(data);
-    } catch {
-      setPurgingError("Gagal terhubung ke server. Periksa koneksi kamu.");
+    } catch (e) {
+      setPurgingError(e instanceof Error ? e.message : "Gagal terhubung ke server. Periksa koneksi kamu.");
     } finally {
       setPurgingLoading(false);
     }
@@ -370,12 +371,12 @@ export default function ScanPage() {
           )}
           {purgingResult && (
             <div className="space-y-3">
-              <div className={`p-4 rounded-2xl border-2 ${purgingResult.type === "purging" ? "bg-emerald-50 border-emerald-200" : "bg-red-50 border-red-200"}`}>
+              <div className={`p-4 rounded-2xl border-2 ${purgingResult.type === "purging" ? "bg-emerald-50 border-emerald-200" : purgingResult.type === "normal" ? "bg-sky-50 border-sky-200" : "bg-red-50 border-red-200"}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`material-symbols-outlined ${purgingResult.type === "purging" ? "text-emerald-600" : "text-red-600"}`}>
-                    {purgingResult.type === "purging" ? "check_circle" : "warning"}
+                  <span className={`material-symbols-outlined ${purgingResult.type === "purging" ? "text-emerald-600" : purgingResult.type === "normal" ? "text-sky-600" : "text-red-600"}`}>
+                    {purgingResult.type === "purging" ? "check_circle" : purgingResult.type === "normal" ? "check_circle" : "warning"}
                   </span>
-                  <span className={`text-sm font-bold ${purgingResult.type === "purging" ? "text-emerald-700" : "text-red-700"}`}>
+                  <span className={`text-sm font-bold ${purgingResult.type === "purging" ? "text-emerald-700" : purgingResult.type === "normal" ? "text-sky-700" : "text-red-700"}`}>
                     {purgingResult.typeDisplay}
                   </span>
                   <span className="ml-auto text-[10px] text-muted">{Math.round(purgingResult.confidence * 100)}% confidence</span>
@@ -432,14 +433,14 @@ export default function ScanPage() {
                 const a = scan.ai_analysis;
                 const isPurging = scan.analysis_type === "purging";
                 const label = isPurging
-                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : "Belum dianalisis"
+                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : a?.type === "normal" ? "Normal" : "Belum dianalisis"
                   : a?.types?.join(", ") || "Belum dianalisis";
                 const badgeColor = isPurging
-                  ? a?.type === "purging" ? "bg-emerald-50 text-emerald-700" : a?.type === "breakout" ? "bg-red-50 text-red-700" : "bg-slate-50 text-slate-600"
-                  : a?.severity === "mild" ? "bg-emerald-50 text-emerald-700" : a?.severity === "moderate" ? "bg-amber-50 text-amber-700" : "bg-slate-50 text-slate-600";
+                  ? a?.type === "purging" ? "bg-emerald-50 text-emerald-700" : a?.type === "breakout" ? "bg-red-50 text-red-700" : a?.type === "normal" ? "bg-sky-50 text-sky-700" : "bg-slate-50 text-slate-600"
+                  : a?.severity === "mild" ? "bg-emerald-50 text-emerald-700" : a?.severity === "moderate" ? "bg-amber-50 text-amber-700" : a?.severity === "informative" && a?.types?.length === 0 ? "bg-sky-50 text-sky-700" : "bg-slate-50 text-slate-600";
                 const badgeLabel = isPurging
-                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : "-"
-                  : a?.severity === "mild" ? "Ringan" : a?.severity === "moderate" ? "Sedang" : a?.severity ? "Observasi" : "-";
+                  ? a?.type === "purging" ? "Purging" : a?.type === "breakout" ? "Breakout" : a?.type === "normal" ? "Normal" : "-"
+                  : a?.severity === "mild" ? "Ringan" : a?.severity === "moderate" ? "Sedang" : a?.severity === "informative" && a?.types?.length === 0 ? "Bersih" : a?.severity ? "Observasi" : "-";
                 return (
                   <div key={scan.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200">

@@ -27,6 +27,10 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
     let imageBase64 = formData.get("image") as string | null;
 
+    if (file && file.size > 10 * 1024 * 1024) {
+      return NextResponse.json({ error: "Ukuran foto terlalu besar. Maks 10MB." }, { status: 413 });
+    }
+
     let rawBuffer: Uint8Array | null = null;
 
     if (file) {
@@ -92,10 +96,12 @@ export async function POST(request: NextRequest) {
       ai_analysis: analysisData,
     });
 
+    const isCleanSkin = result.types.length === 0;
+
     const severityLabels: Record<string, string> = {
       mild: "Ringan",
       moderate: "Sedang",
-      informative: "Perlu Observasi",
+      informative: isCleanSkin ? "Kulit Bersih" : "Tidak Terdeteksi",
     };
 
     const typeLabels: Record<string, string> = {
@@ -121,7 +127,9 @@ export async function POST(request: NextRequest) {
     const severityTips: Record<string, string[]> = {
       mild: ["Kondisi masih terkendali, lanjutkan rutinitas skincare", "Catat perkembangan setiap minggu"],
       moderate: ["Perhatikan perubahan — jika memburuk dalam 2 minggu, konsultasi ke dokter", "Pastikan produk yang dipakai cocok"],
-      informative: ["Tidak terdeteksi jerawat aktif yang signifikan", "Tetap jaga rutinitas skincare harian"],
+      informative: isCleanSkin
+        ? ["Kulit terlihat bersih! Lanjutkan rutinitas skincare harian", "Tetap jaga pola hidup sehat untuk mencegah jerawat"]
+        : ["Tidak terdeteksi jerawat aktif yang signifikan", "Tetap jaga rutinitas skincare harian"],
     };
 
     // Trend tracking: compare with previous scan
@@ -138,7 +146,7 @@ export async function POST(request: NextRequest) {
     if (prevPhoto?.ai_analysis) {
       const prev = prevPhoto.ai_analysis as { severity?: string };
       if (prev.severity && result.severity !== prev.severity) {
-        const rank: Record<string, number> = { mild: 0, moderate: 1, informative: 2 };
+        const rank: Record<string, number> = { informative: 0, mild: 1, moderate: 2 };
         const curRank = rank[result.severity] ?? 1;
         const prevRank = rank[prev.severity] ?? 1;
         if (curRank < prevRank) trend = "membaik";
@@ -158,14 +166,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       types: result.types,
-      typesDisplay: result.types.map((t: string) => typeLabels[t] || t),
+      typesDisplay: isCleanSkin
+        ? ["Tidak terdeteksi jerawat"]
+        : result.types.map((t: string) => typeLabels[t] || t),
       severity: result.severity,
       severityDisplay: severityLabels[result.severity] || result.severity,
       confidence: result.confidence,
-      location: result.location,
-      triggers: result.triggers,
+      location: isCleanSkin ? "" : result.location,
+      triggers: isCleanSkin ? [] : result.triggers,
       tips: Array.from(tipsSet),
       trend,
+      is_clean_skin: isCleanSkin,
       disclaimer:
         "Hasil ini bersifat informatif, bukan diagnosis medis. Konsultasikan ke dokter kulit untuk evaluasi lebih lanjut.",
     });

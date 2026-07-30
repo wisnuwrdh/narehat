@@ -17,20 +17,19 @@ export async function compressImageOnClient(file: File): Promise<File> {
   canvas.width = dstW;
   canvas.height = dstH;
   const ctx = canvas.getContext("2d");
-  if (!ctx) return file;
+  if (!ctx) throw new Error("Canvas not supported");
 
   ctx.drawImage(bitmap, 0, 0, dstW, dstH);
   bitmap.close();
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
           const name = file.name.replace(/\.[^.]+$/, ".webp");
           resolve(new File([blob], name, { type: "image/webp" }));
         } else {
-          resolve(file);
+          reject(new Error("Image compression failed"));
         }
       },
       "image/webp",
