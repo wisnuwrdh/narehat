@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { detectAcne } from "@/lib/ai/vision";
+import { generateSkinTips } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
@@ -114,23 +115,12 @@ export async function POST(request: NextRequest) {
       whiteheads: "Komedo putih",
     };
 
-    const typeTips: Record<string, string[]> = {
-      papules: ["Hindari menyentuh atau memencet — bisa infeksi", "Kompres dingin bantu redakan peradangan"],
-      pustules: ["Jangan pecahkan pustula — risiko bekas luka", "Hindari scrub kasar di area ini"],
-      nodules: ["Nodul adalah jerawat dalam, butuh waktu sembuh lebih lama", "Konsultasi ke dokter untuk penanganan lanjut"],
-      cystic: ["Kistik butuh penanganan medis — jangan dipencet", "Segera konsultasi ke dokter kulit"],
-      comedonal: ["Eksfoliasi rutin (AHA/BHA) bisa membantu", "Pastikan membersihkan wajah 2× sehari"],
-      blackheads: ["Eksfoliasi rutin bisa membantu", "Hindari pore strip berlebihan"],
-      whiteheads: ["Produk dengan salicylic acid bisa membantu", "Jaga kelembapan kulit tetap seimbang"],
-    };
-
-    const severityTips: Record<string, string[]> = {
-      mild: ["Kondisi masih terkendali, lanjutkan rutinitas skincare", "Catat perkembangan setiap minggu"],
-      moderate: ["Perhatikan perubahan — jika memburuk dalam 2 minggu, konsultasi ke dokter", "Pastikan produk yang dipakai cocok"],
-      informative: isCleanSkin
-        ? ["Kulit terlihat bersih! Lanjutkan rutinitas skincare harian", "Tetap jaga pola hidup sehat untuk mencegah jerawat"]
-        : ["Tidak terdeteksi jerawat aktif yang signifikan", "Tetap jaga rutinitas skincare harian"],
-    };
+    // 3. Generate personal tips (text-only, DeepSeek — murah)
+    const tips = await generateSkinTips({
+      types: result.types,
+      severity: result.severity,
+      location: result.location,
+    }).catch(() => []);
 
     // Trend tracking: compare with previous scan
     const { data: prevPhoto } = await supabase
@@ -154,16 +144,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Collect tips based on detected types + severity
-    const tipsSet = new Set<string>();
-    for (const t of result.types) {
-      const tT = typeTips[t];
-      if (tT) tT.forEach((tip: string) => tipsSet.add(tip));
-    }
-    if (severityTips[result.severity]) {
-      severityTips[result.severity].forEach((tip: string) => tipsSet.add(tip));
-    }
-
     return NextResponse.json({
       types: result.types,
       typesDisplay: isCleanSkin
@@ -174,7 +154,7 @@ export async function POST(request: NextRequest) {
       confidence: result.confidence,
       location: isCleanSkin ? "" : result.location,
       triggers: isCleanSkin ? [] : result.triggers,
-      tips: Array.from(tipsSet),
+      tips,
       trend,
       is_clean_skin: isCleanSkin,
       disclaimer:

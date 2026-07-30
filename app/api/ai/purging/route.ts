@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { checkPurging } from "@/lib/ai/purging";
+import { generatePurgingAdvice } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 
@@ -95,6 +96,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
     }
 
+    // Generate description & recommendations (text-only, DeepSeek — murah)
+    const advice = await generatePurgingAdvice(result.type, productName.trim()).catch(() => null);
+
+    const description = advice?.description || "";
+    const recommendations = advice?.recommendations || [];
+
     const { data: photo, error: insertErr } = await supabase
       .from("skin_photos")
       .insert({
@@ -106,8 +113,8 @@ export async function POST(request: NextRequest) {
         ai_analysis: {
           type: result.type,
           confidence: result.confidence,
-          description: result.description,
-          recommendations: result.recommendations,
+          description,
+          recommendations,
           product_name: productName,
           analyzed_at: new Date().toISOString(),
         },
@@ -132,8 +139,8 @@ export async function POST(request: NextRequest) {
       type: result.type,
       typeDisplay: result.type === "purging" ? "Purging (Reaksi Normal)" : result.type === "normal" ? "Normal (Tidak Ada Reaksi)" : "Breakout (Reaksi Negatif)",
       confidence: result.confidence,
-      description: result.description,
-      recommendations: result.recommendations,
+      description,
+      recommendations,
       product_name: productName,
       disclaimer: "Hasil ini bersifat informatif, bukan diagnosis medis. Jika kondisi memburuk, segera hentikan produk dan konsultasikan ke dokter kulit.",
     });
