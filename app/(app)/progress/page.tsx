@@ -6,6 +6,36 @@ import { analyzeCorrelations } from "@/lib/insights/correlation";
 import Link from "next/link";
 
 type Range = "7" | "30" | "90";
+type FilterType = "all" | "detect" | "purging";
+type SortType = "newest" | "severity";
+
+interface AiAnalysis {
+  types?: string[];
+  severity?: string;
+  confidence?: number;
+  location?: string;
+  triggers?: string[];
+  analyzed_at?: string;
+  type?: string;
+  description?: string;
+  recommendations?: string[];
+  product_name?: string;
+}
+
+interface PhotoWithAnalysis {
+  id: string;
+  url: string;
+  date: string;
+  label: string;
+  ai_analysis: AiAnalysis | null;
+  analysis_type: string | null;
+  notes?: string;
+}
+
+interface DiffItem {
+  type: "improved" | "worsened" | "info";
+  text: string;
+}
 
 function computeSkinScore(log: Record<string, number>) {
   let score = 50;
@@ -31,6 +61,193 @@ interface ChartData {
   scores: number[];
 }
 
+function getBadge(photo: PhotoWithAnalysis): { label: string; color: string } | null {
+  const a = photo.ai_analysis;
+  if (!a) return null;
+
+  if (photo.analysis_type === "purging") {
+    const map: Record<string, { label: string; color: string }> = {
+      purging: { label: "Purging", color: "bg-emerald-50 text-emerald-700" },
+      breakout: { label: "Breakout", color: "bg-red-50 text-red-700" },
+      normal: { label: "Normal", color: "bg-sky-50 text-sky-700" },
+    };
+    return map[a.type ?? ""] ?? null;
+  }
+
+  if (photo.analysis_type === "detect") {
+    if (a.types && a.types.length === 0 && a.severity === "informative") {
+      return { label: "Bersih", color: "bg-sky-50 text-sky-700" };
+    }
+    const map: Record<string, { label: string; color: string }> = {
+      mild: { label: "Ringan", color: "bg-emerald-50 text-emerald-700" },
+      moderate: { label: "Sedang", color: "bg-amber-50 text-amber-700" },
+    };
+    return map[a.severity ?? ""] ?? { label: a.severity ?? "Analisis", color: "bg-slate-50 text-slate-600" };
+  }
+
+  return null;
+}
+
+function getSeverityLabel(severity?: string): string {
+  const map: Record<string, string> = {
+    informative: "Observasi",
+    mild: "Ringan",
+    moderate: "Sedang",
+  };
+  return map[severity ?? ""] ?? severity ?? "-";
+}
+
+function getTypeLabel(type?: string): string {
+  const map: Record<string, string> = {
+    papules: "Papula",
+    pustules: "Pustula",
+    nodules: "Nodul",
+    cystic: "Kistik",
+    comedonal: "Komedo",
+    blackheads: "Komedo Hitam",
+    whiteheads: "Komedo Putih",
+  };
+  return map[type ?? ""] ?? type ?? "-";
+}
+
+function computeDiff(prev: PhotoWithAnalysis, curr: PhotoWithAnalysis): DiffItem[] {
+  const p = prev.ai_analysis;
+  const c = curr.ai_analysis;
+  if (!p || !c) return [];
+
+  const [earlier, later] = prev.date <= curr.date ? [p, c] : [c, p];
+
+  const diffs: DiffItem[] = [];
+
+  if (earlier.types !== undefined && later.types !== undefined) {
+    const gained = later.types.filter((t) => !earlier.types!.includes(t));
+    const lost = earlier.types.filter((t) => !later.types!.includes(t));
+    if (gained.length > 0) {
+      diffs.push({
+        type: gained.length > lost.length ? "worsened" : "info",
+        text: `Jerawat baru: ${gained.map(getTypeLabel).join(", ")}`,
+      });
+    }
+    if (lost.length > 0) {
+      diffs.push({
+        type: lost.length >= gained.length ? "improved" : "info",
+        text: `Jerawat hilang: ${lost.map(getTypeLabel).join(", ")}`,
+      });
+    }
+  }
+
+  if (earlier.severity && later.severity && earlier.severity !== later.severity) {
+    const rank: Record<string, number> = { informative: 0, mild: 1, moderate: 2 };
+    const prevR = rank[earlier.severity] ?? 0;
+    const curR = rank[later.severity] ?? 0;
+    if (curR < prevR) {
+      diffs.push({ type: "improved", text: `Severity turun: ${getSeverityLabel(earlier.severity)} → ${getSeverityLabel(later.severity)}` });
+    } else {
+      diffs.push({ type: "worsened", text: `Severity naik: ${getSeverityLabel(earlier.severity)} → ${getSeverityLabel(later.severity)}` });
+    }
+  }
+
+  if (earlier.type && later.type && earlier.type !== later.type) {
+    const improved = later.type === "normal" || (later.type === "purging" && earlier.type === "breakout");
+    diffs.push({
+      type: improved ? "improved" : "worsened",
+      text: `Reaksi: ${earlier.type} → ${later.type}`,
+    });
+  }
+
+  return diffs;
+}
+
+function AnalysisDetailModal({ photo, onClose }: { photo: PhotoWithAnalysis; onClose: () => void }) {
+  const a = photo.ai_analysis;
+  if (!a) return null;
+
+  const isPurging = photo.analysis_type === "purging";
+  const badge = getBadge(photo);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end justify-center pb-24" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-slate-800 text-sm">Detail Analisis</h3>
+          <button onClick={onClose} className="p-1.5 text-muted hover:text-slate-700 rounded-lg hover:bg-slate-50">
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+        <div className="aspect-video rounded-xl overflow-hidden bg-slate-100 mb-4">
+          <img src={photo.url} alt="Scan" className="w-full h-full object-cover" />
+        </div>
+        <p className="text-xs text-muted mb-3">{photo.date}{badge ? ` · ` : ""}{badge && <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${badge.color}`}>{badge.label}</span>}</p>
+
+        {isPurging ? (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Reaksi</span>
+                <span className="text-xs font-bold text-slate-800">{a.type ?? "-"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Confidence</span>
+                <span className="text-xs font-bold text-slate-800">{a.confidence ? `${Math.round(a.confidence * 100)}%` : "-"}</span>
+              </div>
+            </div>
+            {a.product_name && (
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Produk</span>
+                <span className="text-xs font-bold text-slate-800">{a.product_name}</span>
+              </div>
+            )}
+            {a.description && (
+              <div className="p-3 bg-slate-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Deskripsi</span>
+                <p className="text-xs text-slate-700">{a.description}</p>
+              </div>
+            )}
+            {a.recommendations && a.recommendations.length > 0 && (
+              <div className="p-3 bg-sky-50 rounded-xl">
+                <span className="text-[10px] font-bold text-sky-700 block mb-2">Rekomendasi</span>
+                {a.recommendations.map((r, i) => (
+                  <p key={i} className="text-xs text-slate-700 flex items-start gap-1 mb-1">
+                    <span className="text-sky-500 font-bold shrink-0">{i + 1}.</span> {r}
+                  </p>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-3 bg-indigo-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Jenis</span>
+                <span className="text-xs font-bold text-slate-800">{a.types?.map(getTypeLabel).join(", ") || (photo.ai_analysis?.types?.length === 0 ? "Kulit bersih" : "-")}</span>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Severity</span>
+                <span className="text-xs font-bold text-slate-800">{getSeverityLabel(a.severity)}</span>
+              </div>
+              <div className="p-3 bg-emerald-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Lokasi</span>
+                <span className="text-xs font-bold text-slate-800">{a.location || "-"}</span>
+              </div>
+              <div className="p-3 bg-rose-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Confidence</span>
+                <span className="text-xs font-bold text-slate-800">{a.confidence ? `${Math.round(a.confidence * 100)}%` : "-"}</span>
+              </div>
+            </div>
+            {a.triggers && a.triggers.length > 0 && (
+              <div className="p-3 bg-rose-50 rounded-xl">
+                <span className="text-[10px] text-muted block mb-1">Pemicu</span>
+                <span className="text-xs font-bold text-slate-800">{a.triggers.join(", ")}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function ProgressPage() {
   const [range, setRange] = useState<Range>("30");
   const [chartData, setChartData] = useState<Record<Range, ChartData>>({
@@ -40,17 +257,22 @@ export default function ProgressPage() {
   });
   const [loaded, setLoaded] = useState(false);
   const [showAllPhotos, setShowAllPhotos] = useState(false);
-  const [allPhotos, setAllPhotos] = useState<{ id: string; url: string; date: string; label: string }[]>([]);
+  const [allPhotos, setAllPhotos] = useState<PhotoWithAnalysis[]>([]);
   const [expandedInsight, setExpandedInsight] = useState<number | null>(null);
   const [leftPhoto, setLeftPhoto] = useState<string | null>(null);
   const [leftLabel, setLeftLabel] = useState("");
+  const [leftData, setLeftData] = useState<PhotoWithAnalysis | null>(null);
   const [rightPhoto, setRightPhoto] = useState<string | null>(null);
   const [rightLabel, setRightLabel] = useState("");
+  const [rightData, setRightData] = useState<PhotoWithAnalysis | null>(null);
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
   const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number }[]>([]);
   const [insightItems, setInsightItems] = useState<{ title: string; description: string; type: string }[]>([]);
   const [pickerSide, setPickerSide] = useState<"left" | "right" | null>(null);
+  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [sortBy, setSortBy] = useState<SortType>("newest");
+  const [analysisDetail, setAnalysisDetail] = useState<PhotoWithAnalysis | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -152,11 +374,14 @@ export default function ProgressPage() {
       .then((data) => {
         if (data.photos) {
           setAllPhotos(
-            data.photos.map((p: { id: string; url: string; date: string }, i: number) => ({
+            data.photos.map((p: any, i: number) => ({
               id: p.id,
               url: p.url,
               date: p.date,
               label: i === 0 ? "Terbaru" : `Foto ${i + 1}`,
+              ai_analysis: p.ai_analysis,
+              analysis_type: p.analysis_type,
+              notes: p.notes,
             }))
           );
         }
@@ -175,8 +400,20 @@ export default function ProgressPage() {
       .catch(() => {});
   }, []);
 
+  const filteredPhotos = allPhotos
+    .filter((p) => filterType === "all" || p.analysis_type === filterType)
+    .sort((a, b) => {
+      if (sortBy === "severity") {
+        const rank: Record<string, number> = { moderate: 3, mild: 2, informative: 1 };
+        const aRank = a.ai_analysis?.severity ? rank[a.ai_analysis.severity] ?? 0 : 0;
+        const bRank = b.ai_analysis?.severity ? rank[b.ai_analysis.severity] ?? 0 : 0;
+        if (aRank !== bRank) return bRank - aRank;
+      }
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+
   const data = chartData[range];
-  const photos = showAllPhotos ? allPhotos : allPhotos.slice(0, 4);
+  const photos = showAllPhotos ? filteredPhotos : filteredPhotos.slice(0, 4);
 
   const padding = 10;
   const chartW = 320;
@@ -206,9 +443,11 @@ export default function ProgressPage() {
     if (pickerSide === "left") {
       setLeftPhoto(selected.url);
       setLeftLabel(selected.date);
+      setLeftData(selected);
     } else {
       setRightPhoto(selected.url);
       setRightLabel(selected.date);
+      setRightData(selected);
     }
     setPickerSide(null);
   };
@@ -330,6 +569,16 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
     w.document.close();
   };
 
+  // Compare section helpers
+  const leftBadge = leftData ? getBadge(leftData) : null;
+  const rightBadge = rightData ? getBadge(rightData) : null;
+  const diffItems = leftData && rightData && leftData.ai_analysis && rightData.ai_analysis ? computeDiff(leftData, rightData) : [];
+
+  const compareAnalysis = (side: "left" | "right") => {
+    const photo = side === "left" ? leftData : rightData;
+    if (photo?.ai_analysis) setAnalysisDetail(photo);
+  };
+
   return (
     <main className="max-w-md md:max-w-4xl mx-auto">
       <header className="px-6 pt-6 pb-4 flex items-center justify-between sticky top-0 bg-white z-10">
@@ -391,7 +640,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                   </g>
                 );
               })}
-              <path d={`${polyline} L ${pts[pts.length - 1].x} ${chartH - padding} L ${pts[0].x} ${chartH - padding} Z`} fill="url(#scoreGrad)" opacity={chartAnimated ? 1 : 0} style={{ transition: "opacity 0.5s ease" }} />
+              <path d={`${polyline} Z`} fill="url(#scoreGrad)" opacity={chartAnimated ? 1 : 0} style={{ transition: "opacity 0.5s ease" }} />
               <path d={polyline} fill="none" stroke="#3525cd" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                 style={{
                   strokeDasharray: chartAnimated ? "none" : "1000",
@@ -454,41 +703,102 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
         </div>
       </section>
 
+      {/* Timeline Foto with Analysis */}
       <section className="px-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="font-bold text-slate-900 text-base">Timeline Foto</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAllPhotos(!showAllPhotos)}
+              className="btn-press text-xs font-bold text-primary px-3 py-1.5 rounded-lg hover:bg-primary-light transition-colors"
+            >
+              {showAllPhotos ? "Sembunyikan" : "Lihat semua"}
+            </button>
+          </div>
+        </div>
+
+        {/* Filter & Sort */}
+        <div className="flex gap-2 mb-4">
+          <div className="flex bg-slate-50 p-0.5 rounded-lg border border-border-light">
+            {(["all", "detect", "purging"] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilterType(f)}
+                className={`px-2.5 py-1 text-[10px] font-bold rounded-md transition-all ${
+                  filterType === f ? "bg-white text-primary shadow-sm" : "text-muted hover:text-slate-700"
+                }`}
+              >
+                {f === "all" ? "Semua" : f === "detect" ? "Deteksi" : "Purging"}
+              </button>
+            ))}
+          </div>
           <button
-            onClick={() => setShowAllPhotos(!showAllPhotos)}
-            className="btn-press text-xs font-bold text-primary px-3 py-1.5 rounded-lg hover:bg-primary-light transition-colors"
+            onClick={() => setSortBy(sortBy === "newest" ? "severity" : "newest")}
+            className="btn-press px-2.5 py-1 bg-slate-50 border border-border-light rounded-lg text-[10px] font-bold text-muted hover:text-slate-700 transition-colors flex items-center gap-1"
           >
-            {showAllPhotos ? "Sembunyikan" : "Lihat semua"}
+            <span className="material-symbols-outlined text-[12px]">{sortBy === "newest" ? "schedule" : "sort"}</span>
+            {sortBy === "newest" ? "Terbaru" : "Severity"}
           </button>
         </div>
+
+        {/* Photo Grid */}
         <div className={`grid gap-3 ${showAllPhotos ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4" : "flex md:grid md:grid-cols-4 overflow-x-auto md:overflow-visible no-scrollbar pb-2 snap-x snap-mandatory"}`}>
-          {photos.length > 0 ? photos.map((p, i) => (
-            <div
-              key={p.date}
-              className={`${showAllPhotos ? "" : "min-w-[140px] md:min-w-0"} snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm ${i === 0 ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10" : "bg-white border-border-subtle"}`}
-            >
-              <div className="mb-2 px-1 flex justify-between items-center">
-                <div>
-                  <span className={`text-[10px] block font-bold ${i === 0 ? "text-primary" : "text-slate-500"}`}>{p.label}</span>
-                  <span className="text-[10px] text-muted-light">{p.date}</span>
-                </div>
-                {i === 0 && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
-              </div>
-              <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
-                <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
-              </div>
-              <Link
-                href={`/scan?photo=${p.id}`}
-                className="btn-press mt-2 w-full py-1.5 bg-primary/10 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-1"
+          {photos.length > 0 ? photos.map((p, i) => {
+            const badge = getBadge(p);
+            return (
+              <div
+                key={p.id || p.date}
+                className={`${showAllPhotos ? "" : "min-w-[140px] md:min-w-0"} snap-start border rounded-2xl p-2.5 relative card-hover shadow-sm cursor-pointer ${
+                  i === 0 && filterType === "all"
+                    ? "bg-gradient-to-b from-primary-light/60 to-white border-primary/10"
+                    : "bg-white border-border-subtle"
+                }`}
+                onClick={() => {
+                  if (p.ai_analysis) setAnalysisDetail(p);
+                }}
               >
-                <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
-                Buka di Scan
-              </Link>
-            </div>
-          )) : (
+                <div className="mb-2 px-1 flex justify-between items-center">
+                  <div>
+                    <span className={`text-[10px] block font-bold ${i === 0 && filterType === "all" ? "text-primary" : "text-slate-500"}`}>{p.label}</span>
+                    <span className="text-[10px] text-muted-light">{p.date}</span>
+                  </div>
+                  {i === 0 && filterType === "all" && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
+                </div>
+                <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden relative">
+                  <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                  {badge && (
+                    <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
+                      {badge.label}
+                    </span>
+                  )}
+                  {p.ai_analysis?.confidence && (
+                    <span className="absolute bottom-1.5 left-1.5 px-1 py-0.5 bg-black/50 text-white text-[8px] font-bold rounded-md backdrop-blur-sm">
+                      {Math.round(p.ai_analysis.confidence * 100)}%
+                    </span>
+                  )}
+                </div>
+                {p.ai_analysis && (
+                  <div className="mt-1.5 px-1">
+                    <p className="text-[9px] text-muted truncate">
+                      {p.analysis_type === "purging"
+                        ? p.ai_analysis.type
+                        : p.ai_analysis.types && p.ai_analysis.types.length > 0
+                          ? p.ai_analysis.types.map(getTypeLabel).join(", ")
+                          : "Bersih"}
+                    </p>
+                  </div>
+                )}
+                <Link
+                  href={`/scan?photo=${p.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="btn-press mt-2 w-full py-1.5 bg-primary/10 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/20 transition-colors flex items-center justify-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                  Buka di Scan
+                </Link>
+              </div>
+            );
+          }) : (
             <div className="w-full py-8 text-center">
               <p className="text-xs text-muted">Belum ada foto. Upload dari tracker untuk melihat timeline.</p>
             </div>
@@ -496,6 +806,12 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
         </div>
       </section>
 
+      {/* Analysis Detail Modal */}
+      {analysisDetail && (
+        <AnalysisDetailModal photo={analysisDetail} onClose={() => setAnalysisDetail(null)} />
+      )}
+
+      {/* Compare Section with Analysis */}
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
@@ -506,15 +822,23 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
           </div>
           <div className="flex gap-3">
             {[
-              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, label: leftLabel || "Sebelum", badge: "Baseline", onClick: () => setPickerSide("left") },
-              { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, label: rightLabel || "Sekarang", badge: "Terbaru", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => setPickerSide("right") },
+              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, setData: setLeftData, label: leftLabel, badge: "Sebelum", onClick: () => setPickerSide("left") },
+              { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, setData: setRightData, label: rightLabel, badge: "Sekarang", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => setPickerSide("right") },
             ].map((s) => (
               <div key={s.side} className="flex-1">
                 {s.photo ? (
                   <div className="relative">
                     <img src={s.photo} alt={s.label} className="w-full aspect-square object-cover rounded-2xl mb-2" />
-                    <button onClick={() => s.setPhoto(null)} className="absolute top-2 right-2 p-1 bg-white/80 rounded-lg hover:bg-white transition-colors">
+                    <button onClick={() => { s.setPhoto(null); s.setData(null); }} className="absolute top-2 right-2 p-1 bg-white/80 rounded-lg hover:bg-white transition-colors">
                       <span className="material-symbols-outlined text-red-500 text-sm">close</span>
+                    </button>
+                    {s.side === "left" ? leftBadge && (
+                      <span className={`absolute bottom-3 left-2 px-2 py-0.5 text-[10px] font-bold rounded-md ${leftBadge.color} shadow-sm`}>{leftBadge.label}</span>
+                    ) : rightBadge && (
+                      <span className={`absolute bottom-3 right-2 px-2 py-0.5 text-[10px] font-bold rounded-md ${rightBadge.color} shadow-sm`}>{rightBadge.label}</span>
+                    )}
+                    <button onClick={() => compareAnalysis(s.side)} className="absolute top-2 left-2 p-1 bg-white/80 rounded-lg hover:bg-white transition-colors">
+                      <span className="material-symbols-outlined text-primary text-sm">info</span>
                     </button>
                   </div>
                 ) : (
@@ -524,7 +848,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-600">{s.label}</span>
-                  <span className={`text-[10px] font-bold rounded ${s.badgeColor || "text-muted"}`}>{s.badge}</span>
+                  <span className={`text-[10px] font-bold rounded ${"badgeColor" in s ? (s as any).badgeColor : "text-muted"}`}>{s.badge}</span>
                 </div>
               </div>
             ))}
@@ -534,6 +858,49 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
               </div>
             </div>
           </div>
+
+          {/* Analysis Comparison */}
+          {leftData?.ai_analysis && rightData?.ai_analysis && (
+            <div className="mt-4 space-y-3">
+              {/* Diff Summary */}
+              {diffItems.length > 0 && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-border-light">
+                  <span className="text-[10px] font-bold text-slate-700 block mb-2">Perubahan</span>
+                  {diffItems.map((d, i) => (
+                    <p key={i} className={`text-xs flex items-start gap-1.5 mb-1 last:mb-0 ${
+                      d.type === "improved" ? "text-emerald-700" : d.type === "worsened" ? "text-red-600" : "text-slate-600"
+                    }`}>
+                      <span className="material-symbols-outlined text-[14px] shrink-0 mt-px">
+                        {d.type === "improved" ? "arrow_downward" : d.type === "worsened" ? "arrow_upward" : "remove"}
+                      </span>
+                      {d.text}
+                    </p>
+                  ))}
+                </div>
+              )}
+
+              {/* Side by Side Analysis */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Jenis", left: leftData.ai_analysis.types?.map(getTypeLabel).join(", ") || "-", right: rightData.ai_analysis.types?.map(getTypeLabel).join(", ") || "-" },
+                  { label: "Severity", left: getSeverityLabel(leftData.ai_analysis.severity), right: getSeverityLabel(rightData.ai_analysis.severity) },
+                  { label: "Lokasi", left: leftData.ai_analysis.location || "-", right: rightData.ai_analysis.location || "-" },
+                  { label: "Confidence", left: leftData.ai_analysis.confidence ? `${Math.round(leftData.ai_analysis.confidence * 100)}%` : "-", right: rightData.ai_analysis.confidence ? `${Math.round(rightData.ai_analysis.confidence * 100)}%` : "-" },
+                ].map((row) => (
+                  <div key={row.label} className="col-span-2 grid grid-cols-[1fr_auto_1fr] gap-2 items-center p-2 bg-slate-50 rounded-xl">
+                    <span className="text-[10px] font-bold text-slate-500 text-center">{row.left}</span>
+                    <span className="text-[9px] text-muted font-semibold">{row.label}</span>
+                    <span className="text-[10px] font-bold text-slate-500 text-center">{row.right}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Compare empty state */}
+          {(!leftData || !rightData) && (
+            <p className="text-[11px] text-muted text-center mt-3">Pilih dua foto untuk membandingkan perubahan kulit.</p>
+          )}
         </div>
       </section>
 
@@ -548,21 +915,29 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
               </button>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              {allPhotos.map((p, i) => (
-                <button
-                  key={i}
-                  onClick={() => pickPhoto(i)}
-                  className="text-left rounded-xl overflow-hidden border border-border-light hover:border-primary/50 transition-all bg-white"
-                >
-                  <div className="aspect-square bg-slate-50">
-                    <img src={p.url} alt={p.date} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-2">
-                    <span className="text-[11px] font-semibold text-slate-700 block">{p.label}</span>
-                    <span className="text-[10px] text-muted">{p.date}</span>
-                  </div>
-                </button>
-              ))}
+              {allPhotos.map((p, i) => {
+                const badge = getBadge(p);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => pickPhoto(i)}
+                    className="text-left rounded-xl overflow-hidden border border-border-light hover:border-primary/50 transition-all bg-white"
+                  >
+                    <div className="aspect-square bg-slate-50 relative">
+                      <img src={p.url} alt={p.date} className="w-full h-full object-cover" />
+                      {badge && (
+                        <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
+                          {badge.label}
+                        </span>
+                      )}
+                    </div>
+                    <div className="p-2">
+                      <span className="text-[11px] font-semibold text-slate-700 block">{p.label}</span>
+                      <span className="text-[10px] text-muted">{p.date}</span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
