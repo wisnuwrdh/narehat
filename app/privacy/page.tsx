@@ -1,17 +1,20 @@
+"use client";
+
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import Link from "next/link";
 
 export default function PrivacyPage() {
+  const router = useRouter();
   return (
     <>
       <Navbar />
       <main className="pt-24 pb-20 px-5">
         <div className="container-narrow max-w-3xl mx-auto">
-          <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mb-6">
+          <button type="button" onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mb-6">
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             Kembali
-          </Link>
+          </button>
           <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Kebijakan Privasi</h1>
           <p className="text-sm text-muted mb-10">Terakhir diperbarui: Juli 2026</p>
 

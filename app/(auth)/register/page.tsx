@@ -120,6 +120,7 @@ export default function RegisterPage() {
       router.replace("/onboarding");
     } catch (err) {
       setLoading(false);
+      console.error("[Register Fetch Error]", err);
       setError("Gagal terhubung ke server.");
     }
   };

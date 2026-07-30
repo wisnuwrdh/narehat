@@ -10,48 +10,53 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
     Credentials({
       async authorize(credentials) {
-        const { email, password, action, name } = credentials as {
-          email: string
-          password: string
-          action?: string
-          name?: string
-        }
-        const { createClient } = await import("@supabase/supabase-js")
-        const supabase = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        )
+        try {
+          const { email, password, action, name } = credentials as {
+            email: string
+            password: string
+            action?: string
+            name?: string
+          }
+          const { createClient } = await import("@supabase/supabase-js")
+          const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          )
 
-        if (action === "register") {
-          const { data: existing } = await supabase
+          if (action === "register") {
+            const { data: existing } = await supabase
+              .from("users")
+              .select("id")
+              .eq("email", email)
+              .maybeSingle()
+            if (existing) throw new Error("Email sudah terdaftar")
+
+            const { hash } = await import("bcryptjs")
+            const password_hash = await hash(password, 10)
+            const { data: newUser } = await supabase
+              .from("users")
+              .insert({ email, name, password_hash })
+              .select("id, email, name")
+              .single()
+
+            if (!newUser) throw new Error("Gagal mendaftarkan akun")
+            return { id: newUser.id, email: newUser.email, name: newUser.name }
+          }
+
+          const { data: user } = await supabase
             .from("users")
-            .select("id")
+            .select("id, email, name, password_hash")
             .eq("email", email)
-            .maybeSingle()
-          if (existing) throw new Error("Email sudah terdaftar")
-
-          const { hash } = await import("bcryptjs")
-          const password_hash = await hash(password, 12)
-          const { data: newUser } = await supabase
-            .from("users")
-            .insert({ email, name, password_hash })
-            .select("id, email, name")
             .single()
 
-          if (!newUser) throw new Error("Gagal mendaftarkan akun")
-          return { id: newUser.id, email: newUser.email, name: newUser.name }
+          if (!user?.password_hash) return null
+          const valid = await (await import("bcryptjs")).compare(password, user.password_hash)
+          if (!valid) return null
+          return { id: user.id, email: user.email, name: user.name }
+        } catch (err) {
+          console.error("[Auth Error]", err)
+          throw err
         }
-
-        const { data: user } = await supabase
-          .from("users")
-          .select("id, email, name, password_hash")
-          .eq("email", email)
-          .single()
-
-        if (!user?.password_hash) return null
-        const valid = await (await import("bcryptjs")).compare(password, user.password_hash)
-        if (!valid) return null
-        return { id: user.id, email: user.email, name: user.name }
       },
     }),
   ],
