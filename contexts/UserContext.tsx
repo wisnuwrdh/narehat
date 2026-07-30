@@ -9,6 +9,7 @@ interface UserData {
   acne_severity: string;
   goal: string;
   plan: string;
+  email_verified: boolean;
 }
 
 interface UserContextValue {
@@ -25,6 +26,7 @@ const defaultUser: UserData = {
   acne_severity: "mild",
   goal: "clear_acne",
   plan: "free",
+  email_verified: false,
 };
 
 const UserContext = createContext<UserContextValue>({
@@ -56,6 +58,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           acne_severity: u.acne_severity || "mild",
           goal: u.goal || "clear_acne",
           plan: u.plan || "free",
+          email_verified: u.email_verified === true,
         });
       }
     } catch {}
