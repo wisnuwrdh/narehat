@@ -24,6 +24,15 @@ interface SkinPhoto {
   analysis_type: string | null;
 }
 
+const userFriendlyError = (e: unknown): string => {
+  const msg = e instanceof Error ? e.message : "";
+  const map: Record<string, string> = {
+    "The source image could not be decoded": "Format gambar tidak didukung. Coba gunakan foto JPG/PNG biasa.",
+    "Image compression failed": "Gagal mengompres gambar. Coba foto lain.",
+  };
+  return map[msg] || msg || "Gagal terhubung ke server.";
+};
+
 export default function ScanPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const purgingRef = useRef<HTMLInputElement>(null);
@@ -106,7 +115,7 @@ export default function ScanPage() {
         .then((d) => setHistory(d.photos || []))
         .catch(() => {});
     } catch (e) {
-      setDetectError(e instanceof Error ? e.message : "Gagal terhubung ke server.");
+      setDetectError(userFriendlyError(e));
     } finally {
       setDetecting(false);
     }
@@ -140,7 +149,7 @@ export default function ScanPage() {
       }
       setPurgingResult(data);
     } catch (e) {
-      setPurgingError(e instanceof Error ? e.message : "Gagal terhubung ke server. Periksa koneksi kamu.");
+      setPurgingError(userFriendlyError(e));
     } finally {
       setPurgingLoading(false);
     }
