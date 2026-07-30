@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         (rawBuffer[0] === 0x89 && rawBuffer[1] === 0x50 && rawBuffer[2] === 0x4E && rawBuffer[3] === 0x47) ||
         (rawBuffer[0] === 0x52 && rawBuffer[1] === 0x49 && rawBuffer[2] === 0x46 && rawBuffer[3] === 0x46)
       )) {
-        return NextResponse.json({ error: "File bukan gambar yang valid." }, { status: 400 });
+        return NextResponse.json({ error: "File bukan gambar JPG/PNG/WebP yang valid." }, { status: 400 });
       }
       const mime = file.type || "image/jpeg";
       imageBase64 = `data:${mime};base64,${arrayBufferToBase64(arrayBuffer)}`;

@@ -27,12 +27,16 @@ interface SkinPhoto {
 const userFriendlyError = (e: unknown): string => {
   const msg = e instanceof Error ? e.message : "";
   const map: Record<string, string> = {
-    "The source image could not be decoded": "Format gambar tidak didukung. Coba gunakan foto JPG/PNG biasa.",
+    "The source image could not be decoded": "File tidak bisa dibaca sebagai gambar. Coba simpan ulang sebagai JPG atau PNG biasa.",
     "Image compression failed": "Gagal mengompres gambar. Coba foto lain.",
     "Gagal membaca file": "File terlalu besar atau tidak bisa dibaca. Coba foto dengan resolusi lebih rendah.",
-    "Format gambar tidak didukung": "Format gambar tidak didukung oleh browser. Gunakan JPG atau PNG.",
+    "Format gambar tidak didukung": "File tidak bisa diproses browser. Coba simpan ulang sebagai JPG.",
     "Canvas tidak didukung": "Browser tidak mendukung kompresi gambar. Coba browser lain (Chrome).",
     "Gagal memproses gambar": "Gagal memproses gambar. Coba foto lain.",
+    "HEIC": "Format HEIC tidak didukung. Gunakan JPG atau PNG.",
+    "AVIF": "Format AVIF tidak didukung. Gunakan JPG atau PNG.",
+    "Format gambar tidak dikenal": "File berekstensi .png tapi bukan format gambar yang dikenal browser. Coba simpan ulang sebagai JPG.",
+    "PNG resolusi terlalu tinggi": "Resolusi PNG terlalu tinggi untuk diproses di HP ini. Gunakan foto JPG dengan resolusi lebih rendah.",
   };
   return map[msg] || msg || "Gagal terhubung ke server.";
 };
