@@ -17,6 +17,8 @@ function getErrorMessage(error: unknown): string {
     if (msg.includes("valid email")) return "Format email tidak valid.";
     if (msg.includes("Configuration"))
       return "Konfigurasi server tidak valid. Silakan coba lagi.";
+    if (msg.includes("DB check gagal") || msg.includes("DB insert gagal") || msg.includes("DB login gagal") || msg.includes("Hash password gagal") || msg.includes("Verify password gagal"))
+      return msg;
     return msg;
   }
   return "Terjadi kesalahan. Coba lagi nanti.";

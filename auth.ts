@@ -29,32 +29,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const supabase = getSupabase()
 
           if (action === "register") {
-            const { data: existing } = await supabase
+            const { data: existing, error: checkError } = await supabase
               .from("users")
               .select("id")
               .eq("email", email)
               .maybeSingle()
+            if (checkError) throw new Error(`DB check gagal: ${checkError.message}`)
             if (existing) throw new Error("Email sudah terdaftar")
 
-            const password_hash = await hashPassword(password)
-            const { data: newUser } = await supabase
+            let password_hash: string
+            try {
+              password_hash = await hashPassword(password)
+            } catch {
+              throw new Error("Hash password gagal: Web Crypto API tidak tersedia")
+            }
+
+            const { data: newUser, error: insertError } = await supabase
               .from("users")
               .insert({ email, name, password_hash })
               .select("id, email, name")
               .single()
+            if (insertError) throw new Error(`DB insert gagal: ${insertError.message}`)
 
             if (!newUser) throw new Error("Gagal mendaftarkan akun")
             return { id: newUser.id, email: newUser.email, name: newUser.name }
           }
 
-          const { data: user } = await supabase
+          const { data: user, error: loginError } = await supabase
             .from("users")
             .select("id, email, name, password_hash")
             .eq("email", email)
             .single()
+          if (loginError) throw new Error(`DB login gagal: ${loginError.message}`)
 
           if (!user?.password_hash) return null
-          const valid = await verifyPassword(password, user.password_hash)
+
+          let valid: boolean
+          try {
+            valid = await verifyPassword(password, user.password_hash)
+          } catch {
+            throw new Error("Verify password gagal: Web Crypto API tidak tersedia")
+          }
           if (!valid) return null
           return { id: user.id, email: user.email, name: user.name }
         } catch (err) {
