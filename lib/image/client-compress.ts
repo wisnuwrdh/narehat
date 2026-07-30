@@ -1,6 +1,5 @@
 const MAX_DIMENSION = 1200;
 const QUALITY = 0.85;
-const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
 function imageFromURL(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
@@ -66,10 +65,6 @@ function compressToWebP(
 }
 
 export async function compressImageOnClient(file: File): Promise<File> {
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error("Ukuran file melebihi 15MB. Pilih foto dengan resolusi lebih rendah.");
-  }
-
   const { source, width, height } = await decodeImage(file);
 
   let dstW = width;

@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     const file = formData.get("file") as File | null;
     let imageBase64 = formData.get("image") as string | null;
 
-    if (file && file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "Ukuran foto terlalu besar. Maks 10MB." }, { status: 413 });
+    if (file && file.size > 30 * 1024 * 1024) {
+      return NextResponse.json({ error: "Ukuran foto terlalu besar. Maks 30MB." }, { status: 413 });
     }
 
     if (file && !/\.(jpg|jpeg|png|webp)$/i.test(file.name)) {
