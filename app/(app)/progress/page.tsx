@@ -374,7 +374,7 @@ export default function ProgressPage() {
       .then((data) => {
         if (data.photos) {
           setAllPhotos(
-            data.photos.map((p: any, i: number) => ({
+            data.photos.map((p: { id: string; url: string; date: string; ai_analysis: AiAnalysis | null; analysis_type: string | null; notes?: string }, i: number) => ({
               id: p.id,
               url: p.url,
               date: p.date,
@@ -822,7 +822,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
           </div>
           <div className="flex gap-3">
             {[
-              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, setData: setLeftData, label: leftLabel, badge: "Sebelum", onClick: () => setPickerSide("left") },
+              { side: "left" as const, photo: leftPhoto, setPhoto: setLeftPhoto, setData: setLeftData, label: leftLabel, badge: "Sebelum", badgeColor: "text-muted", onClick: () => setPickerSide("left") },
               { side: "right" as const, photo: rightPhoto, setPhoto: setRightPhoto, setData: setRightData, label: rightLabel, badge: "Sekarang", badgeColor: "bg-emerald-50 text-emerald-600", onClick: () => setPickerSide("right") },
             ].map((s) => (
               <div key={s.side} className="flex-1">
@@ -848,7 +848,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-slate-600">{s.label}</span>
-                  <span className={`text-[10px] font-bold rounded ${"badgeColor" in s ? (s as any).badgeColor : "text-muted"}`}>{s.badge}</span>
+                  <span className={`text-[10px] font-bold rounded ${s.badgeColor}`}>{s.badge}</span>
                 </div>
               </div>
             ))}
