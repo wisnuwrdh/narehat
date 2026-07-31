@@ -57,15 +57,17 @@ Pertama kali app memberikan insight seperti:
 | Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 10x/bulan | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
+| AI Deteksi Jerawat — 2x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-4o-mini) | ✅ Done |
+| Purging Checker — 1x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 
 ### ⭐ Premium — Rp29.000/bulan (Rp199.000/tahun)
 
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Free | — | ✅ |
-| AI Consult UNLIMITED | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
-| AI Deteksi Jerawat dari Foto | Upload foto → jenis jerawat, severity, area, estimasi pemicu (GPT-4o-mini) | ✅ Done |
-| Purging Checker | "Ini purging atau breakout?" — instant AI analysis | ✅ Done |
+| AI Consult — 100x/bulan | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
+| AI Deteksi Jerawat — 30x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-mini) | ✅ Done |
+| Purging Checker — 10x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
 
@@ -74,6 +76,7 @@ Pertama kali app memberikan insight seperti:
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
+| AI Deteksi Jerawat — 100x/bulan | Analisis paling mendalam dengan GPT-5 penuh | ✅ Done |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
 | Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF | ✅ Done |
@@ -157,7 +160,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /dashboard        → Overview kondisi kulit + skin score + insight harian
 /tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes; AI deteksi + purging checker)
 /progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF
-/ai-consult       → Chat AI berbasis RAG jurnal dermatologi (3x free, unlimited Premium)
+/ai-consult       → Chat AI berbasis RAG jurnal dermatologi (10x free, 100x Premium, 300x Pro)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + link belanja
 /settings         → Profil display, kelola plan, export data (CSV/PDF), hapus akun, logout
@@ -419,9 +422,9 @@ Jalankan dengan: `npm run ingest`
 
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
-| **Free** | Rp0 | Kenali kulitmu, mulai dari sini. Tracker ringan, progress foto, 10x AI consult/bulan. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp29.000/bulan (Rp199.000/tahun) | Pakai AI sepuasnya. Deteksi jerawat dari foto, konsultasi AI unlimited, purging checker, deep insight. |
-| **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | AI urus semuanya. Analisis rutinitas, bangun rutinitas baru, laporan mingguan PDF, akses fitur baru lebih awal. |
+| **Free** | Rp0 | Rasakan lega pertama. Tracker ringan, progress foto, AI Deteksi 2x/bulan, AI consult 10x/bulan. Cukup untuk "oh ini toh pemicunya." |
+| **Premium** ⭐ | Rp29.000/bulan (Rp199.000/tahun) | Kepastian penuh. AI Deteksi 30x/bulan (gpt-5-mini), konsultasi AI 100x/bulan, purging checker 10x/bulan, deep insight. |
+| **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | Semua diurus. AI Deteksi 100x/bulan (GPT-5 penuh), konsultasi AI 300x/bulan, analisis rutinitas, laporan mingguan PDF, akses model baru lebih awal. |
 
 ### Revenue Stream Tambahan
 - **Link belanja** produk skincare di halaman rekomendasi (pasif, semua tier)

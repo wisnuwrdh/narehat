@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { compressImageOnClient } from "@/lib/image/client-compress";
 import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";
+import { useUser } from "@/contexts/UserContext";
 
 interface SkinPhoto {
   id: string;
@@ -44,6 +45,7 @@ const userFriendlyError = (e: unknown): string => {
 export default function ScanPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const purgingRef = useRef<HTMLInputElement>(null);
+  const { user } = useUser();
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -78,6 +80,10 @@ export default function ScanPage() {
 
   const [history, setHistory] = useState<SkinPhoto[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [quota, setQuota] = useState<{
+    detect: { used: number; limit: number };
+    purging: { used: number; limit: number };
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/photos")
@@ -85,7 +91,21 @@ export default function ScanPage() {
       .then((data) => setHistory(data.photos || []))
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
+
+    fetch("/api/ai/quota")
+      .then((r) => r.json())
+      .then((data) => setQuota(data))
+      .catch(() => {});
   }, []);
+
+  const detectRemaining = quota ? Math.max(0, quota.detect.limit - quota.detect.used) : null;
+  const purgingRemaining = quota ? Math.max(0, quota.purging.limit - quota.purging.used) : null;
+  const detectQuotaHint =
+    user.plan === "free"
+      ? "Upgrade ke Premium untuk 30x/bulan."
+      : user.plan.includes("pro")
+        ? "Kuota direset tiap awal bulan."
+        : "Upgrade ke Pro untuk 100x/bulan.";
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -118,6 +138,12 @@ export default function ScanPage() {
         return;
       }
       setDetectResult(data);
+      if (typeof data.detect_remaining === "number" && typeof data.detect_limit === "number") {
+        setQuota((prev) => ({
+          detect: { used: data.detect_limit - data.detect_remaining, limit: data.detect_limit },
+          purging: prev?.purging ?? { used: 0, limit: 0 },
+        }));
+      }
       // Refresh history after new scan
       fetch("/api/photos")
         .then((r) => r.json())
@@ -204,6 +230,15 @@ export default function ScanPage() {
               <p className="text-xs text-muted">Front face, good lighting, no filter</p>
               <p className="text-[10px] text-muted-light mt-1">⚠ Foto area berjerawat agar analisis akurat</p>
             </div>
+            {detectRemaining !== null && (
+              <span className={`px-2 py-1 text-[10px] font-bold rounded-lg border whitespace-nowrap ${
+                detectRemaining > 0
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-red-50 text-red-600 border-red-200"
+              }`}>
+                {detectRemaining > 0 ? `Sisa ${detectRemaining}x/bln` : "Kuota habis"}
+              </span>
+            )}
             {photoPreview && (
               <button onClick={() => { setPhotoPreview(null); setPhotoFile(null); setDetectResult(null); setDetectError(""); }} className="btn-press p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-colors">
                 <span className="material-symbols-outlined text-sm">delete</span>
@@ -225,12 +260,18 @@ export default function ScanPage() {
           {photoPreview && !detectResult && (
             <button
               onClick={handleDetect}
-              disabled={detecting}
+              disabled={detecting || detectRemaining === 0}
               className="btn-press w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-lg">auto_awesome</span>
               {detecting ? "Menganalisis..." : "Analisis Sekarang"}
             </button>
+          )}
+          {detectRemaining === 0 && (
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2 mt-3">
+              <span className="material-symbols-outlined text-sm">star</span>
+              <span>Kuota AI Deteksi bulan ini habis. {detectQuotaHint}</span>
+            </div>
           )}
           {detecting && (
             <div className="flex items-center justify-center gap-3 py-3">
@@ -338,6 +379,15 @@ export default function ScanPage() {
               <p className="text-xs text-muted">Ini purging atau breakout?</p>
               <p className="text-[10px] text-muted-light mt-1">⚠ Foto area berjerawat agar analisis akurat</p>
             </div>
+            {purgingRemaining !== null && (
+              <span className={`px-2 py-1 text-[10px] font-bold rounded-lg border whitespace-nowrap ${
+                purgingRemaining > 0
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : "bg-red-50 text-red-600 border-red-200"
+              }`}>
+                {purgingRemaining > 0 ? `Sisa ${purgingRemaining}x/bln` : "Kuota habis"}
+              </span>
+            )}
           </div>
           <div className="mb-3">
             <ProductAutocomplete
@@ -362,15 +412,21 @@ export default function ScanPage() {
           {!purgingResult && !purgingLoading && (
             <button
               onClick={handlePurgingCheck}
-              disabled={!purgingPhoto || !purgingProduct.trim()}
+              disabled={!purgingPhoto || !purgingProduct.trim() || purgingRemaining === 0}
               className={`btn-press w-full py-3 rounded-xl text-sm font-bold transition-colors ${
-                purgingPhoto && purgingProduct.trim()
+                purgingPhoto && purgingProduct.trim() && purgingRemaining !== 0
                   ? "bg-primary text-white hover:bg-primary/90"
                   : "bg-slate-100 text-slate-400 cursor-not-allowed"
               }`}
             >
               Cek Purging vs Breakout
             </button>
+          )}
+          {purgingRemaining === 0 && (
+            <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2 mt-3">
+              <span className="material-symbols-outlined text-sm">star</span>
+              <span>Kuota Purging Checker bulan ini habis. {detectQuotaHint}</span>
+            </div>
           )}
           {purgingLoading && (
             <div className="flex items-center justify-center gap-3 py-3">

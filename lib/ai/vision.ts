@@ -1,4 +1,4 @@
-export async function detectAcne(imageBase64: string): Promise<{
+export async function detectAcne(imageBase64: string, model = "gpt-4o-mini"): Promise<{
   types: string[];
   severity: string;
   confidence: number;
@@ -14,6 +14,8 @@ export async function detectAcne(imageBase64: string): Promise<{
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 25000);
 
+  const isReasoning = model.startsWith("gpt-5");
+
   const response = await fetch("https://ai.sumopod.com/v1/chat/completions", {
     signal: controller.signal,
     method: "POST",
@@ -22,7 +24,8 @@ export async function detectAcne(imageBase64: string): Promise<{
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model,
+      ...(isReasoning ? { reasoning_effort: "low" } : {}),
       messages: [
         {
           role: "system",

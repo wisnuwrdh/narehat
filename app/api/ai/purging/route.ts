@@ -5,6 +5,7 @@ import { checkPurging } from "@/lib/ai/purging";
 import { generatePurgingAdvice } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
+import { countMonthlyUsage, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,21 +22,24 @@ export async function POST(request: NextRequest) {
 
     if (!profile) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const isPro = profile.plan.includes("pro");
+    const bucket = getPlanBucket(profile.plan);
+    const purgingLimit = getPlanQuota(bucket).purging;
+    const purgingUsed = await countMonthlyUsage(supabase, userId, "purging");
 
-    if (!isPro) {
-      const { data: usageRows } = await supabase
-        .from("ai_usage")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("feature", "purging");
-
-      if ((usageRows || []).length >= 1) {
-        return NextResponse.json(
-          { error: "Batas purging checker gratis tercapai (1x). Upgrade ke Pro untuk unlimited." },
-          { status: 402 }
-        );
-      }
+    if (purgingUsed >= purgingLimit) {
+      const upgrade =
+        bucket === "free"
+          ? "Upgrade ke Premium untuk 10x/bulan."
+          : bucket === "premium"
+            ? "Upgrade ke Pro untuk 30x/bulan."
+            : "";
+      return NextResponse.json(
+        {
+          error: "Batas purging checker bulanan tercapai",
+          message: `Kamu sudah menggunakan ${purgingLimit}x Purging Checker bulan ini. ${upgrade}`,
+        },
+        { status: 402 }
+      );
     }
 
     const formData = await request.formData();
@@ -137,13 +141,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Gagal menyimpan hasil analisis" }, { status: 500 });
     }
 
-    if (!isPro) {
-      const { error: insertErr } = await supabase.from("ai_usage").insert({
-        user_id: userId,
-        feature: "purging",
-      });
-      if (insertErr) console.error("ai_usage insert failed:", insertErr);
-    }
+    await recordUsage(supabase, userId, "purging");
 
     return NextResponse.json({
       id: photo?.id,

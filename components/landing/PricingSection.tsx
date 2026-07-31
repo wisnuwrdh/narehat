@@ -8,7 +8,7 @@ type Billing = "monthly" | "yearly";
 const plans = [
   {
     name: "Free",
-    subtitle: "Kenali kulitmu, mulai dari sini",
+    subtitle: "Rasakan lega pertama",
     price: { monthly: "Rp0", yearly: "Rp0" },
     period: { monthly: "selamanya", yearly: "selamanya" },
     features: [
@@ -16,7 +16,9 @@ const plans = [
       "Tracker harian (tidur, air, stress, skincare)",
       "Progress foto (upload & timeline)",
       "Rekomendasi produk + link belanja",
+      "AI Deteksi jerawat: 2x/bulan",
       "AI Consult: 10x/bulan",
+      "Purging Checker: 1x/bulan",
     ],
     cta: "Mulai Gratis",
     href: "/register",
@@ -24,14 +26,14 @@ const plans = [
   },
   {
     name: "Premium",
-    subtitle: "AI jadi asisten kulitmu",
+    subtitle: "Kepastian penuh",
     price: { monthly: "Rp29.000", yearly: "Rp199.000" },
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
-      "Semua fitur Free (unlimited)",
-      "AI Consult UNLIMITED",
-      "AI Deteksi jerawat dari foto",
-      "Purging Checker",
+      "Semua fitur Free",
+      "AI Deteksi 30x/bulan — model GPT-5 terbaru",
+      "AI Consult: 100x/bulan",
+      "Purging Checker: 10x/bulan",
       "Deep insight & grafik korelasi",
       "Progress foto unlimited",
     ],
@@ -42,18 +44,21 @@ const plans = [
   },
   {
     name: "Pro",
-    subtitle: "AI urus semuanya untukmu",
+    subtitle: "Semua diurus",
     price: { monthly: "Rp49.000", yearly: "Rp399.000" },
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Premium",
+      "AI Deteksi 100x/bulan — GPT-5 penuh",
+      "AI Consult: 300x/bulan",
+      "Purging Checker: 30x/bulan",
       "Personalized routine builder",
       "Weekly skin report + export PDF",
-      "Akses fitur baru lebih awal",
+      "Akses fitur baru & model AI lebih awal",
     ],
     cta: "Upgrade Pro",
     href: "/register?plan=pro_monthly",
-    featured: true,
+    featured: false,
     badge: "FITUR LENGKAP",
   },
 ];
@@ -86,7 +91,7 @@ export default function PricingSection() {
             Harga
           </span>
           <h2 className="section-title font-extrabold text-slate-900 leading-tight">
-            Pilih yang Cocok Buat Kamu
+            Berhenti Tebak-Tebakan. Mulai Tahu.
           </h2>
           <p className="text-sm lg:text-base text-muted mt-3">Mulai gratis. Upgrade kapan saja. Gak perlu kartu kredit.</p>
 
@@ -104,7 +109,7 @@ export default function PricingSection() {
             ))}
           </div>
           {billing === "yearly" && (
-            <p className="text-[11px] text-emerald-600 font-medium mt-2">Hemat 32–35% dengan langganan tahunan</p>
+            <p className="text-[11px] text-emerald-600 font-medium mt-2">Hemat 43% (Premium) · 32% (Pro) dengan langganan tahunan</p>
           )}
         </div>
 
@@ -171,6 +176,10 @@ export default function PricingSection() {
             </div>
           ))}
         </div>
+
+        <p className="text-center text-[11px] text-muted mt-6">
+          Semua batas pemakaian direset tiap awal bulan. Tanpa kartu kredit, bisa batalkan kapan saja.
+        </p>
       </div>
     </section>
   );

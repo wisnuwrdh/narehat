@@ -42,25 +42,26 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [freeRemaining, setFreeRemaining] = useState(10);
+  const [freeRemaining, setFreeRemaining] = useState(0);
+  const [consultLimit, setConsultLimit] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const isPremium = user.plan !== "free";
-  const limitReached = !isPremium && freeRemaining <= 0;
-  const FREE_LIMIT = 10;
+  const isPro = user.plan.includes("pro");
+  const limitReached = consultLimit !== null && freeRemaining <= 0;
 
   useEffect(() => {
-    if (isPremium) return;
     fetch("/api/ai/quota")
       .then((r) => r.json())
       .then((data) => {
         if (data.consult) {
+          setConsultLimit(data.consult.limit);
           setFreeRemaining(data.consult.limit - data.consult.used);
         }
       })
       .catch(() => {});
-  }, [isPremium]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));
@@ -201,9 +202,13 @@ export default function AIConsultPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!isPremium && !limitReached && (
-            <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-lg border border-amber-200">
-              {freeRemaining}/{FREE_LIMIT}
+          {consultLimit !== null && !limitReached && (
+            <span className={`px-2 py-1 text-[10px] font-bold rounded-lg border ${
+              isPremium
+                ? "bg-primary-light text-primary border-primary/20"
+                : "bg-amber-50 text-amber-700 border-amber-200"
+            }`}>
+              {freeRemaining}/{consultLimit}
             </span>
           )}
           <button
@@ -345,13 +350,21 @@ export default function AIConsultPage() {
           <div className="pt-2">
             <div className="bg-gradient-to-r from-primary to-accent rounded-2xl p-4 text-white">
               <p className="text-sm font-bold mb-1">Batas konsultasi bulanan tercapai</p>
-              <p className="text-xs text-white/80 mb-3">Kamu telah menggunakan {FREE_LIMIT}x konsultasi gratis bulan ini. Upgrade ke Premium untuk AI Consult unlimited + deteksi jerawat dari foto.</p>
-              <Link
-                href="/pricing"
-                className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"
-              >
-                Lihat Harga Upgrade
-              </Link>
+              <p className="text-xs text-white/80 mb-3">
+                {isPro
+                  ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Kuota direset tiap awal bulan.`
+                  : isPremium
+                    ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Pro untuk 300x/bulan + AI Deteksi 100x/bulan.`
+                    : `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Premium untuk 100x/bulan + AI Deteksi 30x/bulan.`}
+              </p>
+              {!isPro && (
+                <Link
+                  href="/pricing"
+                  className="inline-block px-4 py-2 bg-white text-primary text-xs font-bold rounded-xl"
+                >
+                  Lihat Harga Upgrade
+                </Link>
+              )}
             </div>
           </div>
         )}
@@ -363,7 +376,7 @@ export default function AIConsultPage() {
       >
         {limitReached ? (
           <div className="flex items-center justify-center py-2">
-            <span className="text-sm text-muted">Kamu telah menggunakan semua kouta gratis</span>
+            <span className="text-sm text-muted">Kamu telah menggunakan semua kuota bulan ini</span>
           </div>
         ) : (
         <div className="flex items-end gap-2">

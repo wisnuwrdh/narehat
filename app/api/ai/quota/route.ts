@@ -1,15 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
-
-const FREE_MONTHLY_LIMIT = 10;
-
-function firstDayOfMonth(): string {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
+import { countMonthlyUsage, getPlanBucket, getPlanQuota } from "@/lib/ai/limits";
 
 export async function GET() {
   const session = await auth();
@@ -23,41 +15,29 @@ export async function GET() {
     .eq("id", userId)
     .maybeSingle();
 
-  const isPaying = profile && profile.plan !== "free";
+  const bucket = getPlanBucket(profile?.plan);
+  const limits = getPlanQuota(bucket);
 
-  if (isPaying) {
-    return NextResponse.json({
-      consult: { used: 0, limit: 0, unlimited: true },
-      purging: { used: 0, limit: 0, unlimited: true },
-      detect: { used: 0, limit: 0, unlimited: true },
-    });
-  }
-
-  const { data: usage } = await supabase
-    .from("ai_usage")
-    .select("feature")
-    .eq("user_id", userId)
-    .gte("created_at", firstDayOfMonth());
-
-  const counts: Record<string, number> = {};
-  for (const row of usage || []) {
-    counts[row.feature] = (counts[row.feature] || 0) + 1;
-  }
+  const [detectUsed, consultUsed, purgingUsed] = await Promise.all([
+    countMonthlyUsage(supabase, userId, "detect"),
+    countMonthlyUsage(supabase, userId, "consult"),
+    countMonthlyUsage(supabase, userId, "purging"),
+  ]);
 
   return NextResponse.json({
     consult: {
-      used: counts.consult || 0,
-      limit: FREE_MONTHLY_LIMIT,
+      used: consultUsed,
+      limit: limits.consult,
       unlimited: false,
     },
     purging: {
-      used: 0,
-      limit: 0,
+      used: purgingUsed,
+      limit: limits.purging,
       unlimited: false,
     },
     detect: {
-      used: 0,
-      limit: 0,
+      used: detectUsed,
+      limit: limits.detect,
       unlimited: false,
     },
   });

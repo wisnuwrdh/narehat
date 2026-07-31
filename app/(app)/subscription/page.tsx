@@ -19,7 +19,9 @@ const plans = [
       "Tracker harian (tidur, air, stress, skincare)",
       "Progress foto (upload & timeline)",
       "Rekomendasi produk + link belanja",
+      "AI Deteksi jerawat: 2x/bulan",
       "AI Consult: 10x/bulan",
+      "Purging Checker: 1x/bulan",
     ],
     planId: "free" as const,
     badge: null,
@@ -31,9 +33,9 @@ const plans = [
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Free",
-      "AI Consult UNLIMITED",
-      "AI Deteksi jerawat dari foto",
-      "Purging Checker",
+      "AI Deteksi 30x/bulan — model GPT-5 terbaru",
+      "AI Consult: 100x/bulan",
+      "Purging Checker: 10x/bulan",
       "Deep insight & grafik korelasi",
       "Progress foto unlimited",
     ],
@@ -49,15 +51,18 @@ const plans = [
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Premium",
+      "AI Deteksi 100x/bulan — GPT-5 penuh",
+      "AI Consult: 300x/bulan",
+      "Purging Checker: 30x/bulan",
       "Personalized routine builder",
       "Weekly skin report + export PDF",
-      "Akses fitur baru lebih awal",
+      "Akses fitur baru & model AI lebih awal",
     ],
     planId: "pro" as const,
     monthlyPlan: "pro_monthly" as const,
     yearlyPlan: "pro_yearly" as const,
     badge: "FITUR LENGKAP",
-    featured: true,
+    featured: false,
   },
 ];
 
@@ -135,7 +140,7 @@ export default function SubscriptionPage() {
           ))}
         </div>
         <p className="text-center text-[10px] text-muted mt-2">
-          {billing === "yearly" ? "Hemat 35% dengan langganan tahunan" : "Gak perlu kartu kredit"}
+          {billing === "yearly" ? "Premium hemat 43% · Pro hemat 32%" : "Gak perlu kartu kredit"}
         </p>
       </section>
 
@@ -177,7 +182,7 @@ export default function SubscriptionPage() {
                   </div>
                 </div>
                 <p className="text-xs text-muted mt-1">
-                  {plan.name === "Free" ? "Kenali kulitmu, mulai dari sini" : plan.name === "Premium" ? "AI jadi asisten kulitmu" : "AI urus semuanya untukmu"}
+                  {plan.name === "Free" ? "Rasakan lega pertama" : plan.name === "Premium" ? "Kepastian penuh" : "Semua diurus"}
                 </p>
 
                 <ul className="space-y-2 mt-4 mb-5">

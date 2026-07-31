@@ -11,19 +11,19 @@ const features = [
   },
   {
     icon: "question_exchange",
-    tag: "Free 1x",
+    tag: "Free 1x/bln",
     title: "Purging Checker",
     desc: "\"Ini purging atau breakout?\" AI analisis produk barumu dan kasih jawaban dalam hitungan detik.",
   },
   {
     icon: "auto_awesome",
-    tag: "PRO",
+    tag: "Free 2x/bln",
     title: "AI Deteksi Jerawat",
-    desc: "Upload foto → AI identifikasi jenis jerawat, severity, dan estimasi pemicu. Akurat, instan.",
+    desc: "Upload foto → AI identifikasi jenis jerawat, severity, dan estimasi pemicu. Langsung tahu, gak perlu nebak.",
   },
   {
     icon: "smart_toy",
-    tag: "Free 3x",
+    tag: "10x/bln",
     title: "Konsultasi AI",
     desc: "Tanya apa saja tentang jerawat, jawaban berbasis jurnal dermatologi peer-reviewed, bukan asal-asalan.",
   },

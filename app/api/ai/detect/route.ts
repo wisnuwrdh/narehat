@@ -5,6 +5,7 @@ import { detectAcne } from "@/lib/ai/vision";
 import { generateSkinTips } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
+import { countMonthlyUsage, getDetectModel, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,8 +21,24 @@ export async function POST(request: NextRequest) {
       .eq("id", userId)
       .maybeSingle();
 
-    if (!profile || profile.plan === "free") {
-      return NextResponse.json({ error: "Fitur premium. Upgrade plan kamu." }, { status: 402 });
+    const bucket = getPlanBucket(profile?.plan);
+    const detectLimit = getPlanQuota(bucket).detect;
+    const detectUsed = await countMonthlyUsage(supabase, userId, "detect");
+
+    if (detectUsed >= detectLimit) {
+      const upgrade =
+        bucket === "free"
+          ? "Upgrade ke Premium untuk 30x/bulan."
+          : "Upgrade ke Pro untuk 100x/bulan.";
+      return NextResponse.json(
+        {
+          error: "Batas deteksi bulanan tercapai",
+          message: `Kamu sudah menggunakan ${detectLimit}x AI Deteksi bulan ini. ${upgrade}`,
+          detect_remaining: 0,
+          detect_limit: detectLimit,
+        },
+        { status: 402 }
+      );
     }
 
     const formData = await request.formData();
@@ -72,7 +89,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. AI analysis
-    const result = await detectAcne(imageBase64).catch(() => null);
+    const model = getDetectModel(bucket);
+    const result = await detectAcne(imageBase64, model).catch(() => null);
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -107,6 +125,10 @@ export async function POST(request: NextRequest) {
       analysis_type: "detect",
       ai_analysis: analysisData,
     });
+
+    await recordUsage(supabase, userId, "detect");
+
+    const detectRemaining = Math.max(0, detectLimit - detectUsed - 1);
 
     const isCleanSkin = result.types.length === 0;
 
@@ -168,6 +190,8 @@ export async function POST(request: NextRequest) {
       tips,
       trend,
       is_clean_skin: isCleanSkin,
+      detect_remaining: detectRemaining,
+      detect_limit: detectLimit,
       disclaimer:
         "Hasil ini bersifat informatif, bukan diagnosis medis. Konsultasikan ke dokter kulit untuk evaluasi lebih lanjut.",
     });

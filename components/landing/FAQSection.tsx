@@ -38,11 +38,19 @@ export default function FAQSection() {
           {[
             {
               q: "Apa bedanya Premium vs Pro?",
-              a: "Premium (Rp19rb/bln) cocok buat kamu yang mau AI Consult unlimited + deteksi jerawat dari foto + insight grafik. Pro (Rp49rb/bln) untuk kamu yang mau AI urus semuanya: analisis rutinitas skincare, bangun rutinitas dari nol, purging checker unlimited, dan laporan mingguan export PDF.",
+              a: "Premium (Rp29rb/bln) buat kamu yang mau kepastian: AI Deteksi 30x/bulan dengan model GPT-5 terbaru, AI Consult 100x/bulan, dan Purging Checker 10x/bulan. Pro (Rp49rb/bln) buat kamu yang mau AI urus semuanya: AI Deteksi 100x/bulan dengan GPT-5 penuh, AI Consult 300x/bulan, Purging Checker 30x/bulan, analisis rutinitas skincare, dan laporan mingguan export PDF.",
             },
             {
               q: "Apakah purging checker bisa dipakai gratis?",
-              a: "Ya, semua user free dapat 1x purging checker seumur hidup, biar kamu bisa cicipin fiturnya. User Pro dapat unlimited.",
+              a: "Ya, semua user free dapat 1x purging checker per bulan, biar kamu bisa cicipin fiturnya. Premium 10x/bulan, Pro 30x/bulan.",
+            },
+            {
+              q: "Kenapa ada batas pemakaian?",
+              a: "Kami mau AI-nya tetap cepat dan harga langganan tetap terjangkau. Semua batas direset otomatis tiap awal bulan — kamu gak akan kehilangan kuota yang belum terpakai di pertengahan bulan.",
+            },
+            {
+              q: "Bedanya kualitas analisis tiap plan?",
+              a: "Free memakai model gpt-4o-mini — cepat dan solid untuk deteksi dasar. Premium naik ke gpt-5-mini, analisis lebih detail. Pro memakai GPT-5 penuh untuk analisis paling mendalam, plus akses model AI baru lebih awal.",
             },
             {
               q: "Apakah Narehat menggantikan dokter kulit?",

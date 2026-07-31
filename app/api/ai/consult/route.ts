@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { consult } from "@/lib/ai/rag";
+import { countMonthlyUsage, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -24,15 +25,6 @@ setInterval(() => {
   }
 }, 60_000);
 
-function firstDayOfMonth(): string {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
-}
-
-const FREE_MONTHLY_LIMIT = 10;
-
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
@@ -46,26 +38,25 @@ export async function POST(request: NextRequest) {
       .eq("id", userId)
       .maybeSingle();
 
-    const isPaying = profile && profile.plan !== "free";
+    const bucket = getPlanBucket(profile?.plan);
+    const consultLimit = getPlanQuota(bucket).consult;
+    const consultUsed = await countMonthlyUsage(supabase, userId, "consult");
 
-    if (!isPaying) {
-      const { data: usageRows } = await supabase
-        .from("ai_usage")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("feature", "consult")
-        .gte("created_at", firstDayOfMonth());
-
-      if ((usageRows || []).length >= FREE_MONTHLY_LIMIT) {
-        return NextResponse.json(
-          {
-            error: "Batas konsultasi bulanan tercapai",
-            message: `Kamu sudah menggunakan ${FREE_MONTHLY_LIMIT}x AI Consult bulan ini. Upgrade ke Premium untuk konsultasi unlimited.`,
-            free_remaining: 0,
-          },
-          { status: 402 }
-        );
-      }
+    if (consultUsed >= consultLimit) {
+      const upgrade =
+        bucket === "free"
+          ? "Upgrade ke Premium untuk 100x/bulan."
+          : bucket === "premium"
+            ? "Upgrade ke Pro untuk 300x/bulan."
+            : "";
+      return NextResponse.json(
+        {
+          error: "Batas konsultasi bulanan tercapai",
+          message: `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. ${upgrade}`,
+          free_remaining: 0,
+        },
+        { status: 402 }
+      );
     }
 
     if (!checkRateLimit(userId)) {
@@ -123,36 +114,16 @@ export async function POST(request: NextRequest) {
 
     const result = await consult(question, insightContext);
 
-    if (!isPaying) {
-      const { error: insertErr } = await supabase.from("ai_usage").insert({
-        user_id: userId,
-        feature: "consult",
-      });
-      if (insertErr) console.error("ai_usage insert failed:", insertErr);
+    await recordUsage(supabase, userId, "consult");
 
-      const { data: afterRows } = await supabase
-        .from("ai_usage")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("feature", "consult")
-        .gte("created_at", firstDayOfMonth());
-
-      const freeRemaining = Math.max(0, FREE_MONTHLY_LIMIT - (afterRows || []).length);
-
-      return NextResponse.json({
-        question,
-        answer: result.answer,
-        sources: result.sources,
-        disclaimer: result.disclaimer,
-        free_remaining: freeRemaining,
-      });
-    }
+    const consultRemaining = Math.max(0, consultLimit - consultUsed - 1);
 
     return NextResponse.json({
       question,
       answer: result.answer,
       sources: result.sources,
       disclaimer: result.disclaimer,
+      free_remaining: consultRemaining,
     });
   } catch (error) {
     console.error("AI consult error:", error);

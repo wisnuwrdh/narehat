@@ -16,7 +16,8 @@ export async function checkPurging(imageBase64: string, _productName: string): P
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "gpt-5-mini",
+      reasoning_effort: "low",
       messages: [
         {
           role: "system",
