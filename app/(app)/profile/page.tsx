@@ -65,8 +65,8 @@ export default function ProfilePage() {
           <div className="w-20 h-20 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center mb-3 overflow-hidden">
             <img src="/avatar-default.svg" alt="Avatar" className="w-12 h-12" />
           </div>
-          <h2 className="font-bold text-slate-900">{user.name}</h2>
-          <p className="text-xs text-muted">{user.email}</p>
+          <h2 className="font-bold text-slate-900 break-all text-center">{user.name}</h2>
+          <p className="text-xs text-muted break-all text-center">{user.email}</p>
         </div>
       </section>
 

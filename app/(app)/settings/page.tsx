@@ -92,12 +92,12 @@ export default function SettingsPage() {
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 shrink-0 bg-gradient-to-br from-primary-light to-primary/20 rounded-2xl flex items-center justify-center overflow-hidden">
               <img src="/avatar-default.svg" alt="Avatar" className="w-10 h-10" />
             </div>
-            <div className="flex-1">
-              <h2 className="font-bold text-slate-900">{user.name}</h2>
-              <p className="text-xs text-muted">{user.email}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="font-bold text-slate-900 break-all">{user.name}</h2>
+              <p className="text-xs text-muted break-all">{user.email}</p>
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 <span className="px-2 py-0.5 bg-primary-light text-primary text-[10px] font-bold rounded-md">{skinLabels[user.skin_type] || "Kombinasi"}</span>
                 <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">{severityLabels[user.acne_severity] || "Sedang"}</span>
