@@ -36,7 +36,11 @@ async function callSumoPod(
     });
 
     clearTimeout(timeoutId);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      const err = await response.text();
+      console.error("SumoPod tips error:", response.status, err);
+      return null;
+    }
 
     const data = await response.json();
     return data.choices?.[0]?.message?.content || null;
@@ -77,10 +81,13 @@ Beri 2-3 tips singkat yang spesifik untuk kondisi ini. Return JSON array.`;
   if (!raw) return [];
 
   try {
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed.map(String);
+    const jsonMatch = raw.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) return [];
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
     return [];
   } catch {
+    console.error("SumoPod tips parse failed, raw:", raw);
     return [];
   }
 }
