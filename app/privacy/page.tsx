@@ -71,24 +71,19 @@ export default function PrivacyPage() {
                   </thead>
                   <tbody>
                     <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">OpenAI / ChatGPT</td>
-                      <td className="py-2 pr-4">Foto kulit (deteksi AI & purging checker)</td>
-                      <td className="py-2">Amerika Serikat</td>
+                      <td className="py-2 pr-4">SumoPod (platform AI)</td>
+                      <td className="py-2 pr-4">Foto kulit & teks untuk analisis AI, dijalankan dengan model OpenAI (GPT-5, GPT-5-mini, GPT-4o-mini) &amp; DeepSeek</td>
+                      <td className="py-2">Indonesia</td>
                     </tr>
                     <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">SumoPod</td>
-                      <td className="py-2 pr-4">Teks konsultasi & data rutinitas</td>
+                      <td className="py-2 pr-4">SumoPod (pembayaran)</td>
+                      <td className="py-2 pr-4">Data pembayaran subscription</td>
                       <td className="py-2">Indonesia</td>
                     </tr>
                     <tr className="border-b border-slate-100">
                       <td className="py-2 pr-4">Supabase</td>
                       <td className="py-2 pr-4">Seluruh data akun, tracker, foto</td>
                       <td className="py-2">Asia Pasifik</td>
-                    </tr>
-                    <tr className="border-b border-slate-100">
-                      <td className="py-2 pr-4">SumoPod</td>
-                      <td className="py-2 pr-4">Data pembayaran subscription</td>
-                      <td className="py-2">Indonesia</td>
                     </tr>
                     <tr>
                       <td className="py-2 pr-4">Cloudflare</td>
@@ -118,7 +113,7 @@ export default function PrivacyPage() {
               <ul className="list-disc pl-5 space-y-1 mt-2">
                 <li>Data disimpan selama akun Anda aktif.</li>
                 <li>Jika akun dihapus, seluruh data dihapus dalam waktu maksimal 30 hari.</li>
-                <li>Foto yang dikirim ke OpenAI untuk analisis AI <strong>tidak disimpan</strong> oleh OpenAI setelah pemrosesan selesai.</li>
+                <li>Foto yang dikirim untuk analisis AI <strong>tidak disimpan</strong> oleh penyedia model setelah pemrosesan selesai.</li>
               </ul>
             </section>
 
@@ -128,7 +123,7 @@ export default function PrivacyPage() {
                 <li>Enkripsi end-to-end untuk penyimpanan dan transfer foto.</li>
                 <li>Row Level Security (RLS): setiap user hanya dapat mengakses datanya sendiri.</li>
                 <li>Enkripsi in-transit menggunakan TLS 1.3.</li>
-                <li>Kunci API (OpenAI, SumoPod) tidak pernah terekspos ke klien.</li>
+                <li>Kunci API (SumoPod dan penyedia model AI) tidak pernah terekspos ke klien.</li>
               </ul>
             </section>
 
