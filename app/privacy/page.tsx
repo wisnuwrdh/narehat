@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           <div className="prose prose-slate max-w-none space-y-8 text-sm leading-relaxed text-slate-700">
             <section>
               <h2 className="text-lg font-bold text-slate-900 mb-3">1. Identitas Pengendali Data</h2>
-              <p>Narehat (&quot;kami&quot;) mengoperasikan platform jurnal jerawat cerdas yang dapat diakses melalui <strong>narehat.com</strong>. Untuk pertanyaan terkait privasi, hubungi kami di <strong>support@narehat.id</strong>.</p>
+              <p>Narehat (&quot;kami&quot;) mengoperasikan platform jurnal jerawat cerdas yang dapat diakses melalui <strong>narehat.com</strong>. Untuk pertanyaan terkait privasi, hubungi kami di <strong>support@narehat.com</strong>.</p>
             </section>
 
             <section>
@@ -105,7 +105,7 @@ export default function PrivacyPage() {
                 <li><strong>Hak portabilitas:</strong> menerima salinan data dalam format terstruktur.</li>
                 <li><strong>Hak menarik persetujuan:</strong> mencabut izin pemrosesan data kapan saja.</li>
               </ul>
-              <p className="mt-2">Untuk menggunakan hak-hak ini, hubungi kami di <strong>support@narehat.id</strong>.</p>
+              <p className="mt-2">Untuk menggunakan hak-hak ini, hubungi kami di <strong>support@narehat.com</strong>.</p>
             </section>
 
             <section>
@@ -145,7 +145,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-bold text-slate-900 mb-3">12. Kontak</h2>
               <p>Untuk pertanyaan, keluhan, atau permintaan terkait data pribadi:</p>
-              <p className="mt-1"><strong>Email:</strong> support@narehat.id</p>
+              <p className="mt-1"><strong>Email:</strong> support@narehat.com</p>
               <p>Anda juga berhak mengajukan pengaduan ke lembaga pengawas perlindungan data pribadi yang berwenang di Indonesia.</p>
             </section>
           </div>

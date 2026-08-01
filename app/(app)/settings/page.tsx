@@ -77,7 +77,7 @@ export default function SettingsPage() {
   };
 
   const infoItems = [
-    { key: "help", icon: "help_outline", title: "Pusat Bantuan", content: "Hubungi kami di support@narehat.id atau melalui chat di aplikasi. Tim kami aktif Senin-Jumat pukul 09:00-18:00 WIB." },
+    { key: "help", icon: "help_outline", title: "Pusat Bantuan", content: "Hubungi kami di support@narehat.com atau melalui chat di aplikasi. Tim kami aktif Senin-Jumat pukul 09:00-18:00 WIB." },
     { key: "privacy", icon: "policy", title: "Kebijakan Privasi", content: "Data kamu dienkripsi end-to-end. Foto kulit tidak akan digunakan untuk training AI tanpa izin. Kami mematuhi UU Perlindungan Data Pribadi Indonesia." },
     { key: "terms", icon: "description", title: "Syarat & Ketentuan", content: "Dengan menggunakan Narehat, kamu setuju bahwa informasi yang diberikan bersifat edukatif dan bukan pengganti diagnosis medis profesional." },
   ];

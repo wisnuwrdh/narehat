@@ -27,7 +27,7 @@ export default function ContactPage() {
                 <span className="material-symbols-outlined text-primary text-2xl">mail</span>
               </div>
               <h3 className="font-bold text-slate-800 text-sm mb-1">Email</h3>
-              <p className="text-xs text-muted">support@narehat.id</p>
+              <p className="text-xs text-muted">support@narehat.com</p>
             </div>
 
             <div className="bg-white border border-border-subtle rounded-2xl p-6 text-center">

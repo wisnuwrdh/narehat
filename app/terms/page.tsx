@@ -120,7 +120,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-lg font-bold text-slate-900 mb-3">13. Kontak</h2>
-              <p>Untuk pertanyaan terkait Syarat & Ketentuan: <strong>support@narehat.id</strong></p>
+              <p>Untuk pertanyaan terkait Syarat & Ketentuan: <strong>support@narehat.com</strong></p>
             </section>
           </div>
         </div>
