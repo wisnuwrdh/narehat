@@ -178,7 +178,7 @@ export default function PricingSection() {
         </div>
 
         <p className="text-center text-[11px] text-muted mt-6">
-          Semua batas pemakaian direset tiap awal bulan. Tanpa kartu kredit, bisa batalkan kapan saja.
+          Semua batas pemakaian berlaku per periode langganan (reset saat perpanjang). Free direset tiap awal bulan. Tanpa kartu kredit.
         </p>
       </div>
     </section>

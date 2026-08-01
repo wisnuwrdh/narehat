@@ -5,7 +5,7 @@ import { detectAcne } from "@/lib/ai/vision";
 import { generateSkinTips } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
-import { countMonthlyUsage, getDetectModel, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
+import { countMonthlyUsage, getDetectModel, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +17,13 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("users")
-      .select("plan, plan_expires_at")
+      .select("plan, plan_expires_at, plan_started_at")
       .eq("id", userId)
       .maybeSingle();
 
     const bucket = getPlanBucket(profile?.plan, profile?.plan_expires_at);
     const detectLimit = getPlanQuota(bucket).detect;
-    const detectUsed = await countMonthlyUsage(supabase, userId, "detect");
+    const detectUsed = await countMonthlyUsage(supabase, userId, "detect", getUsageSince(bucket, profile?.plan_started_at));
 
     if (detectUsed >= detectLimit) {
       const upgrade =

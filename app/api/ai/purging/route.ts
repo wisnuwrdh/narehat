@@ -5,7 +5,7 @@ import { checkPurging } from "@/lib/ai/purging";
 import { generatePurgingAdvice } from "@/lib/ai/tips";
 import { uploadPhoto } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
-import { countMonthlyUsage, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
+import { countMonthlyUsage, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     const supabase = createDBClient();
     const { data: profile } = await supabase
       .from("users")
-      .select("plan, plan_expires_at")
+      .select("plan, plan_expires_at, plan_started_at")
       .eq("id", userId)
       .maybeSingle();
 
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     const bucket = getPlanBucket(profile.plan, profile.plan_expires_at);
     const purgingLimit = getPlanQuota(bucket).purging;
-    const purgingUsed = await countMonthlyUsage(supabase, userId, "purging");
+    const purgingUsed = await countMonthlyUsage(supabase, userId, "purging", getUsageSince(bucket, profile.plan_started_at));
 
     if (purgingUsed >= purgingLimit) {
       const upgrade =

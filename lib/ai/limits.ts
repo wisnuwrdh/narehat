@@ -53,17 +53,23 @@ export function firstDayOfMonth(): string {
   return d.toISOString();
 }
 
+export function getUsageSince(bucket: PlanBucket, planStartedAt?: string | null): string {
+  if (bucket === "free") return firstDayOfMonth();
+  return planStartedAt || firstDayOfMonth();
+}
+
 export async function countMonthlyUsage(
   supabase: SupabaseClient,
   userId: string,
-  feature: "detect" | "consult" | "purging"
+  feature: "detect" | "consult" | "purging",
+  since: string
 ): Promise<number> {
   const { data } = await supabase
     .from("ai_usage")
     .select("id")
     .eq("user_id", userId)
     .eq("feature", feature)
-    .gte("created_at", firstDayOfMonth());
+    .gte("created_at", since);
 
   return (data || []).length;
 }

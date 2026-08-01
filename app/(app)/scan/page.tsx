@@ -104,7 +104,7 @@ export default function ScanPage() {
     user.plan === "free"
       ? "Upgrade ke Premium untuk 30x/bulan."
       : user.plan.includes("pro")
-        ? "Kuota direset tiap awal bulan."
+        ? "Kuota direset tiap periode langganan."
         : "Upgrade ke Pro untuk 100x/bulan.";
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {

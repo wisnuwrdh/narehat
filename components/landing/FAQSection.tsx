@@ -46,7 +46,7 @@ export default function FAQSection() {
             },
             {
               q: "Kenapa ada batas pemakaian?",
-              a: "Kami mau AI-nya tetap cepat dan harga langganan tetap terjangkau. Semua batas direset otomatis tiap awal bulan — kamu gak akan kehilangan kuota yang belum terpakai di pertengahan bulan.",
+              a: "Kami mau AI-nya tetap cepat dan harga langganan tetap terjangkau. Kuota Free direset tiap awal bulan. Untuk langganan berbayar, kuota berlaku per periode langganan dan direset saat kamu bayar atau perpanjang — jadi kamu selalu dapat kuota penuh untuk periode yang kamu bayar.",
             },
             {
               q: "Bedanya kualitas analisis tiap plan?",
@@ -66,7 +66,7 @@ export default function FAQSection() {
             },
             {
               q: "Bisa batalkan subscription kapan saja?",
-              a: "Tentu! Kamu bisa batalkan kapan saja tanpa biaya tambahan. Akses premium/pro tetap aktif sampai akhir periode berlangganan.",
+              a: "Pembayaran QRIS bersifat sekali bayar tanpa auto-perpanjang. Kamu tinggal tidak memperpanjang — akses premium/pro tetap aktif sampai akhir periode langganan. Pembayaran yang sudah lunas tidak dapat dibatalkan.",
             },
           ].map((faq, i) => (
             <details key={i} className="group bg-white border border-border-subtle rounded-2xl overflow-hidden">

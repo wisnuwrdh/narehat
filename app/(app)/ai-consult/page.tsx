@@ -352,7 +352,7 @@ export default function AIConsultPage() {
               <p className="text-sm font-bold mb-1">Batas konsultasi bulanan tercapai</p>
               <p className="text-xs text-white/80 mb-3">
                 {isPro
-                  ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Kuota direset tiap awal bulan.`
+                  ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Kuota direset tiap periode langganan.`
                   : isPremium
                     ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Pro untuk 300x/bulan + AI Deteksi 100x/bulan.`
                     : `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Premium untuk 100x/bulan + AI Deteksi 30x/bulan.`}

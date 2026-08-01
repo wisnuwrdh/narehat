@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { consult } from "@/lib/ai/rag";
-import { countMonthlyUsage, getPlanBucket, getPlanQuota, recordUsage } from "@/lib/ai/limits";
+import { countMonthlyUsage, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -34,13 +34,13 @@ export async function POST(request: NextRequest) {
     const supabase = createDBClient();
     const { data: profile } = await supabase
       .from("users")
-      .select("plan, plan_expires_at")
+      .select("plan, plan_expires_at, plan_started_at")
       .eq("id", userId)
       .maybeSingle();
 
     const bucket = getPlanBucket(profile?.plan, profile?.plan_expires_at);
     const consultLimit = getPlanQuota(bucket).consult;
-    const consultUsed = await countMonthlyUsage(supabase, userId, "consult");
+    const consultUsed = await countMonthlyUsage(supabase, userId, "consult", getUsageSince(bucket, profile?.plan_started_at));
 
     if (consultUsed >= consultLimit) {
       const upgrade =

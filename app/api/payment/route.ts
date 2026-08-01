@@ -128,11 +128,11 @@ export async function POST(request: NextRequest) {
   const planExpiresAt = new Date(base.getTime() + durationDays * 86400000).toISOString();
 
   if (existingUser) {
-    const { error: updErr } = await supabaseAuth.from("users").update({ plan, plan_expires_at: planExpiresAt, updated_at: now.toISOString() }).eq("id", userId);
+    const { error: updErr } = await supabaseAuth.from("users").update({ plan, plan_expires_at: planExpiresAt, plan_started_at: now.toISOString(), updated_at: now.toISOString() }).eq("id", userId);
     if (updErr) return NextResponse.json({ error: "Update failed: " + updErr.message }, { status: 500 });
   } else {
     const { error: insErr } = await supabaseAuth.from("users").insert({
-      id: userId, email, plan, plan_expires_at: planExpiresAt, name: email.split("@")[0], updated_at: now.toISOString(),
+      id: userId, email, plan, plan_expires_at: planExpiresAt, plan_started_at: now.toISOString(), name: email.split("@")[0], updated_at: now.toISOString(),
     });
     if (insErr) return NextResponse.json({ error: "Insert failed: " + insErr.message }, { status: 500 });
   }
