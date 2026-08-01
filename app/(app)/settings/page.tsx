@@ -41,7 +41,6 @@ export default function SettingsPage() {
   const { showToast } = useToast();
   const [deleteInput, setDeleteInput] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
 
@@ -77,9 +76,9 @@ export default function SettingsPage() {
   };
 
   const infoItems = [
-    { key: "help", icon: "help_outline", title: "Pusat Bantuan", content: "Hubungi kami di support@narehat.com atau melalui chat di aplikasi. Tim kami aktif Senin-Jumat pukul 09:00-18:00 WIB." },
-    { key: "privacy", icon: "policy", title: "Kebijakan Privasi", content: "Data kamu dienkripsi end-to-end. Foto kulit tidak akan digunakan untuk training AI tanpa izin. Kami mematuhi UU Perlindungan Data Pribadi Indonesia." },
-    { key: "terms", icon: "description", title: "Syarat & Ketentuan", content: "Dengan menggunakan Narehat, kamu setuju bahwa informasi yang diberikan bersifat edukatif dan bukan pengganti diagnosis medis profesional." },
+    { key: "help", icon: "help_outline", title: "Pusat Bantuan", sub: "Email, jam operasional, FAQ", href: "/contact" },
+    { key: "privacy", icon: "policy", title: "Kebijakan Privasi", sub: "Cara kami mengelola data kamu", href: "/privacy" },
+    { key: "terms", icon: "description", title: "Syarat & Ketentuan", sub: "Aturan penggunaan Narehat", href: "/terms" },
   ];
 
   return (
@@ -230,22 +229,16 @@ export default function SettingsPage() {
           {infoItems.map((item, i) => (
             <div key={item.key}>
               {i > 0 && <div className="h-px bg-border-subtle mx-4" />}
-              <div>
-                <button onClick={() => setExpandedItem(expandedItem === item.key ? null : item.key)} className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
-                  <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center">
-                    <span className="material-symbols-outlined text-slate-500 text-sm">{item.icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-sm font-semibold text-slate-700 block">{item.title}</span>
-                  </div>
-                  <span className={`material-symbols-outlined text-muted-light text-lg transition-transform ${expandedItem === item.key ? "rotate-180" : ""}`}>expand_more</span>
-                </button>
-                {expandedItem === item.key && (
-                  <div className="px-4 pb-4 animate-scale-in">
-                    <p className="text-xs text-muted leading-relaxed">{item.content}</p>
-                  </div>
-                )}
-              </div>
+              <Link href={item.href} className="btn-press w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors text-left">
+                <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center">
+                  <span className="material-symbols-outlined text-slate-500 text-sm">{item.icon}</span>
+                </div>
+                <div className="flex-1">
+                  <span className="text-sm font-semibold text-slate-700 block">{item.title}</span>
+                  <span className="text-[10px] text-muted">{item.sub}</span>
+                </div>
+                <span className="material-symbols-outlined text-muted-light text-lg">chevron_right</span>
+              </Link>
             </div>
           ))}
         </div>
