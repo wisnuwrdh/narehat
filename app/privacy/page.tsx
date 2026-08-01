@@ -1,15 +1,18 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 
 export default function PrivacyPage() {
   const router = useRouter();
+  const { status } = useSession();
+  const showChrome = status === "unauthenticated";
   return (
     <>
-      <Navbar />
-      <main className="pt-24 pb-20 px-5">
+      {showChrome && <Navbar />}
+      <main className={`${showChrome ? "pt-24 pb-20" : "pt-6 pb-10"} px-5`}>
         <div className="container-narrow max-w-3xl mx-auto">
           <button type="button" onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors mb-6">
             <span className="material-symbols-outlined text-lg">arrow_back</span>
@@ -151,7 +154,7 @@ export default function PrivacyPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      {showChrome && <Footer />}
     </>
   );
 }
