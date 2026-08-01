@@ -67,12 +67,12 @@ const plans = [
 ];
 
 export default function SubscriptionPage() {
-  const { user } = useUser();
+  const { activePlan, planActive, daysLeft } = useUser();
   const { showToast } = useToast();
   const [billing, setBilling] = useState<Billing>("monthly");
   const [savingPlan, setSavingPlan] = useState<string | null>(null);
 
-  const currentPlanId = user.plan === "free" ? "free" : user.plan.includes("pro") ? "pro" : "premium";
+  const currentPlanId = activePlan;
   const [pendingPlan, setPendingPlan] = useState<string | null>(null);
 
   useEffect(() => {
@@ -140,7 +140,9 @@ export default function SubscriptionPage() {
           ))}
         </div>
         <p className="text-center text-[10px] text-muted mt-2">
-          {billing === "yearly" ? "Premium hemat 43% · Pro hemat 32%" : "Gak perlu kartu kredit"}
+          {billing === "yearly"
+            ? "Premium hemat 43% · Pro hemat 32% · bayar sekali via QRIS, aktif 365 hari"
+            : "Bayar sekali via QRIS · tanpa auto-perpanjang · aktif 30 hari"}
         </p>
       </section>
 
@@ -199,8 +201,19 @@ export default function SubscriptionPage() {
                     {isCurrent ? "Plan Kamu Saat Ini" : "Termasuk Saat Daftar"}
                   </div>
                 ) : isCurrent ? (
-                  <div className="w-full py-3 text-center text-xs font-bold text-primary bg-primary-light rounded-2xl">
-                    Plan Kamu Saat Ini
+                  <div className="space-y-2">
+                    <div className="w-full py-3 text-center text-xs font-bold text-primary bg-primary-light rounded-2xl">
+                      {planActive ? `Plan Aktif · Sisa ${daysLeft} hari` : "Plan Kamu Saat Ini"}
+                    </div>
+                    {planActive && (
+                      <button
+                        onClick={() => apiPlan && handleUpgrade(apiPlan)}
+                        disabled={savingPlan === apiPlan}
+                        className="w-full py-2 text-xs font-semibold text-primary border border-primary/30 rounded-2xl hover:bg-primary-light/30 transition-colors disabled:opacity-50"
+                      >
+                        {savingPlan === apiPlan ? "Memproses..." : "Perpanjang +30 hari"}
+                      </button>
+                    )}
                   </div>
                 ) : pendingPlan === apiPlan ? (
                   <div className="space-y-2">

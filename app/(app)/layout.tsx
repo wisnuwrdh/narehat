@@ -16,8 +16,8 @@ const navItems = [
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const hideNav = pathname.startsWith("/recommendations") || pathname.startsWith("/ai-consult") || pathname.startsWith("/routine") || pathname.startsWith("/subscription") || pathname.startsWith("/profile") || pathname.startsWith("/scan");
-  const { user } = useUser();
-  const isPremium = user.plan !== "free";
+  const { activePlan } = useUser();
+  const isPremium = activePlan !== "free";
 
   return (
     <div className="min-h-screen bg-white">

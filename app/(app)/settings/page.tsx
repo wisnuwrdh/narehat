@@ -37,7 +37,7 @@ const goalLabels: Record<string, string> = {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, activePlan, planActive, daysLeft } = useUser();
   const { showToast } = useToast();
   const [deleteInput, setDeleteInput] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -118,20 +118,24 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="material-symbols-outlined text-primary text-sm">diamond</span>
-                  <span className="text-xs font-bold text-primary">
-                    {user.plan === "free" ? "Gratis" : user.plan.includes("pro") ? "Pro Aktif" : "Premium Aktif"}
+                  <span className={`text-xs font-bold ${!planActive && user.plan !== "free" ? "text-amber-600" : "text-primary"}`}>
+                    {planActive ? (activePlan === "pro" ? "Pro Aktif" : "Premium Aktif") : user.plan !== "free" ? "Langganan Habis" : "Gratis"}
                   </span>
                 </div>
                 <p className="text-sm font-bold text-slate-800">Plan {planLabels[user.plan] || "Gratis"}</p>
                 <p className="text-xs text-muted mt-0.5">
-                  {user.plan !== "free" ? (user.plan.includes("pro") ? "Semua fitur Pro tersedia" : "Nikmati semua fitur premium") : "Upgrade untuk fitur lengkap"}
+                  {planActive
+                    ? `Sisa ${daysLeft} hari · berakhir ${user.plan_expires_at ? new Date(user.plan_expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "short" }) : ""}`
+                    : user.plan !== "free"
+                      ? "Perpanjang untuk lanjutkan semua fitur"
+                      : "Upgrade untuk fitur lengkap"}
                 </p>
               </div>
               <Link
                 href="/subscription"
-                className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors ${user.plan !== "free" ? "bg-primary text-white hover:bg-primary/90" : "bg-primary text-white hover:bg-primary/90"}`}
+                className={`btn-press px-4 py-2 text-xs font-bold rounded-xl transition-colors bg-primary text-white hover:bg-primary/90`}
               >
-                {user.plan !== "free" ? "Kelola Plan" : "Lihat Plan"}
+                {planActive ? "Kelola Plan" : user.plan !== "free" ? "Perpanjang" : "Lihat Plan"}
               </Link>
             </div>
           </div>

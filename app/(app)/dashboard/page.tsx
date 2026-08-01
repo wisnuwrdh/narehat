@@ -108,7 +108,7 @@ function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_
 }
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user, activePlan, planActive, daysLeft, refreshUser } = useUser();
   const [data, setData] = useState<DashboardData>({
     userName: "",
     dailyLog: null,
@@ -122,6 +122,19 @@ export default function DashboardPage() {
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
   const [insightExpanded, setInsightExpanded] = useState(false);
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+
+  useEffect(() => {
+    if (!window.location.search.includes("payment=success")) return;
+    setShowSuccessBanner(true);
+    window.history.replaceState({}, "", window.location.pathname);
+    const started = Date.now();
+    const timer = setInterval(async () => {
+      await refreshUser();
+      if (Date.now() - started > 30000) clearInterval(timer);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [refreshUser]);
 
   const loadDashboard = useCallback(async () => {
     try {
@@ -257,6 +270,22 @@ export default function DashboardPage() {
           <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
         </div>
       </header>
+
+      {showSuccessBanner && (
+        <section className="px-6 mb-5 animate-scale-in">
+          <div className="flex items-center gap-3 px-4 py-3.5 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-2xl">
+            <span className="text-xl">💜</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-emerald-800">
+                {planActive ? `Pembayaran berhasil! Selamat datang di ${activePlan === "pro" ? "Pro" : "Premium"} 👑` : "Pembayaran berhasil! Mengaktifkan plan kamu..."}
+              </p>
+              <p className="text-xs text-emerald-700/70">
+                {planActive ? `Plan aktif ${daysLeft} hari. Semua fitur ${activePlan === "pro" ? "Pro" : "Premium"} sudah terbuka.` : "Pembayaran sedang diproses, mohon tunggu sebentar..."}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="px-6 mb-5 animate-fade-in-up delay-100">
         <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-100 rounded-2xl">

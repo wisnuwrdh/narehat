@@ -9,10 +9,14 @@ interface UserData {
   acne_severity: string;
   goal: string;
   plan: string;
+  plan_expires_at: string | null;
 }
 
 interface UserContextValue {
   user: UserData;
+  activePlan: "free" | "premium" | "pro";
+  planActive: boolean;
+  daysLeft: number;
   loading: boolean;
   refreshUser: () => Promise<void>;
   updateUser: (updates: Partial<UserData>) => Promise<void>;
@@ -25,10 +29,31 @@ const defaultUser: UserData = {
   acne_severity: "mild",
   goal: "clear_acne",
   plan: "free",
+  plan_expires_at: null,
 };
+
+function computePlanState(user: UserData) {
+  const paid = user.plan !== "free";
+  const expires = user.plan_expires_at ? new Date(user.plan_expires_at).getTime() : null;
+  const planActive = paid && (expires === null || expires > Date.now());
+  const activePlan: "free" | "premium" | "pro" = !planActive
+    ? "free"
+    : user.plan.includes("pro")
+      ? "pro"
+      : "premium";
+  const daysLeft = expires
+    ? Math.max(0, Math.ceil((expires - Date.now()) / 86400000))
+    : paid
+      ? 0
+      : 0;
+  return { planActive, activePlan, daysLeft };
+}
 
 const UserContext = createContext<UserContextValue>({
   user: defaultUser,
+  activePlan: "free",
+  planActive: false,
+  daysLeft: 0,
   loading: true,
   refreshUser: async () => {},
   updateUser: async () => {},
@@ -56,6 +81,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           acne_severity: u.acne_severity || "mild",
           goal: u.goal || "clear_acne",
           plan: u.plan || "free",
+          plan_expires_at: u.plan_expires_at || null,
         });
       }
     } catch {}
@@ -82,8 +108,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [user]
   );
 
+  const planState = computePlanState(user);
+
   return (
-    <UserContext.Provider value={{ user, loading, refreshUser, updateUser }}>
+    <UserContext.Provider value={{ user, ...planState, loading, refreshUser, updateUser }}>
       {children}
     </UserContext.Provider>
   );
