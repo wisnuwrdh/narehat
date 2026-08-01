@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { planPriority } from "@/lib/payment/sumopod";
 
 function parseOrderId(orderId: string): { userId: string; plan: string } | null {
   const parts = orderId.split("-");
@@ -109,6 +110,18 @@ export async function POST(request: NextRequest) {
   }
 
   const durationDays = plan.includes("yearly") ? 365 : 30;
+
+  if (existingUser) {
+    const currentActive =
+      existingUser.plan !== "free" &&
+      existingUser.plan_expires_at &&
+      new Date(existingUser.plan_expires_at).getTime() > now.getTime();
+
+    if (currentActive && planPriority(existingUser.plan) > planPriority(plan)) {
+      return NextResponse.json({ error: "Downgrade ditolak: user masih di plan lebih tinggi." }, { status: 409 });
+    }
+  }
+
   const base = existingUser?.plan_expires_at && new Date(existingUser.plan_expires_at).getTime() > now.getTime()
     ? new Date(existingUser.plan_expires_at)
     : now;

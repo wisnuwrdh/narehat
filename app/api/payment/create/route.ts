@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
-import { createPayment, isValidPlan } from "@/lib/payment/sumopod";
+import { createPayment, isValidPlan, planPriority } from "@/lib/payment/sumopod";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -25,6 +25,27 @@ export async function POST(request: NextRequest) {
 
   if (!isValidPlan(plan)) {
     return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+  }
+
+  const { data: profile } = await supabase
+    .from("users")
+    .select("plan, plan_expires_at")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const currentActive =
+    profile &&
+    profile.plan !== "free" &&
+    profile.plan_expires_at &&
+    new Date(profile.plan_expires_at).getTime() > Date.now();
+
+  if (currentActive && planPriority(profile.plan) > planPriority(plan)) {
+    const currentTier = profile.plan.includes("pro") ? "Pro" : "Premium";
+    const newTier = plan.includes("pro") ? "Pro" : "Premium";
+    return NextResponse.json(
+      { error: `Kamu sudah di plan ${currentTier}. Downgrade ke ${newTier} hanya bisa setelah langganan ${currentTier} berakhir.` },
+      { status: 409 }
+    );
   }
 
   const { data: pendingPayment } = await supabase

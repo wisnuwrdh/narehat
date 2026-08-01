@@ -107,3 +107,9 @@ export async function createPayment(
 export function isValidPlan(plan: string): plan is PlanType {
   return validPlans.includes(plan);
 }
+
+export function planPriority(plan: string): number {
+  if (plan.includes("pro")) return 2;
+  if (plan.includes("premium")) return 1;
+  return 0;
+}

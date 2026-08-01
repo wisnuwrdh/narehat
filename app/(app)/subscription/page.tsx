@@ -215,6 +215,10 @@ export default function SubscriptionPage() {
                       </button>
                     )}
                   </div>
+                ) : planActive && activePlan === "pro" && plan.planId === "premium" ? (
+                  <div className="w-full py-3 text-center text-xs font-semibold text-muted bg-slate-50 rounded-2xl">
+                    Kamu sudah di Pro · downgrade bisa setelah langganan Pro berakhir
+                  </div>
                 ) : pendingPlan === apiPlan ? (
                   <div className="space-y-2">
                     <div className="w-full py-3 text-center text-xs font-bold text-amber-600 bg-amber-50 rounded-2xl">
