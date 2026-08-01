@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { analyzeRoutine } from "@/lib/ai/routine";
+import { getPlanBucket } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   const session = await auth();
@@ -11,11 +12,11 @@ export async function POST(request: NextRequest) {
   const supabase = createDBClient();
   const { data: profile } = await supabase
     .from("users")
-    .select("plan")
+    .select("plan, plan_expires_at")
     .eq("id", userId)
     .maybeSingle();
 
-  if (!profile || !profile.plan.includes("pro")) {
+  if (!profile || getPlanBucket(profile.plan, profile.plan_expires_at) !== "pro") {
     return NextResponse.json({ error: "Fitur Pro. Upgrade plan kamu ke Pro." }, { status: 402 });
   }
 

@@ -89,7 +89,7 @@ export async function createPayment(
       order_id: orderId,
       amount,
       currency: "IDR",
-      success_return_url: `${origin}/dashboard`,
+      success_return_url: `${origin}/dashboard?payment=success`,
       cancel_return_url: `${origin}/subscription`,
       payment_method_type_code: "QRIS",
     }),

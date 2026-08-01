@@ -96,11 +96,11 @@ export async function POST(request: NextRequest) {
   }
 
   const email = authUser.user.email || "";
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const { data: existingUser, error: selErr } = await supabaseAuth
     .from("users")
-    .select("id")
+    .select("id, plan, plan_expires_at")
     .eq("id", userId)
     .maybeSingle();
 
@@ -108,15 +108,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Select user failed: " + selErr.message, hint: "Apakah tabel public.users sudah dibuat?" }, { status: 500 });
   }
 
+  const durationDays = plan.includes("yearly") ? 365 : 30;
+  const base = existingUser?.plan_expires_at && new Date(existingUser.plan_expires_at).getTime() > now.getTime()
+    ? new Date(existingUser.plan_expires_at)
+    : now;
+  const planExpiresAt = new Date(base.getTime() + durationDays * 86400000).toISOString();
+
   if (existingUser) {
-    const { error: updErr } = await supabaseAuth.from("users").update({ plan, updated_at: now }).eq("id", userId);
+    const { error: updErr } = await supabaseAuth.from("users").update({ plan, plan_expires_at: planExpiresAt, updated_at: now.toISOString() }).eq("id", userId);
     if (updErr) return NextResponse.json({ error: "Update failed: " + updErr.message }, { status: 500 });
   } else {
     const { error: insErr } = await supabaseAuth.from("users").insert({
-      id: userId, email, plan, name: email.split("@")[0], updated_at: now,
+      id: userId, email, plan, plan_expires_at: planExpiresAt, name: email.split("@")[0], updated_at: now.toISOString(),
     });
     if (insErr) return NextResponse.json({ error: "Insert failed: " + insErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ message: "Plan updated", userId, plan });
+  return NextResponse.json({ message: "Plan updated", userId, plan, plan_expires_at: planExpiresAt });
 }

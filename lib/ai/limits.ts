@@ -22,8 +22,18 @@ export const DETECT_MODELS: Record<PlanBucket, string> = {
 
 export const PURGING_MODEL = "gpt-5-mini";
 
-export function getPlanBucket(plan: string | null | undefined): PlanBucket {
+export function isPlanActive(plan: string | null | undefined, expiresAt?: string | null): boolean {
+  if (!plan || plan === "free") return false;
+  if (!expiresAt) return true;
+  return new Date(expiresAt).getTime() > Date.now();
+}
+
+export function getPlanBucket(
+  plan: string | null | undefined,
+  expiresAt?: string | null
+): PlanBucket {
   if (!plan || plan === "free") return "free";
+  if (!isPlanActive(plan, expiresAt)) return "free";
   if (plan.includes("pro")) return "pro";
   return "premium";
 }

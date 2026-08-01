@@ -34,11 +34,11 @@ export async function POST(request: NextRequest) {
     const supabase = createDBClient();
     const { data: profile } = await supabase
       .from("users")
-      .select("plan")
+      .select("plan, plan_expires_at")
       .eq("id", userId)
       .maybeSingle();
 
-    const bucket = getPlanBucket(profile?.plan);
+    const bucket = getPlanBucket(profile?.plan, profile?.plan_expires_at);
     const consultLimit = getPlanQuota(bucket).consult;
     const consultUsed = await countMonthlyUsage(supabase, userId, "consult");
 

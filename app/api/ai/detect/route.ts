@@ -17,11 +17,11 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await supabase
       .from("users")
-      .select("plan")
+      .select("plan, plan_expires_at")
       .eq("id", userId)
       .maybeSingle();
 
-    const bucket = getPlanBucket(profile?.plan);
+    const bucket = getPlanBucket(profile?.plan, profile?.plan_expires_at);
     const detectLimit = getPlanQuota(bucket).detect;
     const detectUsed = await countMonthlyUsage(supabase, userId, "detect");
 
