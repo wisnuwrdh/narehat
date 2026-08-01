@@ -67,12 +67,12 @@ Contoh response benar untuk kulit berjerawat:
             },
             {
               type: "image_url",
-              image_url: { url: imageBase64, detail: "auto" },
+              image_url: { url: imageBase64, detail: "low" },
             },
           ],
         },
       ],
-      max_tokens: 500,
+      max_tokens: 300,
       temperature: 0.1,
     }),
   });
