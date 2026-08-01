@@ -1,17 +1,21 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
-import Link from "next/link";
 
 export default function AboutPage() {
+  const router = useRouter();
   return (
     <>
       <Navbar />
       <main className="pt-20">
         <div className="container-narrow mb-4">
-          <Link href="/" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+          <button type="button" onClick={() => router.back()} className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
             <span className="material-symbols-outlined text-lg">arrow_back</span>
             Kembali
-          </Link>
+          </button>
         </div>
         <section className="container-narrow py-10"> 
           <div className="text-center mb-16">
