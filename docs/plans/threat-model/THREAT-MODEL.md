@@ -21,7 +21,7 @@ Narehat adalah SaaS kesehatan kulit (PWA) yang membantu user memahami pemicu per
 | Auth | Supabase Auth (cookie-based session) |
 | Database | Supabase PostgreSQL + pgvector (RAG) |
 | Storage | Supabase Storage (public bucket: `skin_photos`) |
-| AI | SumoPod LLM (DeepSeek V4 Flash) + Xenova Transformers |
+| AI | SumoPod LLM (DeepSeek V4 Flash) + SumoPod embedding (text-embedding-3-small) |
 | Payment | SumoPod (QRIS) |
 | Deployment | Vercel |
 

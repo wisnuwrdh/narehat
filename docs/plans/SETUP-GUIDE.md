@@ -161,24 +161,32 @@ Setelah project Cloudflare Pages dibuat:
 ## 11. Journal Data (RAG)
 
 ### Format file
-Simpan file `.txt` di `data/journals/`, format: judul di baris pertama, konten di baris berikutnya.
+Simpan file `.md` di `data/journals/`, format per artikel:
+```
+JUDUL: <judul jurnal>
+SUMBER: <jurnal, tahun, penulis — PMID: 12345678>
+ISI: <ringkasan konten jurnal>
+```
 
 ### Menjalankan ingest
 ```bash
 npm run ingest
 ```
+Script: baca `.md`/`.txt` di `data/journals/` → chunk ~350 kata → embed via SumoPod `text-embedding-3-small` → insert ke `public.documents` (pgvector).
+Butuh env: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUMOPOD_API_KEY`.
 
-### Target jurnal
+### Status: ✅ 91 jurnal ter-ingest dari 8 domain
 
-| Domain | Target |
-|--------|--------|
-| Acne Basics | 8-10 |
-| Acne Treatment | 10-15 |
-| Ingredients | 15-20 |
-| Lifestyle | 10-15 |
-| Skin Barrier | 8-10 |
-| Acne Scar (PIH, PIE) | 8-10 |
-| Brightening | 8-10 |
+| Domain | Target | Aktual |
+|--------|--------|--------|
+| Acne Basics | 8-10 | 9 |
+| Acne Treatment | 10-15 | 11 |
+| Skincare Ingredients | 15-20 | 17 |
+| Lifestyle & Diet | 10-15 | 15 |
+| Skin Barrier | 8-10 | 9 |
+| Acne Scar (PIH, PIE) | 8-10 | 10 |
+| Brightening / Hyperpigmentation | 8-10 | 10 |
+| Skincare Routine | 8-10 | 10 |
 
 ---
 

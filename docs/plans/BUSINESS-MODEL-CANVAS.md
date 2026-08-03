@@ -80,8 +80,8 @@
 
 | Resource | Detail |
 |----------|--------|
-| **Infrastruktur AI RAG** | Xenova embeddings (local) + Supabase pgvector + SumoPod LLM |
-| **Database jurnal dermatologi** | 70-90 artikel peer-reviewed di 7 domain (Acne Basics, Treatment, Ingredients, Lifestyle, Skin Barrier, Scar, Brightening) |
+| **Infrastruktur AI RAG** | SumoPod embeddings (text-embedding-3-small) + Supabase pgvector + SumoPod LLM |
+| **Database jurnal dermatologi** | 91 artikel peer-reviewed ber-PMID/DOI di 8 domain (Basics, Treatment, Ingredients, Lifestyle, Skin Barrier, Scar, Brightening, Routine) |
 | **Supabase** | Auth, Database, Storage, RLS — full backend tanpa DevOps |
 | **Codebase** | Next.js 15 App Router — landing page, web app, API routes dalam 1 repo |
 | **Brand & Audience** | Existing TikTok audience untuk distribusi awal |
@@ -125,7 +125,7 @@
 | **SumoPod** | ~0.7% + Rp300 per transaksi | Variable |
 | **Domain** | ~$10/tahun (mis. narehat.id) | Fixed |
 | **Content creation** | ~Rp0-500rb (self-produced atau UGC) | Variable |
-| **Xenova embeddings** | $0 (komputasi lokal, tanpa biaya API) | Fixed — zero |
+| **SumoPod embeddings** | ~$0-5 (text-embedding-3-small per 1K token, tergantung volume ingest) | Variable — kecil |
 
 **Total early-stage: ~$10-30/bulan + fee transaksi.**
 
@@ -139,7 +139,7 @@ Cost structure: **value-driven** (bukan cost-driven). Kualitas AI, insight perso
 |------------|------------|----------|
 | User akan isi tracker harian >3 bulan | HIGH — habit tracking fatigue | Streak gamification, push notification, "aha moment" early |
 | Rp19rb cukup rendah untuk conversion | MEDIUM — perceived value | Free trial 7 hari, tunjukkan insight sebelum paywall |
-| AI RAG akurat dengan 70-90 jurnal | MEDIUM — coverage gap | Mulai dengan jurnal dikurasi ketat, evaluasi berkala |
+| AI RAG akurat dengan 91 jurnal ter-ingest | MEDIUM — coverage gap di sub-topik | Perluas jurnal & evaluasi berkala; artikel wajib PMID/DOI terverifikasi |
 | TikTok organic sebagai primary channel | MEDIUM — algorithm dependent | Diversifikasi ke SEO + referral setelah scale |
 | Kompetitor tidak akan copy model | LOW — defensibility rendah | Moat = data proprietary + brand + first-mover di Indonesia |
 

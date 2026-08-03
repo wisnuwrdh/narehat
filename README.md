@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.9.1 (Cloudflare Pages + OpenNext + NextAuth)
+**Versi:** 0.9.2 (Cloudflare Pages + OpenNext + NextAuth)
 **Terakhir diperbarui:** Agustus 2026
 
 ---
@@ -222,10 +222,10 @@ Narehat dapat di-install sebagai aplikasi di HP seperti native app.
 
 ### Arsitektur RAG (AI Consult)
 ```
-User Query → Xenova Embedding (local, all-MiniLM-L6-v2)
+User Query → SumoPod Embedding (text-embedding-3-small, 384 dim)
     → pgvector Similarity Search (Supabase match_documents)
-    → Top 3-5 chunks (similarity ≥ 0.75)
-    → SumoPod LLM (deepseek-v4-flash, temp 0.5, max 800 token)
+    → Top 5 chunks (similarity ≥ 0.4)
+    → SumoPod LLM (deepseek-v4-flash, temp 0.5, max 2000 token)
     → Jawaban terstruktur + sitasi jurnal + disclaimer
 ```
 
@@ -275,7 +275,7 @@ Export PDF hanya untuk member Pro: UI menampilkan paywall upgrade, API return `4
 | Auth | NextAuth.js v5 (Google OAuth + email/password via Credentials) |
 | Database | Supabase (PostgreSQL) — RLS dihapus, authorization via API routes + session |
 | Vector DB | Supabase pgvector |
-| Embeddings | Xenova Transformers (all-MiniLM-L6-v2, local) |
+| Embeddings | SumoPod AI (text-embedding-3-small, 384 dim) |
 | LLM Provider | SumoPod AI (deepseek-v4-flash) |
 | Vision | OpenAI GPT-4o-mini |
 | Payment | SumoPod (QRIS-based, webhook HMAC + token verification) |
@@ -360,7 +360,7 @@ narehat/
 │   │   ├── binary.ts              # arrayBufferToBase64 (Workers-safe)
 │   │   └── utils.ts               # cn() classname helper
 │   ├── ai/
-│   │   ├── embeddings.ts          # Xenova embeddings + pgvector query
+│   │   ├── embeddings.ts          # SumoPod embeddings + pgvector query
 │   │   ├── rag.ts                 # RAG pipeline + SumoPod call
 │   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
 │   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
@@ -393,22 +393,26 @@ narehat/
 - Rate limiter 5 request/menit per user
 
 ### Knowledge Base
-**Sumber:** PubMed, AAD, Journal of Investigative Dermatology, British Journal of Dermatology
-**Target:** ≈70-90 jurnal dari 7 domain
+**Sumber:** PubMed, AAD, JEADV, British Journal of Dermatology, JCAD, Cochrane, Cureus
+**Status:** ✅ 91 jurnal ter-ingest dari 8 domain
 
-| Domain | Target |
-|--------|--------|
-| Acne Basics | 8-10 |
-| Acne Treatment | 10-15 |
-| Ingredients | 15-20 |
-| Lifestyle | 10-15 |
-| Skin Barrier | 8-10 |
-| Acne Scar (PIH, PIE) | 8-10 |
-| Brightening / Hyperpigmentation | 8-10 |
+| Domain | Target | Aktual |
+|--------|--------|--------|
+| Acne Basics | 8-10 | 9 |
+| Acne Treatment | 10-15 | 11 |
+| Skincare Ingredients | 15-20 | 17 |
+| Lifestyle & Diet | 10-15 | 15 |
+| Skin Barrier | 8-10 | 9 |
+| Acne Scar (PIH, PIE) | 8-10 | 10 |
+| Brightening / Hyperpigmentation | 8-10 | 10 |
+| Skincare Routine | 8-10 | 10 |
+
+Setiap artikel memiliki identitas valid (PMID/DOI) yang diverifikasi ke PubMed; artikel halusinasi ditolak/diperbaiki.
 
 ### Ingest Pipeline
 ```
-File .txt di data/journals/ → chunk 500 token → Xenova embed → insert pgvector
+File .md di data/journals/ (format JUDUL/SUMBER/ISI) → chunk ~350 kata
+→ SumoPod embed (text-embedding-3-small) → insert pgvector
 ```
 Jalankan dengan: `npm run ingest`
 
@@ -540,7 +544,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 **Fase 5 — Cleanup (setelah stabil 3-7 hari)**
 - [x] Hapus project dari Vercel
 - [ ] Hapus bucket `skin_photos` di Supabase Storage
-- [ ] Kumpulkan & ingest 70-90 jurnal dermatologi (`npm run ingest`)
+- [x] Kumpulkan & ingest 91 jurnal dermatologi (`npm run ingest`)
 - [ ] Register SumoPod webhook URL final (kalau belum)
 
 ---
@@ -588,5 +592,5 @@ User bisa mendownload semua data mereka dari halaman Settings:
 
 ---
 
-*Dokumen ini diperbarui Agustus 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover, cancel plan, dan gate Report PDF ke Pro.*
+*Dokumen ini diperbarui Agustus 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover, cancel plan, gate Report PDF ke Pro, dan ingest 91 jurnal ke RAG.*
 

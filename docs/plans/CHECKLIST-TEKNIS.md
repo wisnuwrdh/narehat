@@ -114,34 +114,37 @@ PENTING: AI Consult TIDAK AKAN BERFUNGSI tanpa step ini. Jurnal harus di-embed d
 
 ### Cara
 
-1. Kumpulkan teks jurnal dermatologi (PubMed, AAD, JID, dll) dalam format `.txt`
-2. Format file: judul jurnal di baris pertama, konten di baris berikutnya
-3. Simpan di folder `data/journals/` (contoh: `data/journals/contoh-jurnal.txt`)
-4. Set `SUPABASE_SERVICE_ROLE_KEY` di `.env.local` (file local, tidak di-commit)
+1. Kumpulkan teks jurnal dermatologi (PubMed, AAD, JEADV, BJD, JCAD, Cochrane, Cureus) dalam format `.md`
+2. Format file per artikel: baris `JUDUL:` (judul), `SUMBER:` (jurnal, tahun, penulis, PMID/DOI), lalu `ISI:` (ringkasan jurnal)
+3. Simpan di folder `data/journals/` (contoh: `data/journals/01.md`)
+4. Set `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUMOPOD_API_KEY` di `.env.local` (file local, tidak di-commit)
 5. Jalankan: `npm run ingest`
 6. Script akan:
-   - Baca semua file `.txt` di folder
-   - Generate vector embeddings menggunakan Xenova Transformers
+   - Baca semua file `.md`/`.txt` di folder
+   - Generate vector embeddings via SumoPod (`text-embedding-3-small`, 384 dim)
+   - Chunk ~350 kata per bagian
    - Insert ke `public.documents` table di Supabase
 
-### Contoh format file jurnal (`data/journals/acne-diet-2019.txt`):
+### Contoh format file jurnal (`data/journals/acne-diet.md`):
 
 ```
-Dietary Factors and Acne Vulgaris
-High glycemic index diets and frequent dairy consumption are associated with increased acne prevalence. Studies show that low-glycemic-load diets can reduce acne lesion counts by 23-50% over 12 weeks. Insulin-like growth factor 1 (IGF-1) mediates this relationship by stimulating sebocyte proliferation and lipogenesis.
+JUDUL: Dietary Factors and Acne Vulgaris
+SUMBER: Journal of the American Academy of Dermatology, 2019. Authors: [nama] — PMID: 12345678
+ISI: High glycemic index diets and frequent dairy consumption are associated with increased acne prevalence. Studies show that low-glycemic-load diets can reduce acne lesion counts by 23-50% over 12 weeks. Insulin-like growth factor 1 (IGF-1) mediates this relationship by stimulating sebocyte proliferation and lipogenesis.
 ```
 
-### Target: ~70-90 jurnal dari 7 domain
+### Status: ✅ 91 jurnal ter-ingest dari 8 domain (semua artikel ber-PMID/DOI terverifikasi)
 
-| Domain | Target |
-|--------|--------|
-| Acne Basics | 8-10 |
-| Acne Treatment | 10-15 |
-| Ingredients | 15-20 |
-| Lifestyle | 10-15 |
-| Skin Barrier | 8-10 |
-| Acne Scar (PIH, PIE) | 8-10 |
-| Brightening | 8-10 |
+| Domain | Target | Aktual |
+|--------|--------|--------|
+| Acne Basics | 8-10 | 9 |
+| Acne Treatment | 10-15 | 11 |
+| Skincare Ingredients | 15-20 | 17 |
+| Lifestyle & Diet | 10-15 | 15 |
+| Skin Barrier | 8-10 | 9 |
+| Acne Scar (PIH, PIE) | 8-10 | 10 |
+| Brightening / Hyperpigmentation | 8-10 | 10 |
+| Skincare Routine | 8-10 | 10 |
 
 ---
 
@@ -187,7 +190,7 @@ High glycemic index diets and frequent dairy consumption are associated with inc
 | Payment gagal | `SUMOPOD_PAYMENT_API_KEY` belum di-set / invalid |
 | Middleware tidak redirect | Deploy ulang setelah middleware.ts di-commit |
 | Timeline foto kosong | Belum ada foto di-upload — upload dari tracker dulu |
-| AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step E) / embeddings tidak match |
+| AI jawaban generic, tidak spesifik | Jurnal belum di-ingest (step G) / embeddings tidak match (threshold 0.4) |
 | CAPTCHA tidak muncul | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` belum di-set / invalid |
 | Email tidak terkirim | `RESEND_API_KEY` belum di-set / Resend domain belum verified |
 

@@ -305,20 +305,11 @@ app/globals.css:1
 
 **Fix:** Move to `<link>` in layout.tsx `<head>`.
 
-### 7c. Xenova Transformers Cold Start
+### 7c. Embeddings Provider (resolved)
 
-```
-lib/ai/embeddings.ts:10
-  embedderPromise = import("@xenova/transformers").then(({ pipeline }) =>
-    pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
-  );
-```
+Dulu: Xenova Transformers lokal (`all-MiniLM-L6-v2`, ~80MB, cold start 3-5 detik, model download di request pertama).
 
-- `all-MiniLM-L6-v2` model is ~80MB, downloaded and loaded at first request
-- Vercel serverless: cold start 3-5 detik pada request pertama
-- Model cached after first load (warm request: ~500ms)
-
-**Fix:** Pre-load model at build time via server-side init, or offload to Supabase Edge Function with pgvector embedding generation.
+**Fix (diterapkan):** Embeddings dialihkan ke SumoPod API (`text-embedding-3-small`, 384 dim) — tidak ada model lokal, tanpa cold start, konsisten dengan provider LLM. Similarity threshold `match_documents` diturunkan ke 0.4 karena skor cross-lingual (ID→EN) berkisar 0.4–0.55.
 
 ---
 
