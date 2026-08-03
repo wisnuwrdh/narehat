@@ -1,5 +1,7 @@
 const MAX_DIMENSION = 1200;
+const THUMB_DIMENSION = 400;
 const QUALITY = 0.85;
+const THUMB_QUALITY = 0.7;
 const MAX_PNG_PIXELS = 6000000;
 
 function imageFromURL(url: string): Promise<HTMLImageElement> {
@@ -51,7 +53,7 @@ function readPNGDimensions(buf: Uint8Array): { width: number; height: number } |
   return { width, height };
 }
 
-async function decodeImage(file: File): Promise<{
+async function decodeImage(file: File, maxDim: number): Promise<{
   source: HTMLImageElement | ImageBitmap;
   width: number;
   height: number;
@@ -74,8 +76,8 @@ async function decodeImage(file: File): Promise<{
 
   try {
     const bitmap = await createImageBitmap(file, {
-      resizeWidth: MAX_DIMENSION,
-      resizeHeight: MAX_DIMENSION,
+      resizeWidth: maxDim,
+      resizeHeight: maxDim,
       resizeQuality: "high",
     });
     return { source: bitmap, width: bitmap.width, height: bitmap.height };
@@ -89,7 +91,8 @@ async function decodeImage(file: File): Promise<{
 function compressToWebP(
   source: HTMLImageElement | ImageBitmap,
   dstW: number,
-  dstH: number
+  dstH: number,
+  quality: number
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement("canvas");
@@ -110,25 +113,33 @@ function compressToWebP(
         else reject(new Error("Gagal mengompres gambar"));
       },
       "image/webp",
-      QUALITY
+      quality
     );
   });
 }
 
 export async function compressImageOnClient(file: File): Promise<File> {
-  const { source, width, height } = await decodeImage(file);
+  return compressFile(file, MAX_DIMENSION, QUALITY);
+}
+
+export async function compressThumbOnClient(file: File): Promise<File> {
+  return compressFile(file, THUMB_DIMENSION, THUMB_QUALITY);
+}
+
+async function compressFile(file: File, maxDim: number, quality: number): Promise<File> {
+  const { source, width, height } = await decodeImage(file, maxDim);
 
   let dstW = width;
   let dstH = height;
 
-  if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-    const ratio = MAX_DIMENSION / Math.max(width, height);
+  if (width > maxDim || height > maxDim) {
+    const ratio = maxDim / Math.max(width, height);
     dstW = Math.round(width * ratio);
     dstH = Math.round(height * ratio);
   }
 
   try {
-    const blob = await compressToWebP(source, dstW, dstH);
+    const blob = await compressToWebP(source, dstW, dstH, quality);
     const name = file.name.replace(/\.[^.]+$/, ".webp");
     return new File([blob], name, { type: "image/webp" });
   } finally {

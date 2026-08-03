@@ -3,7 +3,7 @@ import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import { detectAcne } from "@/lib/ai/vision";
 import { generateSkinTips } from "@/lib/ai/tips";
-import { uploadPhoto } from "@/lib/storage/r2";
+import { uploadPhotoWithThumb } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
 import { countMonthlyUsage, getDetectModel, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
@@ -78,7 +78,12 @@ export async function POST(request: NextRequest) {
     if (rawBuffer) {
       try {
         const filePath = `${userId}/${Date.now()}-detect.webp`;
-        photoUrl = await uploadPhoto(filePath, rawBuffer, "image/webp");
+        const thumbFile = formData.get("thumb") as File | null;
+        let thumbBuffer: Uint8Array | null = null;
+        if (thumbFile && thumbFile.size > 0 && thumbFile.size <= 5 * 1024 * 1024) {
+          thumbBuffer = new Uint8Array(await thumbFile.arrayBuffer());
+        }
+        photoUrl = await uploadPhotoWithThumb(filePath, rawBuffer, "image/webp", thumbBuffer || undefined);
       } catch (err) {
         console.error("R2 upload failed:", err);
         return NextResponse.json(

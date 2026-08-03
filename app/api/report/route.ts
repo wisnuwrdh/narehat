@@ -67,22 +67,25 @@ export async function GET(request: NextRequest) {
   const startLabel = new Date(rangeStart).toLocaleDateString("id-ID", { day: "numeric", month: "long" });
   const endLabel = new Date(rangeEnd).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
 
-  return NextResponse.json({
-    userName: profile?.name || session.user.email?.split("@")[0] || "User",
-    skinType: skinLabels[profile?.skin_type || ""] || "Kombinasi",
-    rangeLabel: `${startLabel} - ${endLabel}`,
-    avgScore,
-    avgSleep,
-    avgWater,
-    avgStress,
-    skincareConsistency,
-    loggingDays: logs.length,
-    photos: photos.map((p) => ({ url: p.url, date: p.date })),
-    insights: insights.map((i) => ({ title: i.title, description: i.description, type: i.type })),
-    aiResults: aiResults.map((r) => ({
-      analysis: r.ai_analysis,
-      date: r.date,
-    })),
-    generatedAt: new Date().toISOString(),
-  });
+  return NextResponse.json(
+    {
+      userName: profile?.name || session.user.email?.split("@")[0] || "User",
+      skinType: skinLabels[profile?.skin_type || ""] || "Kombinasi",
+      rangeLabel: `${startLabel} - ${endLabel}`,
+      avgScore,
+      avgSleep,
+      avgWater,
+      avgStress,
+      skincareConsistency,
+      loggingDays: logs.length,
+      photos: photos.map((p) => ({ url: p.url, date: p.date })),
+      insights: insights.map((i) => ({ title: i.title, description: i.description, type: i.type })),
+      aiResults: aiResults.map((r) => ({
+        analysis: r.ai_analysis,
+        date: r.date,
+      })),
+      generatedAt: new Date().toISOString(),
+    },
+    { headers: { "Cache-Control": isExport ? "private, no-store" : "private, max-age=30" } }
+  );
 }

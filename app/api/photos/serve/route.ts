@@ -9,7 +9,13 @@ export async function GET(request: NextRequest) {
   }
 
   const env = getCloudflareContext().env as any;
-  const object = await env.R2_BUCKET.get(key);
+  const wantThumb = request.nextUrl.searchParams.get("thumb") === "1";
+
+  let object = await env.R2_BUCKET.get(key);
+  if (wantThumb) {
+    const thumb = await env.R2_BUCKET.get(`${key}.thumb`);
+    if (thumb) object = thumb;
+  }
 
   if (!object) {
     return new NextResponse("Not found", { status: 404 });

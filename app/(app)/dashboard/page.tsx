@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
+import { thumbUrlFor } from "@/lib/storage/thumb-url";
 
 interface DashboardData {
   userName: string;
@@ -536,7 +537,7 @@ export default function DashboardPage() {
               </div>
               <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
                 {item.url ? (
-                  <img src={item.url} alt={`Foto ${item.date}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <img src={thumbUrlFor(item.url)} alt={`Foto ${item.date}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 ) : (
                   <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
                 )}

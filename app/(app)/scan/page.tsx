@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { compressImageOnClient } from "@/lib/image/client-compress";
+import { compressImageOnClient, compressThumbOnClient } from "@/lib/image/client-compress";
+import { thumbUrlFor } from "@/lib/storage/thumb-url";
 import { ProductAutocomplete } from "@/components/ui/ProductAutocomplete";
 import { useUser } from "@/contexts/UserContext";
 
@@ -146,8 +147,10 @@ export default function ScanPage() {
     setDetectResult(null);
     try {
       const compressed = await compressImageOnClient(photoFile);
+      const thumb = await compressThumbOnClient(photoFile);
       const fd = new FormData();
       fd.append("file", compressed);
+      fd.append("thumb", thumb);
       const res = await fetch("/api/ai/detect", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
@@ -200,8 +203,10 @@ export default function ScanPage() {
     setPurgingResult(null);
     try {
       const compressed = await compressImageOnClient(purgingFile);
+      const thumb = await compressThumbOnClient(purgingFile);
       const fd = new FormData();
       fd.append("file", compressed);
+      fd.append("thumb", thumb);
       fd.append("product_name", purgingProduct.trim());
       const res = await fetch("/api/ai/purging", { method: "POST", body: fd });
       const data = await res.json();
@@ -545,7 +550,7 @@ export default function ScanPage() {
                 return (
                   <div key={scan.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200">
-                      <img src={scan.url} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={thumbUrlFor(scan.url)} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-slate-700 truncate">{label}</p>

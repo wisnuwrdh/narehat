@@ -5,6 +5,7 @@ import type { DailyLog } from "@/types";
 import { analyzeCorrelations } from "@/lib/insights/correlation";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
+import { thumbUrlFor } from "@/lib/storage/thumb-url";
 
 type Range = "7" | "30" | "90";
 type FilterType = "all" | "detect" | "purging";
@@ -768,7 +769,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                   {i === 0 && filterType === "all" && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
                 </div>
                 <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden relative">
-                  <img src={p.url} alt={p.label} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                  <img src={thumbUrlFor(p.url)} alt={p.label} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   {badge && (
                     <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
                       {badge.label}
@@ -831,7 +832,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
               <div key={s.side} className="flex-1">
                 {s.photo ? (
                   <div className="relative">
-                    <img src={s.photo} alt={s.label} loading="lazy" decoding="async" className="w-full aspect-square object-cover rounded-2xl mb-2" />
+                    <img src={thumbUrlFor(s.photo)} alt={s.label} loading="lazy" decoding="async" className="w-full aspect-square object-cover rounded-2xl mb-2" />
                     <button onClick={() => { s.setPhoto(null); s.setData(null); }} className="absolute top-2 right-2 p-1 bg-white/80 rounded-lg hover:bg-white transition-colors">
                       <span className="material-symbols-outlined text-red-500 text-sm">close</span>
                     </button>
@@ -927,7 +928,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                     className="text-left rounded-xl overflow-hidden border border-border-light hover:border-primary/50 transition-all bg-white"
                   >
                     <div className="aspect-square bg-slate-50 relative">
-                      <img src={p.url} alt={p.date} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                      <img src={thumbUrlFor(p.url)} alt={p.date} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       {badge && (
                         <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
                           {badge.label}
