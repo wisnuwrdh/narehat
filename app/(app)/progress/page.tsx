@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { DailyLog } from "@/types";
 import { analyzeCorrelations } from "@/lib/insights/correlation";
 import Link from "next/link";
+import { useUser } from "@/contexts/UserContext";
 
 type Range = "7" | "30" | "90";
 type FilterType = "all" | "detect" | "purging";
@@ -249,6 +250,8 @@ function AnalysisDetailModal({ photo, onClose }: { photo: PhotoWithAnalysis; onC
 }
 
 export default function ProgressPage() {
+  const { activePlan } = useUser();
+  const isPro = activePlan === "pro";
   const [range, setRange] = useState<Range>("30");
   const [chartData, setChartData] = useState<Record<Range, ChartData>>({
     "7": { labels: [], scores: [] },
@@ -462,7 +465,7 @@ export default function ProgressPage() {
     w.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif;color:#94a3b8'><p>Menyiapkan laporan...</p></body></html>");
     w.document.close();
 
-    const res = await fetch(`/api/report?range=${range}`);
+    const res = await fetch(`/api/report?range=${range}&export=1`);
     const report = await res.json();
     if (!report || report.error) {
       w.document.write("<html><body style='display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif'><p style='color:#ef4444'>Gagal membuat laporan.</p></body></html>");
@@ -1000,14 +1003,33 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
       </section>
 
       <section className="px-6 mb-8">
-        <button
-          onClick={handleGenerateReport}
-          className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-        >
-          <span className="material-symbols-outlined">description</span>
-          Export Laporan {range} Hari
-        </button>
-        <p className="text-center text-[10px] text-muted mt-2">Laporan akan terbuka di tab baru untuk di-print atau disimpan sebagai PDF</p>
+        {isPro ? (
+          <>
+            <button
+              onClick={handleGenerateReport}
+              className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined">description</span>
+              Export Laporan {range} Hari
+            </button>
+            <p className="text-center text-[10px] text-muted mt-2">Laporan akan terbuka di tab baru untuk di-print atau disimpan sebagai PDF</p>
+          </>
+        ) : (
+          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-2xl p-5 text-center">
+            <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <span className="material-symbols-outlined text-primary">lock</span>
+            </div>
+            <p className="text-sm font-bold text-foreground">Export Laporan {range} Hari</p>
+            <p className="text-xs text-muted mt-1 mb-3">Export laporan PDF tersedia untuk member Pro. Upgrade sekarang dan dapatkan rekap progres, insight personal, dan rekomendasi rutinitas.</p>
+            <Link
+              href="/settings"
+              className="inline-flex items-center justify-center gap-1 w-full py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">workspace_premium</span>
+              Upgrade ke Pro
+            </Link>
+          </div>
+        )}
       </section>
     </main>
   );

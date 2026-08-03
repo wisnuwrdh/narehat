@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
+import { getPlanBucket } from "@/lib/ai/limits";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -10,6 +11,7 @@ export async function GET(request: NextRequest) {
   const supabase = createDBClient();
 
   const range = Math.min(90, Math.max(7, Number(request.nextUrl.searchParams.get("range")) || 7));
+  const isExport = request.nextUrl.searchParams.get("export") === "1";
   const dates: string[] = [];
   const d = new Date();
   for (let i = 0; i < range; i++) {
@@ -19,12 +21,19 @@ export async function GET(request: NextRequest) {
   dates.reverse();
 
   const [profileRes, logsRes, photosRes, insightsRes, aiPhotosRes] = await Promise.all([
-    supabase.from("users").select("name, skin_type, goal").eq("id", userId).maybeSingle(),
+    supabase.from("users").select("name, skin_type, goal, plan, plan_expires_at").eq("id", userId).maybeSingle(),
     supabase.from("daily_logs").select("*").eq("user_id", userId).in("date", dates).order("date", { ascending: true }),
     supabase.from("skin_photos").select("url, date, notes").eq("user_id", userId).order("date", { ascending: false }).limit(2),
     supabase.from("insights").select("title, description, type").eq("user_id", userId).order("created_at", { ascending: false }).limit(5),
     supabase.from("skin_photos").select("ai_analysis, date").eq("user_id", userId).not("ai_analysis", "is", null).order("date", { ascending: false }).limit(3),
   ]);
+
+  if (isExport) {
+    const profile = profileRes.data;
+    if (!profile || getPlanBucket(profile.plan, profile.plan_expires_at) !== "pro") {
+      return NextResponse.json({ error: "Fitur Pro. Upgrade plan kamu ke Pro." }, { status: 402 });
+    }
+  }
 
   const profile = profileRes.data;
   const logs = logsRes.data || [];
