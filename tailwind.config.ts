@@ -34,7 +34,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', "system-ui", "sans-serif"],
+        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         xl: "1rem",
@@ -72,8 +72,8 @@ const config: Config = {
           "50%": { boxShadow: "0 0 40px rgba(53, 37, 205, 0.3)" },
         },
         blob: {
-          "0%, 100%": { borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%" },
-          "50%": { borderRadius: "30% 60% 70% 40% / 50% 60% 30% 60%" },
+          "0%, 100%": { transform: "scale(1) translate(0, 0)" },
+          "50%": { transform: "scale(1.15) translate(8px, -8px)" },
         },
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },

@@ -545,7 +545,7 @@ export default function ScanPage() {
                 return (
                   <div key={scan.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
                     <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200">
-                      <img src={scan.url} alt="" className="w-full h-full object-cover" />
+                      <img src={scan.url} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-slate-700 truncate">{label}</p>

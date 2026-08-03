@@ -177,7 +177,7 @@ function AnalysisDetailModal({ photo, onClose }: { photo: PhotoWithAnalysis; onC
           </button>
         </div>
         <div className="aspect-video rounded-xl overflow-hidden bg-slate-100 mb-4">
-          <img src={photo.url} alt="Scan" className="w-full h-full object-cover" />
+          <img src={photo.url} alt="Scan" loading="lazy" decoding="async" className="w-full h-full object-cover" />
         </div>
         <p className="text-xs text-muted mb-3">{photo.date}{badge ? ` · ` : ""}{badge && <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${badge.color}`}>{badge.label}</span>}</p>
 
@@ -768,7 +768,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                   {i === 0 && filterType === "all" && <span className="px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md">Now</span>}
                 </div>
                 <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden relative">
-                  <img src={p.url} alt={p.label} className="w-full h-full object-cover" />
+                  <img src={p.url} alt={p.label} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   {badge && (
                     <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
                       {badge.label}
@@ -831,7 +831,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
               <div key={s.side} className="flex-1">
                 {s.photo ? (
                   <div className="relative">
-                    <img src={s.photo} alt={s.label} className="w-full aspect-square object-cover rounded-2xl mb-2" />
+                    <img src={s.photo} alt={s.label} loading="lazy" decoding="async" className="w-full aspect-square object-cover rounded-2xl mb-2" />
                     <button onClick={() => { s.setPhoto(null); s.setData(null); }} className="absolute top-2 right-2 p-1 bg-white/80 rounded-lg hover:bg-white transition-colors">
                       <span className="material-symbols-outlined text-red-500 text-sm">close</span>
                     </button>
@@ -927,7 +927,7 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                     className="text-left rounded-xl overflow-hidden border border-border-light hover:border-primary/50 transition-all bg-white"
                   >
                     <div className="aspect-square bg-slate-50 relative">
-                      <img src={p.url} alt={p.date} className="w-full h-full object-cover" />
+                      <img src={p.url} alt={p.date} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       {badge && (
                         <span className={`absolute top-1.5 right-1.5 px-1.5 py-0.5 text-[8px] font-bold rounded-md ${badge.color} shadow-sm`}>
                           {badge.label}

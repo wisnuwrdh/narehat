@@ -1,7 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { SessionProvider } from "@/components/SessionProvider";
 import "./globals.css";
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jakarta",
+});
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://narehat.com";
 
@@ -76,8 +83,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;700&display=block" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;700&display=swap" rel="stylesheet" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -136,7 +142,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="overflow-x-hidden">
+      <body className={`overflow-x-hidden ${jakarta.variable}`}>
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

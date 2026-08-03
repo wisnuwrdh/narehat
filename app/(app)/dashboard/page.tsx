@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 
 interface DashboardData {
@@ -125,6 +125,7 @@ export default function DashboardPage() {
   const [showInfo, setShowInfo] = useState(false);
   const [insightExpanded, setInsightExpanded] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const lastLoadRef = useRef(0);
 
   useEffect(() => {
     if (!window.location.search.includes("payment=success")) return;
@@ -139,6 +140,7 @@ export default function DashboardPage() {
   }, [refreshUser]);
 
   const loadDashboard = useCallback(async () => {
+    lastLoadRef.current = Date.now();
     try {
       const today = new Date().toISOString().split("T")[0];
       const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split("T")[0];
@@ -211,7 +213,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "visible" && Date.now() - lastLoadRef.current > 60000) {
         loadDashboard();
       }
     };
@@ -534,7 +536,7 @@ export default function DashboardPage() {
               </div>
               <div className="w-full aspect-square bg-gradient-to-br from-slate-100 to-slate-50 rounded-xl flex items-center justify-center border border-slate-100 overflow-hidden">
                 {item.url ? (
-                  <img src={item.url} alt={`Foto ${item.date}`} className="w-full h-full object-cover" />
+                  <img src={item.url} alt={`Foto ${item.date}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 ) : (
                   <span className="material-symbols-outlined text-3xl text-slate-300">add_a_photo</span>
                 )}

@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
   const userId = session.user.id;
 
   const supabase = createDBClient();
-  await ensureUserProfile(userId, session.user.email || "");
 
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date");
@@ -30,7 +29,7 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ logs: data });
+  return NextResponse.json({ logs: data }, { headers: { "Cache-Control": "private, max-age=30" } });
 }
 
 export async function POST(request: NextRequest) {
