@@ -47,7 +47,6 @@ export const metadata: Metadata = {
   creator: "Narehat",
   publisher: "Narehat",
   robots: { index: true, follow: true },
-  alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
     locale: "id_ID",

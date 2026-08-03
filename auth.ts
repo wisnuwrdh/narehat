@@ -1,4 +1,5 @@
 import NextAuth from "next-auth"
+import { NextResponse } from "next/server"
 import Google from "next-auth/providers/google"
 import Credentials from "next-auth/providers/credentials"
 import { createClient } from "@supabase/supabase-js"
@@ -172,7 +173,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         pathname.startsWith("/ai-consult") ||
         pathname.startsWith("/recommendations") ||
         pathname.startsWith("/settings") ||
-        pathname.startsWith("/routine")
+        pathname.startsWith("/routine") ||
+        pathname.startsWith("/scan") ||
+        pathname.startsWith("/subscription") ||
+        pathname.startsWith("/profile")
 
       const isAuthRoute =
         pathname.startsWith("/login") ||
@@ -192,6 +196,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         !pathname.startsWith("/reset-password")
       ) {
         return Response.redirect(new URL("/dashboard", nextUrl))
+      }
+
+      // Keep app pages out of search engines (they require a session)
+      if (isAppRoute) {
+        const res = NextResponse.next()
+        res.headers.set("X-Robots-Tag", "noindex, nofollow")
+        return res
       }
 
       return true

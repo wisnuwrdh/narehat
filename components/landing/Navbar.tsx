@@ -32,7 +32,7 @@ export default function Navbar() {
             <Link href="#how-it-works" className="text-sm font-semibold text-muted hover:text-primary transition-colors px-3 py-2">
               Cara Kerja
             </Link>
-            <Link href="#pricing" className="text-sm font-semibold text-muted hover:text-primary transition-colors px-3 py-2">
+            <Link href="/pricing" className="text-sm font-semibold text-muted hover:text-primary transition-colors px-3 py-2">
               Harga
             </Link>
             <Link href="#faq" className="text-sm font-semibold text-muted hover:text-primary transition-colors px-3 py-2">

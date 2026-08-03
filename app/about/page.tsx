@@ -22,9 +22,9 @@ export default function AboutPage() {
             <span className="inline-block px-3 py-1 bg-primary-light text-primary rounded-full text-[10px] font-bold uppercase tracking-wider mb-3">
               Tentang Kami
             </span>
-            <h2 className="section-title font-extrabold text-slate-900 mb-4">
+            <h1 className="section-title font-extrabold text-slate-900 mb-4">
               Misi Kami
-            </h2>
+            </h1>
             <p className="hero-subtitle text-muted max-w-2xl mx-auto leading-relaxed">
               Narehat lahir dari frustrasi yang dialami jutaan orang,
               terus berganti produk tanpa pernah tahu pemicu jerawatnya sendiri.

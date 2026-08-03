@@ -4,7 +4,7 @@ import { Logo } from "@/components/ui/Logo";
 const footerLinks = {
   produk: [
     { label: "Fitur", href: "#features" },
-    { label: "Harga", href: "#pricing" },
+    { label: "Harga", href: "/pricing" },
     { label: "Cara Kerja", href: "#how-it-works" },
   ],
   perusahaan: [

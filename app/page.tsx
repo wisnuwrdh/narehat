@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import StatsBar from "@/components/landing/StatsBar";
@@ -10,6 +11,13 @@ import AhaMoment from "@/components/landing/AhaMoment";
 import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+
+export const metadata: Metadata = {
+  title: "Narehat",
+  description:
+    "Upload foto atau tanya langsung — AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Berbasis jurnal dermatologi peer-reviewed.",
+  alternates: { canonical: "/" },
+};
 
 export default function LandingPage() {
   return (
