@@ -64,10 +64,17 @@ export default function SettingsPage() {
   const handleDelete = async () => {
     if (deleteInput !== "HAPUS") return;
     try {
-      await fetch("/api/user", { method: "DELETE" });
-    } catch {}
-    showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
-    setTimeout(() => router.replace("/"), 2000);
+      const res = await fetch("/api/user", { method: "DELETE" });
+      if (!res.ok) {
+        showToast("Gagal menghapus akun. Coba lagi nanti.", "error");
+        return;
+      }
+      await signOut({ redirect: false });
+      showToast("Akun berhasil dihapus. Semua data telah dibersihkan.");
+      setTimeout(() => router.replace("/"), 2000);
+    } catch {
+      showToast("Gagal menghapus akun. Coba lagi nanti.", "error");
+    }
   };
 
   const handleLogout = async () => {

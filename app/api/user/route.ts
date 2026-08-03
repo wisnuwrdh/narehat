@@ -60,6 +60,8 @@ export async function DELETE() {
 
   const supabase = createDBClient();
 
+  const errors: string[] = [];
+
   const { data: photos } = await supabase
     .from("skin_photos")
     .select("url")
@@ -73,25 +75,33 @@ export async function DELETE() {
   }
 
   const { error } = await supabase.from("daily_logs").delete().eq("user_id", userId);
-  if (error) console.error("Failed to delete logs:", error.message);
+  if (error) errors.push(`daily_logs: ${error.message}`);
 
   const { error: photosError } = await supabase.from("skin_photos").delete().eq("user_id", userId);
-  if (photosError) console.error("Failed to delete photo records:", photosError.message);
+  if (photosError) errors.push(`skin_photos: ${photosError.message}`);
 
   const { error: insightsError } = await supabase.from("insights").delete().eq("user_id", userId);
-  if (insightsError) console.error("Failed to delete insights:", insightsError.message);
+  if (insightsError) errors.push(`insights: ${insightsError.message}`);
 
   const { error: productsError } = await supabase.from("skincare_products").delete().eq("user_id", userId);
-  if (productsError) console.error("Failed to delete products:", productsError.message);
+  if (productsError) errors.push(`skincare_products: ${productsError.message}`);
 
   const { error: notifError } = await supabase.from("notifications").delete().eq("user_id", userId);
-  if (notifError) console.error("Failed to delete notifications:", notifError.message);
+  if (notifError) errors.push(`notifications: ${notifError.message}`);
 
   const { error: usageError } = await supabase.from("ai_usage").delete().eq("user_id", userId);
-  if (usageError) console.error("Failed to delete ai usage:", usageError.message);
+  if (usageError) errors.push(`ai_usage: ${usageError.message}`);
+
+  const { error: paymentsError } = await supabase.from("payments").delete().eq("user_id", userId);
+  if (paymentsError) errors.push(`payments: ${paymentsError.message}`);
 
   const { error: userError } = await supabase.from("users").delete().eq("id", userId);
-  if (userError) console.error("Failed to delete user profile:", userError.message);
+  if (userError) errors.push(`users: ${userError.message}`);
+
+  if (errors.length > 0) {
+    console.error("Failed to delete account, errors:", errors.join("; "));
+    return NextResponse.json({ error: errors.join("; ") }, { status: 500 });
+  }
 
   return NextResponse.json({ message: "Account deleted" });
 }
