@@ -7,7 +7,7 @@ const features = [
     icon: "person_check",
     tag: null,
     title: "Skin Type Quiz",
-    desc: "Tipe kulitmu, ingredients yang cocok, dan yang harus dihindari, langsung tahu di menit pertama.",
+    desc: "Langsung tahu di menit pertama: tipe kulitmu, ingredients yang cocok, dan yang harus dihindari.",
   },
   {
     icon: "question_exchange",

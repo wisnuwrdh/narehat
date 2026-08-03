@@ -43,7 +43,7 @@ export default function AhaMoment() {
             href="/register"
             className="btn-press inline-block px-8 py-4 bg-white text-primary font-bold rounded-2xl shadow-xl shadow-black/10 lg:text-lg"
           >
-            Temukan Polamu Sekarang
+            Coba Gratis
           </Link>
         </div>
       </div>

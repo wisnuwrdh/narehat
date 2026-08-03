@@ -14,11 +14,11 @@ export default function HeroSection() {
           <div className="text-center lg:text-left">
             <div className="mb-6">
               <h1 className="animate-fade-in-up delay-100 hero-title font-extrabold text-slate-900 tracking-tight">
-                Jerawatmu Ada<br />
-                <span className="shimmer-text">Polanya</span>. Kami Temukan.
+                Kenali Pemicu Jerawatmu<br />
+                <span className="shimmer-text">dalam Hitungan Detik</span>
               </h1>
               <p className="animate-fade-in-up delay-200 hero-subtitle text-muted mt-4 max-w-sm mx-auto lg:mx-0 leading-relaxed lg:max-w-md">
-                Upload foto atau tanya langsung, AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Semua dalam 1 app.
+                Upload foto atau tanya langsung ke AI kami. Kamu bakal tahu pemicu jerawatmu, purging atau breakout, dan rutinitas yang beneran cocok, semua di 1 app.
               </p>
             </div>
 

@@ -15,7 +15,7 @@ import Footer from "@/components/landing/Footer";
 export const metadata: Metadata = {
   title: "Narehat",
   description:
-    "Upload foto atau tanya langsung — AI kami analisis pemicu jerawatmu, deteksi purging vs breakout, dan bangun rutinitas yang beneran cocok. Berbasis jurnal dermatologi peer-reviewed.",
+    "Upload foto atau tanya AI kami, dapat tahu pemicu jerawatmu, apa itu purging atau breakout, dan rutinitas yang beneran cocok buatmu. Berbasis jurnal dermatologi peer-reviewed.",
   alternates: { canonical: "/" },
 };
 

@@ -4,19 +4,19 @@ import { useEffect, useRef, useState } from "react";
 
 const valueProps = [
   {
-    icon: "menu_book",
-    label: "Berbasis Jurnal Ilmiah",
-    detail: "Peer-reviewed dermatologi",
+    icon: "quiz",
+    label: "1 Menit",
+    detail: "kenali tipe kulitmu",
   },
   {
-    icon: "bolt",
-    label: "Analisis Instan",
-    detail: "Hasil dalam hitungan detik",
+    icon: "edit_calendar",
+    label: "30 Detik",
+    detail: "isi tracker harian",
   },
   {
-    icon: "shield_lock",
-    label: "Privasi Terjamin",
-    detail: "Data tidak dijual ke pihak ketiga",
+    icon: "smart_toy",
+    label: "24/7",
+    detail: "tanya AI kapan saja",
   },
 ];
 

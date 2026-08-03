@@ -20,7 +20,7 @@ const plans = [
       "AI Consult: 10x/bulan",
       "Purging Checker: 1x/bulan",
     ],
-    cta: "Mulai Gratis",
+    cta: "Coba Gratis",
     href: "/register",
     featured: false,
   },

@@ -43,7 +43,7 @@ export default function Navbar() {
             href="/register"
             className="btn-press px-4 py-2 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/20"
           >
-            Analisis Gratis
+            Coba Gratis
           </Link>
         </div>
       </div>
