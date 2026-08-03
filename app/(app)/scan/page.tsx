@@ -27,6 +27,7 @@ interface SkinPhoto {
 
 const userFriendlyError = (e: unknown): string => {
   const msg = e instanceof Error ? e.message : "";
+  const name = e instanceof DOMException ? e.name : "";
   const map: Record<string, string> = {
     "The source image could not be decoded": "File tidak bisa dibaca sebagai gambar. Coba simpan ulang sebagai JPG atau PNG biasa.",
     "Image compression failed": "Gagal mengompres gambar. Coba foto lain.",
@@ -39,8 +40,16 @@ const userFriendlyError = (e: unknown): string => {
     "Format gambar tidak dikenal": "File berekstensi .png tapi bukan format gambar yang dikenal browser. Coba simpan ulang sebagai JPG.",
     "PNG resolusi terlalu tinggi": "Resolusi PNG terlalu tinggi untuk diproses di HP ini. Gunakan foto JPG dengan resolusi lebih rendah.",
   };
+  if (name === "NotFoundError" || name === "NotReadableError") {
+    return "File gagal dibaca karena sudah tidak tersedia di memori HP. Pilih ulang fotonya.";
+  }
   return map[msg] || msg || "Gagal terhubung ke server.";
 };
+
+async function snapshotFile(file: File): Promise<File> {
+  const buf = await file.arrayBuffer();
+  return new File([buf], file.name, { type: file.type });
+}
 
 export default function ScanPage() {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -107,18 +116,26 @@ export default function ScanPage() {
         ? "Kuota direset tiap periode langganan."
         : "Upgrade ke Pro untuk 100x/bulan.";
 
-  const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPhotoFile(file);
+    if (!file) return;
+    setDetectResult(null);
+    setDetectError("");
+    setPurgingResult(null);
+    setPurgingError("");
+    try {
+      const snap = await snapshotFile(file);
+      setPhotoFile(snap);
       const reader = new FileReader();
       reader.onload = () => setPhotoPreview(reader.result as string);
       reader.onerror = () => setDetectError("Gagal membaca file. Coba foto lain.");
-      reader.readAsDataURL(file);
-      setDetectResult(null);
-      setDetectError("");
-      setPurgingResult(null);
-      setPurgingError("");
+      reader.readAsDataURL(snap);
+    } catch {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      setDetectError("Gagal membaca file. Coba pilih ulang fotonya.");
+    } finally {
+      e.target.value = "";
     }
   };
 
@@ -156,14 +173,23 @@ export default function ScanPage() {
     }
   };
 
-  const handlePurgingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePurgingPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setPurgingFile(file);
+    if (!file) return;
+    setPurgingError("");
+    try {
+      const snap = await snapshotFile(file);
+      setPurgingFile(snap);
       const reader = new FileReader();
       reader.onload = () => setPurgingPhoto(reader.result as string);
       reader.onerror = () => setPurgingError("Gagal membaca file. Coba foto lain.");
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(snap);
+    } catch {
+      setPurgingFile(null);
+      setPurgingPhoto(null);
+      setPurgingError("Gagal membaca file. Coba pilih ulang fotonya.");
+    } finally {
+      e.target.value = "";
     }
   };
 
