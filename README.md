@@ -1,7 +1,7 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.9 (Cloudflare Pages + OpenNext + NextAuth)
-**Terakhir diperbarui:** Juli 2026
+**Versi:** 0.9.1 (Cloudflare Pages + OpenNext + NextAuth)
+**Terakhir diperbarui:** Agustus 2026
 
 ---
 
@@ -79,7 +79,7 @@ Pertama kali app memberikan insight seperti:
 | AI Deteksi Jerawat — 100x/bulan | Analisis paling mendalam dengan GPT-5 penuh | ✅ Done |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
-| Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF | ✅ Done |
+| Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF (gate ke Pro di UI + API) | ✅ Done |
 | Akses fitur baru lebih awal | Beta tester fitur upcoming | 🔜 |
 
 ---
@@ -159,7 +159,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ```
 /dashboard        → Overview kondisi kulit + skin score + insight harian
 /tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes; AI deteksi + purging checker)
-/progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF
+/progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF [PRO]
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi (10x free, 100x Premium, 300x Pro)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
 /recommendations  → Rekomendasi produk + filter + link belanja
@@ -264,6 +264,7 @@ Quiz: skin type, goal, budget, preferensi waktu → AI generate:
 GET /api/report?range=7|30|90 → aggregate tracker + foto + insight + AI results
 → HTML report di tab baru → window.print() → simpan sebagai PDF
 ```
+Export PDF hanya untuk member Pro: UI menampilkan paywall upgrade, API return `402` untuk plan non-Pro (insight gratis tetap jalan).
 
 ### Tech Stack
 
@@ -569,8 +570,8 @@ User bisa mendownload semua data mereka dari halaman Settings:
 - [x] Pricing restructure: monthly AI limits (10 consult/bulan free), yearly toggle, AI vision paid-only
 - [x] Landing page: dashboard mockup di Hero, CTA "Coba Gratis", hapus badge "gratis"
 - [x] Responsive layout: left sidebar di md+, app pages max-w-4xl, auth pages max-w-lg
-- [ ] Cancel Plan API + UI
-- [ ] Report PDF gate ke Pro
+- [x] Cancel Plan API + UI
+- [x] Report PDF gate ke Pro
 
 ---
 
@@ -587,5 +588,5 @@ User bisa mendownload semua data mereka dari halaman Settings:
 
 ---
 
-*Dokumen ini diperbarui Juli 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover.*
+*Dokumen ini diperbarui Agustus 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover, cancel plan, dan gate Report PDF ke Pro.*
 
