@@ -99,7 +99,7 @@ ${context}`;
     body: JSON.stringify({
       model: "deepseek-v4-flash",
       messages,
-      max_tokens: 800,
+      max_tokens: 2000,
       temperature: 0.5,
     }),
   });
