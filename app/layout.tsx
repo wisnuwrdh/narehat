@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     title: "Narehat",
   },
   title: {
-    default: "Narehat — Deteksi & Pahami Pemicu Jerawatmu",
+    default: "Narehat",
     template: "%s | Narehat",
   },
   description:
@@ -53,14 +53,14 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: SITE_URL,
     siteName: "Narehat",
-    title: "Narehat — Deteksi & Pahami Pemicu Jerawatmu",
+    title: "Narehat",
     description:
       "Upload foto atau tanya langsung — AI deteksi jerawat, purging checker, analisis rutinitas, semua dalam 1 app. Berbasis jurnal dermatologi.",
-    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: "Narehat — Pahami Pemicu Jerawatmu" }],
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: "Narehat" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Narehat — Deteksi & Pahami Pemicu Jerawatmu",
+    title: "Narehat",
     description:
       "Upload foto atau tanya langsung — AI deteksi jerawat, purging checker, analisis rutinitas, semua dalam 1 app.",
     images: [`${SITE_URL}/og-image.png`],
