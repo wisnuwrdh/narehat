@@ -20,6 +20,7 @@ interface DashboardData {
   streak: number;
   skinScore: number;
   skinScoreDelta: number;
+  hasLogs: boolean;
 }
 
 function computeSkinScore(log: DashboardData["dailyLog"]): number {
@@ -117,6 +118,7 @@ export default function DashboardPage() {
     streak: 0,
     skinScore: 0,
     skinScoreDelta: 0,
+    hasLogs: false,
   });
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedStreak, setAnimatedStreak] = useState(0);
@@ -177,7 +179,7 @@ export default function DashboardPage() {
       const insights = generateInsights(weekLogs);
       const userName = user.name || "User";
 
-      setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta });
+      setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta, hasLogs: allLogs.length > 0 });
 
       let s = 0;
       const duration = 1200;
@@ -252,6 +254,7 @@ export default function DashboardPage() {
   ];
 
   const showEmptyCTA = !dailyLog;
+  const isNewUser = !data.hasLogs;
 
   const photoDates = data.photos.length > 0 ? data.photos.map((p) => ({
     url: p.url,
@@ -267,7 +270,7 @@ export default function DashboardPage() {
         <header className="px-6 pt-6 pb-4 flex justify-between items-start bg-white sticky top-0 z-20">
           <div className="animate-fade-in-up">
             <h1 className="text-xl font-bold text-slate-900 mb-1">Halo, {data.userName || "User"}</h1>
-          <p className="text-sm text-muted">{showEmptyCTA ? "Mulai dengan mengisi tracker harianmu." : "Yuk, jaga konsistensi hari ini."}</p>
+          <p className="text-sm text-muted">{showEmptyCTA ? (isNewUser ? "Mulai dengan mengisi tracker harianmu." : "Catat kebiasaanmu hari ini untuk menjaga konsistensi.") : "Yuk, jaga konsistensi hari ini."}</p>
         </div>
       </header>
 
@@ -315,8 +318,8 @@ export default function DashboardPage() {
               <span className="material-symbols-outlined text-xl">edit_calendar</span>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold">Isi Tracker Pertamamu</p>
-              <p className="text-xs text-white/70">Catat kebiasaan harian untuk mulai dapat insight personal →</p>
+              <p className="text-sm font-bold">{isNewUser ? "Isi Tracker Pertamamu" : "Isi Tracker Hari Ini"}</p>
+              <p className="text-xs text-white/70">{isNewUser ? "Catat kebiasaan harian untuk mulai dapat insight personal →" : "Catat kebiasaan hari ini untuk menjaga konsistensi →"}</p>
             </div>
             <span className="material-symbols-outlined">arrow_forward</span>
           </div>
