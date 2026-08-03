@@ -98,6 +98,43 @@ export default function RootLayout({
             }),
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Narehat",
+              url: SITE_URL,
+              logo: `${SITE_URL}/icon-192x192.png`,
+              sameAs: [],
+              description:
+                "Platform AI untuk mendeteksi pemicu jerawat, analisis rutinitas skincare, dan konsultasi berbasis jurnal dermatologi peer-reviewed.",
+              contactPoint: {
+                "@type": "ContactPoint",
+                contactType: "customer support",
+                email: "support@narehat.com",
+                availableLanguage: ["id"],
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Narehat",
+              url: SITE_URL,
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${SITE_URL}/search?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body className="overflow-x-hidden">
         <SessionProvider>{children}</SessionProvider>
