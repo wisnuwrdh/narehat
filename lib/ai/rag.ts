@@ -116,6 +116,7 @@ export async function generateAnswer(
       messages,
       max_tokens: 1000,
       temperature: 0.25,
+      reasoning_effort: "none",
     }),
   });
 
@@ -157,6 +158,7 @@ export async function streamAnswer(
       max_tokens: 1000,
       temperature: 0.25,
       stream: true,
+      reasoning_effort: "none",
     }),
   });
 

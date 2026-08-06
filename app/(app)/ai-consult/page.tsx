@@ -129,8 +129,10 @@ export default function AIConsultPage() {
         let assistantId: string | null = null;
         let done = false;
         let streamError = "";
+        let gotContent = false;
 
         const appendToAssistant = (delta: string) => {
+          if (delta) gotContent = true;
           if (assistantId) {
             setMessages((prev) =>
               prev.map((m) =>
@@ -200,6 +202,8 @@ export default function AIConsultPage() {
             timestamp: Date.now(),
           };
           setMessages((prev) => [...prev, fallbackMsg]);
+        } else if (assistantId && done && !gotContent && !streamError) {
+          appendToAssistant("Maaf, jawaban kosong. Coba lagi nanti.");
         }
         setStreamingMsgId(null);
       } catch {
