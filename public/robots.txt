@@ -1,5 +1,0 @@
-# https://narehat.com
-User-agent: *
-Allow: /
-
-Sitemap: https://narehat.com/sitemap.xml
