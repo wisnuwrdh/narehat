@@ -40,9 +40,89 @@ interface Product {
   why: string;
   score?: number;
   used?: boolean;
+  skin_types?: string[];
+  concerns?: string[];
+  derma_insight?: string;
+  derma_sources?: string[];
 }
 
 const ITEMS_PER_PAGE = 6;
+
+const SKIN_LABELS: Record<string, string> = { oily: "berminyak", dry: "kering", combination: "kombinasi", normal: "normal", sensitive: "sensitif" };
+const CONCERN_LABELS: Record<string, string> = { clear_acne: "jerawat aktif", fade_scars: "bekas jerawat", brighter_skin: "kulit lebih cerah", all: "jerawat & bekas" };
+
+function WhyModal({ product, userSkinRaw, userGoalRaw, onClose }: {
+  product: Product;
+  userSkinRaw: string;
+  userGoalRaw: string;
+  onClose: () => void;
+}) {
+  const skinTypes = product.skin_types || [];
+  const concerns = product.concerns || [];
+
+  const skinMatch = skinTypes.length === 0 || skinTypes.includes(userSkinRaw);
+  const concernMatch = concerns.length === 0 || concerns.includes(userGoalRaw);
+
+  const reason = [
+    skinMatch
+      ? `cocok untuk tipe kulit ${skinTypes.length === 0 ? "semua" : SKIN_LABELS[userSkinRaw] || "kulitmu"}`
+      : null,
+    concernMatch
+      ? concerns.length === 0
+        ? "mendukung semua concern"
+        : `membantu concern ${CONCERN_LABELS[userGoalRaw] || "kulitmu"}`
+      : null,
+  ].filter(Boolean).join(" dan ");
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-end justify-center pb-24" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="relative bg-white rounded-3xl w-full max-w-md p-5 animate-fade-in-up max-h-[70vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-slate-800 text-sm">Kenapa Direkomendasikan</h3>
+          <button onClick={onClose} className="p-1.5 text-muted hover:text-slate-700 rounded-lg hover:bg-slate-50">
+            <span className="material-symbols-outlined text-lg">close</span>
+          </button>
+        </div>
+
+        <p className="font-bold text-slate-900 text-sm mb-1">{product.name}</p>
+        {product.brand && <p className="text-xs text-muted mb-3">{product.brand}</p>}
+
+        {reason && (
+          <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl mb-3">
+            <span className="material-symbols-outlined text-primary text-sm align-middle mr-1">auto_awesome</span>
+            <span className="text-xs text-slate-700">Kenapa cocok buat kamu: {reason}.</span>
+          </div>
+        )}
+
+        {product.why && (
+          <div className="mb-3">
+            <p className="text-[10px] font-bold text-slate-600 mb-1">ALASAN DARI ADMIN</p>
+            <p className="text-xs text-slate-700 break-words">{product.why}</p>
+          </div>
+        )}
+
+        <div className="mb-3 pt-3 border-t border-border-subtle">
+          <p className="text-[10px] font-bold text-slate-600 mb-1">REFERENSI DERMATOLOGI</p>
+          <p className="text-xs text-slate-700 break-words">
+            {product.derma_insight || "Referensi dermatologi spesifik belum tersedia untuk produk ini."}
+          </p>
+          {Array.isArray(product.derma_sources) && product.derma_sources.length > 0 && (
+            <ul className="mt-2 space-y-1">
+              {product.derma_sources.map((s, i) => (
+                <li key={i} className="text-[10px] text-muted break-words leading-relaxed">{s}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <p className="text-[10px] text-muted leading-relaxed">
+          Informasi ini berbasis jurnal dermatologi dan bersifat edukatif, bukan pengganti diagnosis medis profesional.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function RecommendationsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -52,6 +132,9 @@ export default function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [userSkin, setUserSkin] = useState("kombinasi");
   const [userConcern, setUserConcern] = useState("jerawat aktif");
+  const [userSkinRaw, setUserSkinRaw] = useState("");
+  const [userGoalRaw, setUserGoalRaw] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const { showToast } = useToast();
 
@@ -66,10 +149,10 @@ export default function RecommendationsPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.user) {
-          const skinLabels: Record<string, string> = { oily: "berminyak", dry: "kering", combination: "kombinasi", normal: "normal", sensitive: "sensitif" };
-          const concernLabels: Record<string, string> = { clear_acne: "jerawat aktif", fade_scars: "bekas jerawat", brighter_skin: "kulit lebih cerah", all: "jerawat & bekas" };
-          setUserSkin(skinLabels[data.user.skin_type] || "kombinasi");
-          setUserConcern(concernLabels[data.user.goal] || "jerawat aktif");
+          setUserSkin(SKIN_LABELS[data.user.skin_type] || "kombinasi");
+          setUserConcern(CONCERN_LABELS[data.user.goal] || "jerawat aktif");
+          setUserSkinRaw(data.user.skin_type || "");
+          setUserGoalRaw(data.user.goal || "");
         }
       })
       .catch(() => {});
@@ -298,12 +381,15 @@ export default function RecommendationsPage() {
                   })}
                 </div>
                 <div className="mt-3 pt-3 border-t border-border-subtle">
-                  <p className="text-[10px] text-muted break-words">
-                    <span className="font-semibold text-slate-600">
-                      Kenapa direkomendasikan:
-                    </span>{" "}
-                    {p.why}
-                  </p>
+                  <button
+                    onClick={() => setSelectedProduct(p)}
+                    className="w-full text-left group"
+                  >
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-primary group-hover:underline">
+                      Kenapa direkomendasikan
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </span>
+                  </button>
                 </div>
               </div>
             );
@@ -336,6 +422,15 @@ export default function RecommendationsPage() {
             Muat Ulang
           </button>
         </div>
+      )}
+
+      {selectedProduct && (
+        <WhyModal
+          product={selectedProduct}
+          userSkinRaw={userSkinRaw}
+          userGoalRaw={userGoalRaw}
+          onClose={() => setSelectedProduct(null)}
+        />
       )}
     </main>
   );

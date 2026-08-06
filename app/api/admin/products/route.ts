@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest) {
   if (!id) return NextResponse.json({ error: "id wajib diisi" }, { status: 400 });
 
   const updates: Record<string, unknown> = {};
-  for (const key of ["name", "brand", "description", "category", "ingredients", "why", "affiliate_link", "image_url", "is_active", "skin_types", "concerns"]) {
+  for (const key of ["name", "brand", "description", "category", "ingredients", "why", "affiliate_link", "image_url", "is_active", "skin_types", "concerns", "derma_insight", "derma_sources"]) {
     if (fields[key] !== undefined) updates[key] = fields[key];
   }
   if (fields.price !== undefined) updates.price = Number(fields.price);
