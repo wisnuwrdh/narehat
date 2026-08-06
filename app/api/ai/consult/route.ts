@@ -1,8 +1,108 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
-import { consult } from "@/lib/ai/rag";
+import { retrieveContext, streamAnswer } from "@/lib/ai/rag";
 import { countMonthlyUsage, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
+
+const encoder = new TextEncoder();
+
+interface Source {
+  title: string;
+  source: string;
+  similarity: number;
+}
+
+function handleSSEEvent(
+  controller: ReadableStreamDefaultController<Uint8Array>,
+  raw: string
+) {
+  const line = raw.trim();
+  if (!line.startsWith("data:")) return;
+  const payload = line.slice(5).trim();
+  if (!payload) return;
+  if (payload === "[DONE]") {
+    controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+    return;
+  }
+  try {
+    const json = JSON.parse(payload);
+    const content = json.choices?.[0]?.delta?.content;
+    if (typeof content === "string" && content.length > 0) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
+      );
+    }
+  } catch {
+    // lewati event yang tidak valid
+  }
+}
+
+function createSSEStream(
+  upstream: ReadableStream<Uint8Array<ArrayBuffer>>,
+  meta: string
+): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(encoder.encode(`event: meta\ndata: ${meta}\n\n`));
+      const reader = upstream.getReader();
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let sep = buffer.indexOf("\n\n");
+          while (sep !== -1) {
+            handleSSEEvent(controller, buffer.slice(0, sep));
+            buffer = buffer.slice(sep + 2);
+            sep = buffer.indexOf("\n\n");
+          }
+        }
+        if (buffer.trim()) handleSSEEvent(controller, buffer);
+        controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+      } catch (err) {
+        console.error("AI consult stream error:", err);
+        controller.enqueue(
+          encoder.encode(
+            `event: error\ndata: ${JSON.stringify({ error: "Streaming terganggu. Coba lagi." })}\n\n`
+          )
+        );
+      } finally {
+        try {
+          reader.releaseLock();
+        } catch {}
+        controller.close();
+      }
+    },
+    cancel() {},
+  });
+}
+
+function createStaticSSEStream(meta: string, content: string): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(`event: meta\ndata: ${meta}\n\n`));
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ content })}\n\n`)
+      );
+      controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+      controller.close();
+    },
+  });
+}
+
+function sseResponse(stream: ReadableStream<Uint8Array>): Response {
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
 
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
@@ -112,19 +212,36 @@ export async function POST(request: NextRequest) {
         .join("\n");
     }
 
-    const result = await consult(question, insightContext);
+    const result = await retrieveContext(question);
 
-    await recordUsage(supabase, userId, "consult");
+    const sources: Source[] = result?.sources ?? [];
+    const context = result?.context ?? "";
 
     const consultRemaining = Math.max(0, consultLimit - consultUsed - 1);
 
-    return NextResponse.json({
+    const meta = JSON.stringify({
       question,
-      answer: result.answer,
-      sources: result.sources,
-      disclaimer: result.disclaimer,
+      sources,
+      disclaimer:
+        "Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional. Jika kondisi kulitmu memburuk atau tidak membaik, segera konsultasikan ke dokter kulit.",
       free_remaining: consultRemaining,
     });
+
+    if (!result) {
+      await recordUsage(supabase, userId, "consult");
+      return sseResponse(
+        createStaticSSEStream(
+          meta,
+          "Maaf, saat ini aku belum menemukan jurnal yang relevan dengan pertanyaanmu. Coba tanyakan dengan kata kunci yang berbeda atau konsultasikan langsung ke dokter kulit terdekat."
+        )
+      );
+    }
+
+    const sumoPodResponse = await streamAnswer(question, context, insightContext);
+
+    await recordUsage(supabase, userId, "consult");
+
+    return sseResponse(createSSEStream(sumoPodResponse.body!, meta));
   } catch (error) {
     console.error("AI consult error:", error);
     return NextResponse.json(

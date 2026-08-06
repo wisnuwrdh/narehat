@@ -42,6 +42,7 @@ export default function AIConsultPage() {
   });
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
   const [freeRemaining, setFreeRemaining] = useState(0);
   const [consultLimit, setConsultLimit] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,10 @@ export default function AIConsultPage() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));
+    const t = setTimeout(() => {
+      localStorage.setItem("narehat-ai-chat", JSON.stringify(messages));
+    }, 400);
+    return () => clearTimeout(t);
   }, [messages]);
 
   useEffect(() => {
@@ -102,7 +106,7 @@ export default function AIConsultPage() {
         });
 
         if (!res.ok) {
-          const err = await res.json();
+          const err = await res.json().catch(() => ({}));
           if (res.status === 402) {
             setFreeRemaining(0);
           }
@@ -117,23 +121,89 @@ export default function AIConsultPage() {
           return;
         }
 
-        const data = await res.json();
+        if (!res.body) throw new Error("Empty response body");
 
-        if (typeof data.free_remaining === "number") {
-          setFreeRemaining(data.free_remaining);
-        }
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let assistantId: string | null = null;
+        let done = false;
+        let streamError = "";
 
-        const assistantMsg: Message = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: data.answer,
-          sources: data.sources,
-          disclaimer: data.disclaimer,
-          timestamp: Date.now(),
+        const appendToAssistant = (delta: string) => {
+          if (assistantId) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, content: m.content + delta } : m
+              )
+            );
+          }
         };
 
-        setMessages((prev) => [...prev, assistantMsg]);
+        while (true) {
+          const { done: readerDone, value } = await reader.read();
+          if (readerDone) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let sep = buffer.indexOf("\n\n");
+          while (sep !== -1) {
+            const raw = buffer.slice(0, sep);
+            buffer = buffer.slice(sep + 2);
+
+            let eventType = "message";
+            let dataLine = "";
+            for (const line of raw.split("\n")) {
+              if (line.startsWith("event:")) eventType = line.slice(6).trim();
+              else if (line.startsWith("data:")) dataLine = line.slice(5).trim();
+            }
+
+            if (dataLine === "[DONE]") {
+              done = true;
+            } else if (dataLine) {
+              try {
+                const payload = JSON.parse(dataLine);
+                if (eventType === "meta") {
+                  if (typeof payload.free_remaining === "number") {
+                    setFreeRemaining(payload.free_remaining);
+                  }
+                  const msg: Message = {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content: "",
+                    sources: payload.sources,
+                    disclaimer: payload.disclaimer,
+                    timestamp: Date.now(),
+                  };
+                  assistantId = msg.id;
+                  setStreamingMsgId(msg.id);
+                  setMessages((prev) => [...prev, msg]);
+                } else if (eventType === "error") {
+                  streamError = payload.error || "Terjadi kesalahan. Coba lagi.";
+                  appendToAssistant(streamError);
+                } else if (typeof payload.content === "string") {
+                  appendToAssistant(payload.content);
+                }
+              } catch {
+                // lewati event yang tidak valid
+              }
+            }
+            sep = buffer.indexOf("\n\n");
+          }
+        }
+
+        if (!assistantId && (done || streamError || buffer)) {
+          const fallbackMsg: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content:
+              streamError || "Maaf, jawaban kosong. Coba lagi nanti.",
+            timestamp: Date.now(),
+          };
+          setMessages((prev) => [...prev, fallbackMsg]);
+        }
+        setStreamingMsgId(null);
       } catch {
+        setStreamingMsgId(null);
         const errMsg: Message = {
           id: crypto.randomUUID(),
           role: "assistant",
@@ -233,6 +303,8 @@ export default function AIConsultPage() {
           const isUser = msg.role === "user";
           const isLastAssistant =
             msg.role === "assistant" && idx === messages.length - 1;
+          const isStreamingMsg =
+            msg.role === "assistant" && msg.id === streamingMsgId && loading;
 
           return (
             <div key={msg.id}>
@@ -261,7 +333,16 @@ export default function AIConsultPage() {
                   }
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {msg.role === "assistant" ? renderContent(msg.content) : msg.content}
+                    {msg.role === "assistant" ? (
+                      <>
+                        {renderContent(msg.content)}
+                        {isStreamingMsg && (
+                          <span className="inline-block w-1 h-4 bg-primary/70 ml-0.5 animate-pulse" />
+                        )}
+                      </>
+                    ) : (
+                      msg.content
+                    )}
                   </p>
                 </div>
                 {isUser && (
@@ -302,7 +383,7 @@ export default function AIConsultPage() {
           );
         })}
 
-        {loading && (
+        {loading && streamingMsgId === null && (
           <div className="flex gap-3">
             <div className="w-8 h-8 bg-primary-light rounded-lg flex items-center justify-center shrink-0 mt-1">
               <span className="material-symbols-outlined text-primary text-sm">

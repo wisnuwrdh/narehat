@@ -40,6 +40,10 @@ PANDUAN FORMAT JAWABAN (ikuti bila sesuai; bagian yang tidak relevan dengan pert
 4. **Langkah yang Bisa Dicoba** — actionable tips yang aman
 5. **Kapan Perlu ke Dokter**
 
+GAYA PENULISAN:
+- Jawab PADAT, sekitar 500-700 kata. Jangan mengulang-ulang poin yang sama.
+- Utamakan informasi yang langsung menjawab pertanyaan.
+
 DISCLAIMER WAJIB di akhir setiap jawaban:
 "Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional. Jika kondisi kulitmu memburuk atau tidak membaik, segera konsultasikan ke dokter kulit."`;
 
@@ -68,14 +72,11 @@ export async function retrieveContext(query: string): Promise<{
   return { context, sources };
 }
 
-export async function generateAnswer(
+export function buildConsultMessages(
   question: string,
   context: string,
   insightContext?: string
-): Promise<RAGResult> {
-  const apiKey = process.env.SUMOPOD_API_KEY;
-  if (!apiKey) throw new Error("SUMOD_API_KEY is not set");
-
+): ChatMessage[] {
   let userPrompt = `Pertanyaan user: ${question}
 
 KONTEKS JURNAL DERMATOLOGI:
@@ -88,10 +89,21 @@ ${context}`;
   userPrompt +=
     "\n\nPerhatikan label relevansi pada setiap JURNAL. Jawab hanya berdasarkan bagian konteks yang relevan dengan pertanyaan. Sertakan disclaimer di akhir.";
 
-  const messages: ChatMessage[] = [
+  return [
     { role: "system", content: SYSTEM_PROMPT },
     { role: "user", content: userPrompt },
   ];
+}
+
+export async function generateAnswer(
+  question: string,
+  context: string,
+  insightContext?: string
+): Promise<RAGResult> {
+  const apiKey = process.env.SUMOPOD_API_KEY;
+  if (!apiKey) throw new Error("SUMOD_API_KEY is not set");
+
+  const messages = buildConsultMessages(question, context, insightContext);
 
   const response = await fetch(`${SUMOPOD_BASE_URL}/chat/completions`, {
     method: "POST",
@@ -102,7 +114,7 @@ ${context}`;
     body: JSON.stringify({
       model: "deepseek-v4-flash",
       messages,
-      max_tokens: 2000,
+      max_tokens: 1000,
       temperature: 0.25,
     }),
   });
@@ -121,6 +133,39 @@ ${context}`;
     disclaimer:
       "Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional.",
   };
+}
+
+export async function streamAnswer(
+  question: string,
+  context: string,
+  insightContext?: string
+): Promise<Response> {
+  const apiKey = process.env.SUMOPOD_API_KEY;
+  if (!apiKey) throw new Error("SUMOD_API_KEY is not set");
+
+  const messages = buildConsultMessages(question, context, insightContext);
+
+  const response = await fetch(`${SUMOPOD_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "deepseek-v4-flash",
+      messages,
+      max_tokens: 1000,
+      temperature: 0.25,
+      stream: true,
+    }),
+  });
+
+  if (!response.ok || !response.body) {
+    const err = await response.text().catch(() => "");
+    throw new Error(`SumoPod API error: ${response.status} ${err}`);
+  }
+
+  return response;
 }
 
 export async function consult(
