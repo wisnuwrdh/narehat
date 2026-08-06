@@ -25,21 +25,24 @@ export async function GET() {
     countMonthlyUsage(supabase, userId, "purging", usageSince),
   ]);
 
-  return NextResponse.json({
-    consult: {
-      used: consultUsed,
-      limit: limits.consult,
-      unlimited: false,
+  return NextResponse.json(
+    {
+      consult: {
+        used: consultUsed,
+        limit: limits.consult,
+        unlimited: false,
+      },
+      purging: {
+        used: purgingUsed,
+        limit: limits.purging,
+        unlimited: false,
+      },
+      detect: {
+        used: detectUsed,
+        limit: limits.detect,
+        unlimited: false,
+      },
     },
-    purging: {
-      used: purgingUsed,
-      limit: limits.purging,
-      unlimited: false,
-    },
-    detect: {
-      used: detectUsed,
-      limit: limits.detect,
-      unlimited: false,
-    },
-  });
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

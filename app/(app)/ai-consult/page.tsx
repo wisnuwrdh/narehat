@@ -52,7 +52,7 @@ export default function AIConsultPage() {
   const isPro = user.plan.includes("pro");
   const limitReached = consultLimit !== null && freeRemaining <= 0;
 
-  useEffect(() => {
+  const refreshQuota = useCallback(() => {
     fetch("/api/ai/quota")
       .then((r) => r.json())
       .then((data) => {
@@ -63,6 +63,22 @@ export default function AIConsultPage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    refreshQuota();
+  }, [refreshQuota]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refreshQuota();
+    };
+    window.addEventListener("focus", refreshQuota);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", refreshQuota);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [refreshQuota]);
 
   useEffect(() => {
     const t = setTimeout(() => {

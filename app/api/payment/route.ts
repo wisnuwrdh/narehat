@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { planPriority } from "@/lib/payment/sumopod";
+import { planPriority, verifyWebhookSignature, verifyWebhookToken } from "@/lib/payment/sumopod";
 
 function parseOrderId(orderId: string): { userId: string; plan: string } | null {
   const parts = orderId.split("-");
@@ -38,6 +38,29 @@ function isPaymentCompleted(body: Record<string, unknown>): boolean {
   return false;
 }
 
+function extractWebhookToken(request: NextRequest): string | null {
+  const queryToken = new URL(request.url).searchParams.get("token");
+  if (queryToken) return queryToken;
+  for (const name of ["x-webhook-token", "x-sumopod-token", "x-api-key", "authorization"]) {
+    const value = request.headers.get(name);
+    if (value) return value.replace(/^Bearer\s+/i, "");
+  }
+  return null;
+}
+
+function isWebhookAuthenticated(request: NextRequest, rawBody: string): boolean {
+  const h = request.headers;
+  const svixId = h.get("svix-id") || h.get("x-svix-id") || "";
+  const svixTs = h.get("svix-timestamp") || h.get("x-svix-timestamp") || "";
+  const svixSig = h.get("svix-signature") || h.get("x-svix-signature") || "";
+  if (svixId && svixTs && svixSig && verifyWebhookSignature(rawBody, svixId, svixTs, svixSig)) {
+    return true;
+  }
+  const token = extractWebhookToken(request);
+  if (token && verifyWebhookToken(token)) return true;
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
 
@@ -52,6 +75,12 @@ export async function POST(request: NextRequest) {
     body = JSON.parse(rawBody);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const authConfigured = process.env.SUMOPOD_PAYMENT_WEBHOOK_SECRET || process.env.SUMOPOD_PAYMENT_WEBHOOK_TOKEN;
+  if (authConfigured && !isWebhookAuthenticated(request, rawBody)) {
+    console.error("WEBHOOK UNAUTHORIZED");
+    return NextResponse.json({ error: "Unauthorized webhook" }, { status: 401 });
   }
 
   if (!isPaymentCompleted(body)) {
@@ -82,6 +111,16 @@ export async function POST(request: NextRequest) {
   }
 
   const supabaseAuth = createClient(supabaseUrl, serviceKey);
+
+  const { data: existingPayment } = await supabaseAuth
+    .from("payments")
+    .select("status")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (existingPayment?.status === "completed") {
+    return NextResponse.json({ message: "Already processed", orderId });
+  }
 
   const { error: pmtErr } = await supabaseAuth
     .from("payments")

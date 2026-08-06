@@ -55,7 +55,11 @@ export function firstDayOfMonth(): string {
 
 export function getUsageSince(bucket: PlanBucket, planStartedAt?: string | null): string {
   if (bucket === "free") return firstDayOfMonth();
-  return planStartedAt || firstDayOfMonth();
+  if (planStartedAt) {
+    const t = new Date(planStartedAt).getTime();
+    if (!Number.isNaN(t) && t <= Date.now()) return planStartedAt;
+  }
+  return firstDayOfMonth();
 }
 
 export async function countMonthlyUsage(
