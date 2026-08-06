@@ -3,9 +3,10 @@
  *
  * Usage: npx tsx scripts/ingest-journals.ts
  *
- * Reads .txt files from data/journals/, chunks text,
- * generates embeddings via SumoPod API (text-embedding-3-small),
- * inserts into Supabase pgvector documents table.
+ * Reads .txt/.md files from data/journals/, splits each file into multiple
+ * journals (JUDUL/SUMBER/ISI blocks), chunks text, generates embeddings via
+ * SumoPod API (text-embedding-3-small), inserts into Supabase pgvector
+ * documents table. Clears the table first so re-runs never accumulate.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -15,6 +16,7 @@ import { readFileSync } from "fs";
 
 const JOURNAL_DIR = resolve(process.cwd(), "data/journals");
 const CHUNK_SIZE_WORDS = 350;
+const CONCURRENCY = 4;
 
 function loadEnv(): Record<string, string> {
   const envPath = resolve(process.cwd(), ".env.local");
@@ -49,40 +51,39 @@ interface Chunk {
   embedding: number[];
 }
 
-function parseFile(text: string, filename: string): Journal | null {
+function parseJournals(text: string): Journal[] {
   const lines = text.split("\n");
-  let title = "";
-  let source = "";
-  let contentStart = 0;
+  const journals: Journal[] = [];
+  let current: { title: string; source: string } | null = null;
+  let inContent = false;
+  const content: string[] = [];
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line.toUpperCase().startsWith("JUDUL:")) {
-      title = line.slice(6).trim();
-    } else if (line.toUpperCase().startsWith("SUMBER:")) {
-      source = line.slice(7).trim();
-    } else if (line.toUpperCase().startsWith("ISI:")) {
-      contentStart = i + 1;
-      break;
+  const flush = () => {
+    if (!current || !current.title || !current.source) return;
+    const body = content.join("\n").trim();
+    if (body) journals.push({ title: current.title, source: current.source, content: body });
+  };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    const upper = line.toUpperCase();
+    if (upper.startsWith("JUDUL:")) {
+      flush();
+      current = { title: line.slice(6).trim(), source: "" };
+      content.length = 0;
+      inContent = false;
+    } else if (upper.startsWith("SUMBER:")) {
+      if (current) current.source = line.slice(7).trim();
+    } else if (upper.startsWith("ISI:")) {
+      inContent = true;
+      const rest = line.slice(4).trim();
+      if (rest) content.push(rest);
+    } else if (inContent && current) {
+      content.push(raw);
     }
   }
-
-  if (!title || !source) {
-    console.warn(`⚠️  Skipping ${filename}: missing JUDUL or SUMBER`);
-    return null;
-  }
-
-  const content = lines
-    .slice(contentStart)
-    .join("\n")
-    .trim();
-
-  if (!content) {
-    console.warn(`⚠️  Skipping ${filename}: empty content`);
-    return null;
-  }
-
-  return { title, source, content };
+  flush();
+  return journals;
 }
 
 function chunkText(text: string, maxWords: number): string[] {
@@ -131,22 +132,58 @@ async function main() {
   console.log("🔌 Connecting to Supabase...");
   const supabase = createClient(supabaseUrl, serviceKey);
 
+  const apiKey = env.SUMOPOD_API_KEY;
+  if (!apiKey) {
+    console.error("❌ SUMOPOD_API_KEY not found in .env.local");
+    process.exit(1);
+  }
+
   console.log("📁 Reading journals from data/journals/...");
   const files = (await readdir(JOURNAL_DIR)).filter(
     (f) => f.endsWith(".txt") || f.endsWith(".md")
   );
 
   if (!files.length) {
-    console.log("❌ No .txt files found in data/journals/");
+    console.log("❌ No journal files found in data/journals/");
     console.log("💡 Format: JUDUL: ...\nSUMBER: ...\nISI: ...");
     process.exit(1);
   }
 
-  console.log(`📚 Found ${files.length} files\n`);
+  const seen = new Set<string>();
+  const journals: Journal[] = [];
 
-  const apiKey = env.SUMOPOD_API_KEY;
-  if (!apiKey) {
-    console.error("❌ SUMOPOD_API_KEY not found in .env.local");
+  for (const filename of files) {
+    let text: string;
+    try {
+      text = await readFile(join(JOURNAL_DIR, filename), "utf-8");
+    } catch {
+      console.error(`❌ Cannot read ${filename}, skipping`);
+      continue;
+    }
+
+    const parsed = parseJournals(text);
+    for (const journal of parsed) {
+      const key = `${journal.title.trim().toLowerCase()}|${journal.source.trim().toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      journals.push(journal);
+    }
+  }
+
+  console.log(`📚 ${files.length} file → ${journals.length} jurnal unik\n`);
+
+  if (!journals.length) {
+    console.log("❌ No valid journals parsed.");
+    process.exit(1);
+  }
+
+  console.log("🧹 Clearing existing documents table...");
+  const { error: clearError } = await supabase
+    .from("documents")
+    .delete()
+    .gte("id", "00000000-0000-0000-0000-000000000000");
+  if (clearError) {
+    console.error(`❌ Failed to clear documents: ${clearError.message}`);
     process.exit(1);
   }
 
@@ -171,66 +208,62 @@ async function main() {
     return data.data?.[0]?.embedding || new Array(384).fill(0);
   }
 
-  let totalChunks = 0;
-  let errors = 0;
+  const tasks: { title: string; source: string; content: string; embedding: number[] }[] = [];
 
-  for (let f = 0; f < files.length; f++) {
-    const filename = files[f];
-    const filepath = join(JOURNAL_DIR, filename);
-
-    let text: string;
-    try {
-      text = await readFile(filepath, "utf-8");
-    } catch {
-      console.error(`❌ Cannot read ${filename}, skipping`);
-      errors++;
-      continue;
-    }
-
-    const journal = parseFile(text, filename);
-    if (!journal) {
-      errors++;
-      continue;
-    }
-
+  for (const journal of journals) {
     const chunks = chunkText(journal.content, CHUNK_SIZE_WORDS);
-
     for (let c = 0; c < chunks.length; c++) {
-      const chunk = chunks[c];
-      const chunkTitle =
-        chunks.length > 1
-          ? `${journal.title} (part ${c + 1}/${chunks.length})`
-          : journal.title;
-
-      progressBar(c + 1, chunks.length, `  📄 ${filename} (${f + 1}/${files.length})`);
-
-      let embedding: number[];
-      try {
-        embedding = await generateEmbedding(chunk);
-      } catch {
-        errors++;
-        continue;
-      }
-
-      const { error } = await supabase.from("documents").insert({
-        title: chunkTitle,
-        content: chunk,
+      tasks.push({
+        title: chunks.length > 1 ? `${journal.title} (part ${c + 1}/${chunks.length})` : journal.title,
         source: journal.source,
-        embedding,
+        content: chunks[c],
+        embedding: [],
       });
-
-      if (error) {
-        console.error(`\n  ❌ Insert error: ${error.message}`);
-        errors++;
-      } else {
-        totalChunks++;
-      }
     }
-
-    console.log(""); // newline after progress bar
   }
 
-  console.log(`\n✅ Done! ${files.length} journals → ${totalChunks} chunks inserted.`);
+  console.log(`🗂  ${journals.length} jurnal → ${tasks.length} chunk, embedding (${CONCURRENCY} paralel)...\n`);
+
+  let done = 0;
+  let errors = 0;
+  let cursor = 0;
+
+  async function worker() {
+    while (cursor < tasks.length) {
+      const idx = cursor++;
+      const task = tasks[idx];
+      try {
+        task.embedding = await generateEmbedding(task.content);
+      } catch {
+        errors++;
+        task.embedding = [];
+      }
+      done++;
+      progressBar(done, tasks.length, "  Embedding");
+    }
+  }
+
+  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+  console.log("");
+
+  const rows = tasks
+    .filter((t) => t.embedding.length > 0)
+    .map((t) => ({ title: t.title, content: t.content, source: t.source, embedding: t.embedding }));
+
+  console.log(`💾 Inserting ${rows.length} chunks into documents...`);
+  let inserted = 0;
+  for (let i = 0; i < rows.length; i += 50) {
+    const batch = rows.slice(i, i + 50);
+    const { error } = await supabase.from("documents").insert(batch);
+    if (error) {
+      console.error(`\n  ❌ Insert error: ${error.message}`);
+      errors += batch.length;
+    } else {
+      inserted += batch.length;
+    }
+  }
+
+  console.log(`\n✅ Done! ${journals.length} jurnal → ${inserted} chunks inserted.`);
   if (errors) console.log(`⚠️  ${errors} errors encountered.`);
 }
 
