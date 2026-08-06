@@ -407,7 +407,7 @@ function AnalyzeSection() {
         {mode === "saved" && (
           <div className="mb-3 p-3 bg-slate-50 border border-border-light rounded-xl text-xs text-muted flex items-start gap-2">
             <span className="material-symbols-outlined text-sm shrink-0">info</span>
-            Analisis otomatis memakai semua produk aktif di daftar "Produk Saya" di atas, ditambah konteks scan &amp; insight terbaru kamu.
+            Analisis otomatis memakai semua produk aktif di daftar &ldquo;Produk Saya&rdquo; di atas, ditambah konteks scan &amp; insight terbaru kamu.
           </div>
         )}
 
