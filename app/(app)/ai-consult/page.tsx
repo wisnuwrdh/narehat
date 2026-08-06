@@ -114,11 +114,18 @@ export default function AIConsultPage() {
         textareaRef.current.style.height = "auto";
       }
 
+      const history = messages
+        .filter((m) => m.role === "user" || m.role === "assistant")
+        .filter((m) => m.id !== "welcome")
+        .filter((m) => m.content && m.content.trim().length > 0)
+        .slice(-10)
+        .map((m) => ({ role: m.role, content: m.content.slice(0, 1000) }));
+
       try {
         const res = await fetch("/api/ai/consult", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({ question, history }),
         });
 
         if (!res.ok) {
@@ -235,7 +242,7 @@ export default function AIConsultPage() {
         setLoading(false);
       }
     },
-    [input, loading, limitReached]
+    [input, loading, limitReached, messages]
   );
 
   const clearChat = useCallback(() => {

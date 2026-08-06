@@ -176,6 +176,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const rawHistory: unknown[] = Array.isArray(body.history) ? body.history : [];
+    const history: { role: "user" | "assistant"; content: string }[] = rawHistory
+      .filter((h): h is { role: "user" | "assistant"; content: string } => {
+        if (!h || typeof h !== "object") return false;
+        const obj = h as Record<string, unknown>;
+        return (
+          (obj.role === "user" || obj.role === "assistant") &&
+          typeof obj.content === "string"
+        );
+      })
+      .slice(-10)
+      .map((h) => ({
+        role: h.role,
+        content: h.content.slice(0, 1000),
+      }));
+
     const INJECTION_PATTERNS = [
       /abaikan\s{0,3}(?:semua|seluruh)\s{0,3}(?:instruksi|perintah|aturan)/i,
       /(?:tampilkan|bocorkan|sebutkan|tulis)\s{0,3}(?:system prompt|instruksi internal|aturan internal)/i,
@@ -212,7 +228,13 @@ export async function POST(request: NextRequest) {
         .join("\n");
     }
 
-    const result = await retrieveContext(question);
+    const lastUserMessage = [...history].reverse().find((h) => h.role === "user");
+    const retrievalQuery =
+      lastUserMessage && lastUserMessage.content !== question
+        ? `${lastUserMessage.content}\n${question}`
+        : question;
+
+    const result = await retrieveContext(retrievalQuery);
 
     const sources: Source[] = result?.sources ?? [];
     const context = result?.context ?? "";
@@ -227,7 +249,7 @@ export async function POST(request: NextRequest) {
       free_remaining: consultRemaining,
     });
 
-    if (!result) {
+    if (!result && history.length === 0) {
       await recordUsage(supabase, userId, "consult");
       return sseResponse(
         createStaticSSEStream(
@@ -237,7 +259,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sumoPodResponse = await streamAnswer(question, context, insightContext);
+    const sumoPodResponse = await streamAnswer(question, context, insightContext, history);
 
     await recordUsage(supabase, userId, "consult");
 

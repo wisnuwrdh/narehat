@@ -13,6 +13,11 @@ interface ChatMessage {
   content: string;
 }
 
+interface HistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 const SYSTEM_PROMPT = `Kamu adalah AI Consultant Narehat, asisten kesehatan kulit yang berbasis jurnal dermatologi peer-reviewed.
 
 TUGAS UTAMA:
@@ -43,6 +48,10 @@ PANDUAN FORMAT JAWABAN (ikuti bila sesuai; bagian yang tidak relevan dengan pert
 GAYA PENULISAN:
 - Jawab PADAT, sekitar 500-700 kata. Jangan mengulang-ulang poin yang sama.
 - Utamakan informasi yang langsung menjawab pertanyaan.
+- Gunakan BAHASA INDONESIA SEDERHANA yang mudah dipahami orang awam, seolah-olah kamu sedang menjelaskan ke teman yang tidak berlatar belakang medis.
+- Jika terpaksa memakai istilah ilmiah atau asing (mis. comedogenic, retinoid, transepidermal water loss, korneosit), WAJIB langsung dijelaskan dengan kata sehari-hari atau analogi sederhana, contoh: "comedogenic = bahan yang bisa menyumbat pori".
+- Hindari jargon tanpa penjelasan. Kalau bisa diganti dengan istilah yang lebih familiar, gunakan yang familiar.
+- Tetap akurat dan berdasarkan jurnal, tetapi penyampaiannya ramah dan mudah dicerna pembaca umum.
 
 DISCLAIMER WAJIB di akhir setiap jawaban:
 "Informasi ini bersifat edukatif, bukan pengganti diagnosis medis profesional. Jika kondisi kulitmu memburuk atau tidak membaik, segera konsultasikan ke dokter kulit."`;
@@ -75,8 +84,20 @@ export async function retrieveContext(query: string): Promise<{
 export function buildConsultMessages(
   question: string,
   context: string,
-  insightContext?: string
+  insightContext?: string,
+  history?: HistoryMessage[]
 ): ChatMessage[] {
+  const messages: ChatMessage[] = [{ role: "system", content: SYSTEM_PROMPT }];
+
+  if (history && history.length > 0) {
+    messages.push(
+      ...history.map<ChatMessage>((h) => ({
+        role: h.role === "assistant" ? "assistant" : "user",
+        content: h.content,
+      }))
+    );
+  }
+
   let userPrompt = `Pertanyaan user: ${question}
 
 KONTEKS JURNAL DERMATOLOGI:
@@ -89,21 +110,20 @@ ${context}`;
   userPrompt +=
     "\n\nPerhatikan label relevansi pada setiap JURNAL. Jawab hanya berdasarkan bagian konteks yang relevan dengan pertanyaan. Sertakan disclaimer di akhir.";
 
-  return [
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: userPrompt },
-  ];
+  messages.push({ role: "user", content: userPrompt });
+  return messages;
 }
 
 export async function generateAnswer(
   question: string,
   context: string,
-  insightContext?: string
+  insightContext?: string,
+  history?: HistoryMessage[]
 ): Promise<RAGResult> {
   const apiKey = process.env.SUMOPOD_API_KEY;
   if (!apiKey) throw new Error("SUMOD_API_KEY is not set");
 
-  const messages = buildConsultMessages(question, context, insightContext);
+  const messages = buildConsultMessages(question, context, insightContext, history);
 
   const response = await fetch(`${SUMOPOD_BASE_URL}/chat/completions`, {
     method: "POST",
@@ -139,12 +159,13 @@ export async function generateAnswer(
 export async function streamAnswer(
   question: string,
   context: string,
-  insightContext?: string
+  insightContext?: string,
+  history?: HistoryMessage[]
 ): Promise<Response> {
   const apiKey = process.env.SUMOPOD_API_KEY;
   if (!apiKey) throw new Error("SUMOD_API_KEY is not set");
 
-  const messages = buildConsultMessages(question, context, insightContext);
+  const messages = buildConsultMessages(question, context, insightContext, history);
 
   const response = await fetch(`${SUMOPOD_BASE_URL}/chat/completions`, {
     method: "POST",
@@ -172,12 +193,13 @@ export async function streamAnswer(
 
 export async function consult(
   question: string,
-  insightContext?: string
+  insightContext?: string,
+  history?: HistoryMessage[]
 ): Promise<RAGResult> {
   const trimmed = question.trim().slice(0, 500);
 
   const retrieval = await retrieveContext(trimmed);
-  if (!retrieval) {
+  if (!retrieval && (!history || history.length === 0)) {
     return {
       answer:
         "Maaf, saat ini aku belum menemukan jurnal yang relevan dengan pertanyaanmu. Coba tanyakan dengan kata kunci yang berbeda atau konsultasikan langsung ke dokter kulit terdekat.",
@@ -187,9 +209,14 @@ export async function consult(
     };
   }
 
-  const result = await generateAnswer(trimmed, retrieval.context, insightContext);
+  const result = await generateAnswer(
+    trimmed,
+    retrieval?.context ?? "",
+    insightContext,
+    history
+  );
   return {
     ...result,
-    sources: retrieval.sources,
+    sources: retrieval?.sources ?? [],
   };
 }
