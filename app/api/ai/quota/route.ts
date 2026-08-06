@@ -19,10 +19,12 @@ export async function GET() {
   const limits = getPlanQuota(bucket);
 
   const usageSince = getUsageSince(bucket, profile?.plan_started_at);
-  const [detectUsed, consultUsed, purgingUsed] = await Promise.all([
+  const [detectUsed, consultUsed, purgingUsed, analyzeUsed, buildUsed] = await Promise.all([
     countMonthlyUsage(supabase, userId, "detect", usageSince),
     countMonthlyUsage(supabase, userId, "consult", usageSince),
     countMonthlyUsage(supabase, userId, "purging", usageSince),
+    countMonthlyUsage(supabase, userId, "routine_analyze", usageSince),
+    countMonthlyUsage(supabase, userId, "routine_build", usageSince),
   ]);
 
   return NextResponse.json(
@@ -40,6 +42,16 @@ export async function GET() {
       detect: {
         used: detectUsed,
         limit: limits.detect,
+        unlimited: false,
+      },
+      routine_analyze: {
+        used: analyzeUsed,
+        limit: limits.routine_analyze,
+        unlimited: false,
+      },
+      routine_build: {
+        used: buildUsed,
+        limit: limits.routine_build,
         unlimited: false,
       },
     },

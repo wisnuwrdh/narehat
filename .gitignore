@@ -28,6 +28,10 @@ data/journals/*
 
 # cloudflare
 .open-next/
+
+# graphify tool artifacts
+.graphifyignore
+graphify-out/
 .wrangler/
 .dev.vars
 

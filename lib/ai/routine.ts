@@ -14,11 +14,30 @@ interface RoutinePlan {
   disclaimer: string;
 }
 
+export interface RoutineContext {
+  skinType?: string;
+  existingProducts?: string[];
+  scanSummary?: string;
+  insightContext?: string;
+}
+
 function getApiKey(): string | null {
   return process.env.SUMOPOD_API_KEY || null;
 }
 
-async function callSumoPod(systemPrompt: string, userPrompt: string): Promise<string | null> {
+function buildContextBlock(ctx?: RoutineContext): string {
+  if (!ctx) return "";
+  const parts: string[] = [];
+  if (ctx.skinType) parts.push(`Tipe kulit user: ${ctx.skinType}`);
+  if (ctx.existingProducts && ctx.existingProducts.length > 0) {
+    parts.push(`Produk yang sedang user gunakan (pertimbangkan sebagai dasar rutinitas, jangan duplikat):\n${ctx.existingProducts.map((p, i) => `${i + 1}. ${p}`).join("\n")}`);
+  }
+  if (ctx.scanSummary) parts.push(`Hasil scan kulit terakhir: ${ctx.scanSummary}`);
+  if (ctx.insightContext) parts.push(`Insight dari tracker user: ${ctx.insightContext}`);
+  return parts.length > 0 ? `\n\nKONTEKS PERSONAL USER:\n${parts.join("\n")}` : "";
+}
+
+async function callSumoPod(systemPrompt: string, userPrompt: string, maxTokens = 600): Promise<string | null> {
   const apiKey = getApiKey();
   if (!apiKey) {
     console.error("SUMOPOD_API_KEY is not set");
@@ -37,8 +56,9 @@ async function callSumoPod(systemPrompt: string, userPrompt: string): Promise<st
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 800,
+      max_tokens: maxTokens,
       temperature: 0.4,
+      reasoning_effort: "none",
     }),
   });
 
@@ -48,7 +68,7 @@ async function callSumoPod(systemPrompt: string, userPrompt: string): Promise<st
   return data.choices?.[0]?.message?.content || null;
 }
 
-export async function analyzeRoutine(products: string[]): Promise<RoutineAnalysis | null> {
+export async function analyzeRoutine(products: string[], ctx?: RoutineContext): Promise<RoutineAnalysis | null> {
   const productList = products.map((p, i) => `${i + 1}. ${p}`).join("\n");
 
   const systemPrompt = `Kamu adalah AI Analis Skincare Narehat. Tugasmu: analisis daftar produk skincare user dan deteksi masalah.
@@ -79,7 +99,7 @@ FORMAT JSON:
   "disclaimer": "disclaimer standar"
 }`;
 
-  const userPrompt = `Analisis daftar produk skincare berikut. Deteksi konflik, over-exfoliation, urutan salah, langkah yang hilang, atau iritan:\n\n${productList}\n\nReturn JSON sesuai format yang ditentukan.`;
+  const userPrompt = `Analisis daftar produk skincare berikut. Deteksi konflik, over-exfoliation, urutan salah, langkah yang hilang, atau iritan:\n\n${productList}${buildContextBlock(ctx)}\n\nReturn JSON sesuai format yang ditentukan.`;
 
   const content = await callSumoPod(systemPrompt, userPrompt);
   if (!content) return null;
@@ -102,7 +122,8 @@ FORMAT JSON:
 export async function buildRoutine(
   skinType: string,
   budget: string,
-  concern: string
+  concern: string,
+  ctx?: RoutineContext
 ): Promise<RoutinePlan | null> {
   const skinLabels: Record<string, string> = {
     oily: "Berminyak",
@@ -156,11 +177,11 @@ Sesuaikan berdasarkan skin type dan concern.`;
   const userPrompt = `Buat rutinitas skincare untuk user dengan profile:
 - Tipe kulit: ${skinLabel}
 - Budget: ${budgetLabel}
-- Concern utama: ${concernLabel}
+- Concern utama: ${concernLabel}${buildContextBlock(ctx)}
 
 Return JSON sesuai format.`;
 
-  const content = await callSumoPod(systemPrompt, userPrompt);
+  const content = await callSumoPod(systemPrompt, userPrompt, 1000);
   if (!content) return null;
 
   try {

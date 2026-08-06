@@ -6,12 +6,14 @@ export interface PlanQuota {
   detect: number;
   consult: number;
   purging: number;
+  routine_analyze: number;
+  routine_build: number;
 }
 
 export const PLAN_LIMITS: Record<PlanBucket, PlanQuota> = {
-  free: { detect: 2, consult: 10, purging: 1 },
-  premium: { detect: 30, consult: 100, purging: 10 },
-  pro: { detect: 100, consult: 300, purging: 30 },
+  free: { detect: 2, consult: 10, purging: 1, routine_analyze: 0, routine_build: 0 },
+  premium: { detect: 30, consult: 100, purging: 10, routine_analyze: 0, routine_build: 0 },
+  pro: { detect: 100, consult: 300, purging: 30, routine_analyze: 30, routine_build: 30 },
 };
 
 export const DETECT_MODELS: Record<PlanBucket, string> = {
@@ -65,7 +67,7 @@ export function getUsageSince(bucket: PlanBucket, planStartedAt?: string | null)
 export async function countMonthlyUsage(
   supabase: SupabaseClient,
   userId: string,
-  feature: "detect" | "consult" | "purging",
+  feature: "detect" | "consult" | "purging" | "routine_analyze" | "routine_build",
   since: string
 ): Promise<number> {
   const { data } = await supabase
@@ -81,7 +83,7 @@ export async function countMonthlyUsage(
 export async function recordUsage(
   supabase: SupabaseClient,
   userId: string,
-  feature: "detect" | "consult" | "purging"
+  feature: "detect" | "consult" | "purging" | "routine_analyze" | "routine_build"
 ): Promise<void> {
   const { error } = await supabase.from("ai_usage").insert({
     user_id: userId,
