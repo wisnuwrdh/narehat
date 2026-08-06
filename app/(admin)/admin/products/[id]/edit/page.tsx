@@ -28,6 +28,8 @@ export default function EditProductPage() {
             image_url: p.image_url || "",
             ingredients: p.ingredients || "",
             why: p.why || "",
+            skin_types: Array.isArray(p.skin_types) ? p.skin_types : [],
+            concerns: Array.isArray(p.concerns) ? p.concerns : [],
           });
         }
         setLoading(false);

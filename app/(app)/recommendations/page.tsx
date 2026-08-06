@@ -38,6 +38,8 @@ interface Product {
   affiliate_link: string;
   image_url: string;
   why: string;
+  score?: number;
+  used?: boolean;
 }
 
 const ITEMS_PER_PAGE = 6;
@@ -231,6 +233,11 @@ export default function RecommendationsPage() {
                         >
                           {p.category}
                         </span>
+                        {p.used && (
+                          <span className="ml-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-600">
+                            Sedang kamu pakai
+                          </span>
+                        )}
                         <h3 className="font-bold text-slate-800 text-sm mt-1 truncate">
                           {p.name}
                         </h3>

@@ -5,6 +5,19 @@ import { useState } from "react";
 
 const CATEGORIES = ["Cleanser", "Moisturizer", "Sunscreen", "Treatment"];
 
+const SKIN_TYPES: { value: string; label: string }[] = [
+  { value: "oily", label: "Berminyak" },
+  { value: "dry", label: "Kering" },
+  { value: "combination", label: "Kombinasi" },
+  { value: "sensitive", label: "Sensitif" },
+];
+
+const CONCERNS: { value: string; label: string }[] = [
+  { value: "clear_acne", label: "Jerawat hilang" },
+  { value: "fade_scars", label: "Bekas jerawat" },
+  { value: "brighter_skin", label: "Kulit lebih cerah" },
+];
+
 export interface ProductFormData {
   name: string;
   brand: string;
@@ -17,6 +30,8 @@ export interface ProductFormData {
   image_url: string;
   ingredients: string;
   why: string;
+  skin_types: string[];
+  concerns: string[];
 }
 
 const emptyForm: ProductFormData = {
@@ -31,6 +46,8 @@ const emptyForm: ProductFormData = {
   image_url: "",
   ingredients: "",
   why: "",
+  skin_types: [],
+  concerns: [],
 };
 
 export interface ProductFormProps {
@@ -46,6 +63,15 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
   const handleChange = (field: keyof ProductFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const toggleArray = (field: "skin_types" | "concerns", value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter((v) => v !== value)
+        : [...prev[field], value],
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,6 +93,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
         image_url: form.image_url,
         ingredients: form.ingredients,
         why: form.why,
+        skin_types: form.skin_types,
+        concerns: form.concerns,
       };
 
       const res = await fetch("/api/admin/products", {
@@ -175,6 +203,54 @@ export function ProductForm({ initialData }: ProductFormProps) {
             placeholder="Cocok untuk kulit berminyak, non-comedogenic..."
             className="w-full px-4 py-2.5 bg-slate-50 border border-border-light rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1">Cocok untuk Tipe Kulit</label>
+          <div className="flex flex-wrap gap-2">
+            {SKIN_TYPES.map((s) => {
+              const active = form.skin_types.includes(s.value);
+              return (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => toggleArray("skin_types", s.value)}
+                  className={`btn-press px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+                    active
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white border-border-light text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted mt-1">Kosongkan semua = cocok untuk semua tipe kulit</p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1">Cocok untuk Concern</label>
+          <div className="flex flex-wrap gap-2">
+            {CONCERNS.map((c) => {
+              const active = form.concerns.includes(c.value);
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => toggleArray("concerns", c.value)}
+                  className={`btn-press px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+                    active
+                      ? "bg-primary text-white border-primary"
+                      : "bg-white border-border-light text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted mt-1">Kosongkan semua = cocok untuk semua concern</p>
         </div>
 
         <div>

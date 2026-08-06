@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = createDBClient();
   const body = await request.json();
-  const { name, brand, description, price, rating, reviews, affiliate_link, image_url, category, ingredients, why } = body;
+  const { name, brand, description, price, rating, reviews, affiliate_link, image_url, category, ingredients, why, skin_types, concerns } = body;
 
   if (!name || !brand || !category) {
     return NextResponse.json({ error: "name, brand, category wajib diisi" }, { status: 400 });
@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
     category,
     ingredients: ingredients || "",
     why: why || "",
+    skin_types: Array.isArray(skin_types) ? skin_types : [],
+    concerns: Array.isArray(concerns) ? concerns : [],
   }).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -78,7 +80,7 @@ export async function PATCH(request: NextRequest) {
   if (!id) return NextResponse.json({ error: "id wajib diisi" }, { status: 400 });
 
   const updates: Record<string, unknown> = {};
-  for (const key of ["name", "brand", "description", "category", "ingredients", "why", "affiliate_link", "image_url", "is_active"]) {
+  for (const key of ["name", "brand", "description", "category", "ingredients", "why", "affiliate_link", "image_url", "is_active", "skin_types", "concerns"]) {
     if (fields[key] !== undefined) updates[key] = fields[key];
   }
   if (fields.price !== undefined) updates.price = Number(fields.price);
