@@ -42,8 +42,8 @@ interface MatchResult {
 
 export async function querySimilar(
   embedding: number[],
-  limit = 5,
-  threshold = 0.4
+  limit = 4,
+  threshold = 0.3
 ): Promise<MatchResult[]> {
   const supabase = createDBClient();
   const { data, error } = await supabase.rpc("match_documents", {
