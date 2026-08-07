@@ -36,6 +36,8 @@ interface Product {
   rating: number;
   reviews: number;
   affiliate_link: string;
+  shopee_link?: string;
+  tokopedia_link?: string;
   image_url: string;
   why: string;
   score?: number;
@@ -361,11 +363,16 @@ export default function RecommendationsPage() {
                 </div>
                 <div className="flex gap-2 mt-3">
                   {PLATFORMS.map((platform) => {
+                    const link =
+                      platform === "Shopee"
+                        ? p.shopee_link || p.affiliate_link
+                        : p.tokopedia_link || p.affiliate_link;
+                    if (!link) return null;
                     const styles = platformStyles[platform];
                     return (
                       <a
                         key={platform}
-                        href={p.affiliate_link}
+                        href={link}
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`btn-press flex-1 py-2.5 text-xs font-bold rounded-xl text-center transition-colors flex items-center justify-center gap-1 ${

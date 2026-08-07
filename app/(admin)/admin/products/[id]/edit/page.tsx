@@ -25,6 +25,8 @@ export default function EditProductPage() {
             rating: String(p.rating || ""),
             reviews: String(p.reviews || ""),
             affiliate_link: p.affiliate_link || "",
+            shopee_link: p.shopee_link || "",
+            tokopedia_link: p.tokopedia_link || "",
             image_url: p.image_url || "",
             ingredients: p.ingredients || "",
             why: p.why || "",

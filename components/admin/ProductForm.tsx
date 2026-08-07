@@ -27,6 +27,8 @@ export interface ProductFormData {
   rating: string;
   reviews: string;
   affiliate_link: string;
+  shopee_link: string;
+  tokopedia_link: string;
   image_url: string;
   ingredients: string;
   why: string;
@@ -43,6 +45,8 @@ const emptyForm: ProductFormData = {
   rating: "",
   reviews: "",
   affiliate_link: "",
+  shopee_link: "",
+  tokopedia_link: "",
   image_url: "",
   ingredients: "",
   why: "",
@@ -59,10 +63,48 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const [form, setForm] = useState<ProductFormData>(initialData || emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const isEdit = !!initialData?.id;
 
   const handleChange = (field: keyof ProductFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(file ? URL.createObjectURL(file) : "");
+  };
+
+  const handleUploadImage = async () => {
+    if (!selectedFile || !initialData?.id) {
+      setError("Simpan produk dulu, lalu pilih gambar untuk diupload.");
+      return;
+    }
+    setUploadingImage(true);
+    setError("");
+    try {
+      const fd = new FormData();
+      fd.append("productId", initialData.id);
+      fd.append("file", selectedFile);
+      const res = await fetch("/api/photos/product", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Gagal mengupload gambar");
+        return;
+      }
+      setForm((prev) => ({ ...prev, image_url: data.url }));
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl("");
+      setSelectedFile(null);
+    } catch {
+      setError("Gagal terhubung ke server");
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const toggleArray = (field: "skin_types" | "concerns", value: string) => {
@@ -89,7 +131,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
         price: form.price ? parseInt(form.price.replace(/\D/g, "")) : 0,
         rating: form.rating ? parseFloat(form.rating) : 0,
         reviews: form.reviews ? parseInt(form.reviews.replace(/\D/g, "")) : 0,
-        affiliate_link: form.affiliate_link,
+        affiliate_link: form.affiliate_link || form.shopee_link || "",
+        shopee_link: form.shopee_link,
+        tokopedia_link: form.tokopedia_link,
         image_url: form.image_url,
         ingredients: form.ingredients,
         why: form.why,
@@ -266,23 +310,59 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Link Affiliate</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Link Shopee</label>
             <input
-              value={form.affiliate_link}
-              onChange={(e) => handleChange("affiliate_link", e.target.value)}
+              value={form.shopee_link}
+              onChange={(e) => handleChange("shopee_link", e.target.value)}
               placeholder="https://shopee.co.id/..."
               className="w-full px-4 py-2.5 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">URL Gambar</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Link Tokopedia</label>
             <input
-              value={form.image_url}
-              onChange={(e) => handleChange("image_url", e.target.value)}
-              placeholder="https://..."
+              value={form.tokopedia_link}
+              onChange={(e) => handleChange("tokopedia_link", e.target.value)}
+              placeholder="https://tokopedia.com/..."
               className="w-full px-4 py-2.5 bg-slate-50 border border-border-light rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1">Foto Produk</label>
+          {(form.image_url || previewUrl) && (
+            <div className="mb-2 w-24 h-24 bg-slate-100 rounded-xl overflow-hidden">
+              <img
+                src={previewUrl || form.image_url}
+                alt="Preview produk"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileSelect}
+              className="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-slate-100 file:text-slate-700 file:text-sm file:font-semibold hover:file:bg-slate-200"
+            />
+            {selectedFile && (
+              <button
+                type="button"
+                onClick={handleUploadImage}
+                disabled={uploadingImage}
+                className="btn-press shrink-0 px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50"
+              >
+                {uploadingImage ? "Uploading..." : "Upload"}
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-muted mt-1">
+            {isEdit
+              ? "Pilih file lalu klik Upload. Gambar disimpan otomatis ke produk."
+              : "Simpan produk dulu untuk bisa upload gambar."}
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">

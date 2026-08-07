@@ -61,7 +61,7 @@ export function thumbKeyFor(key: string): string {
   return `${key}.thumb`;
 }
 
-function extractKeyFromUrl(url: string): string | null {
+export function extractKeyFromUrl(url: string): string | null {
   if (url.startsWith("/api/photos/serve?key=")) {
     return decodeURIComponent(url.slice("/api/photos/serve?key=".length));
   }
