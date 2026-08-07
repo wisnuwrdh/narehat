@@ -49,7 +49,6 @@ export default function TrackerPage() {
   const [junkFood, setJunkFood] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
   const [savedAt, setSavedAt] = useState<string>("");
   const [formTouched, setFormTouched] = useState(false);
   const [weekLogs, setWeekLogs] = useState<Set<string>>(new Set());
@@ -335,21 +334,6 @@ export default function TrackerPage() {
         </div>
       </section>
 
-      {/* Detail toggle */}
-      <section className="px-6 mb-6">
-        <button
-          onClick={() => setShowDetail(!showDetail)}
-          className="btn-press w-full py-3 bg-white border border-border-light rounded-2xl flex items-center justify-center gap-2 text-sm font-semibold text-slate-500 hover:text-primary hover:border-primary/20 transition-colors"
-        >
-          <span className="material-symbols-outlined text-sm">{showDetail ? "expand_less" : "expand_more"}</span>
-          {showDetail ? "Sembunyikan Detail" : "Lihat Detail Lainnya"}
-          <span className="text-[10px] text-muted-light">(Olahraga, Skincare, Pemicu, Catatan)</span>
-        </button>
-      </section>
-
-      {showDetail && (
-      <>
-
       {/* Exercise */}
       <section className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
@@ -361,6 +345,7 @@ export default function TrackerPage() {
               <h3 className="font-bold text-slate-800">Olahraga</h3>
               <p className="text-xs text-muted">Berapa menit kamu berolahraga?</p>
             </div>
+            <span className="ml-auto text-[10px] font-semibold text-muted-light border border-border-light rounded-full px-2.5 py-1">Opsional</span>
           </div>
           <div className="flex items-center gap-4 mb-3">
             <button onClick={() => adjExercise(-5)} className="btn-press w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-border-light hover:bg-slate-100">
@@ -396,6 +381,7 @@ export default function TrackerPage() {
               <h3 className="font-bold text-slate-800">Rutinitas Skincare</h3>
               <p className="text-xs text-muted">Centang yang sudah kamu lakukan</p>
             </div>
+            <span className="ml-auto text-[10px] font-semibold text-muted-light border border-border-light rounded-full px-2.5 py-1">Opsional</span>
           </div>
           <div className="space-y-3">
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
@@ -429,6 +415,7 @@ export default function TrackerPage() {
               <h3 className="font-bold text-slate-800">Faktor Pemicu</h3>
               <p className="text-xs text-muted">Hal yang bisa memperburuk jerawat</p>
             </div>
+            <span className="ml-auto text-[10px] font-semibold text-muted-light border border-border-light rounded-full px-2.5 py-1">Opsional</span>
           </div>
           <div className="space-y-3">
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
@@ -445,11 +432,6 @@ export default function TrackerPage() {
         </div>
       </section>
 
-      </>
-      )}
-
-      {showDetail && (
-      <>
       {/* Notes */}
       <section className="px-6 mb-8">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
@@ -461,6 +443,7 @@ export default function TrackerPage() {
               <h3 className="font-bold text-slate-800">Catatan</h3>
               <p className="text-xs text-muted">Ada yang mau dicatat?</p>
             </div>
+            <span className="ml-auto text-[10px] font-semibold text-muted-light border border-border-light rounded-full px-2.5 py-1">Opsional</span>
           </div>
           <textarea
             placeholder="Contoh: Hari ini makan pedas, jerawat baru di pipi kiri..."
@@ -470,8 +453,6 @@ export default function TrackerPage() {
           />
         </div>
       </section>
-      </>
-      )}
 
       {/* Actions */}
       <div className="px-6 pb-8 space-y-3">
