@@ -51,7 +51,7 @@ interface Product {
 const ITEMS_PER_PAGE = 6;
 
 const SKIN_LABELS: Record<string, string> = { oily: "berminyak", dry: "kering", combination: "kombinasi", normal: "normal", sensitive: "sensitif" };
-const CONCERN_LABELS: Record<string, string> = { clear_acne: "jerawat aktif", fade_scars: "bekas jerawat", brighter_skin: "kulit lebih cerah", all: "jerawat & bekas" };
+const CONCERN_LABELS: Record<string, string> = { clear_acne: "jerawat aktif", fade_scars: "bekas jerawat", brighter_skin: "kulit lebih cerah", anti_aging: "anti-aging", barrier: "skin barrier", all: "jerawat & bekas" };
 
 function WhyModal({ product, userSkinRaw, userGoalRaw, onClose }: {
   product: Product;
@@ -63,7 +63,7 @@ function WhyModal({ product, userSkinRaw, userGoalRaw, onClose }: {
   const concerns = product.concerns || [];
 
   const skinMatch = skinTypes.length === 0 || skinTypes.includes(userSkinRaw);
-  const concernMatch = concerns.length === 0 || concerns.includes(userGoalRaw);
+  const concernMatch = concerns.length === 0 || concerns.includes(userGoalRaw) || userGoalRaw === "all";
 
   const reason = [
     skinMatch

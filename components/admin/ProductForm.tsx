@@ -17,6 +17,8 @@ const CONCERNS: { value: string; label: string }[] = [
   { value: "clear_acne", label: "Jerawat hilang" },
   { value: "fade_scars", label: "Bekas jerawat" },
   { value: "brighter_skin", label: "Kulit lebih cerah" },
+  { value: "anti_aging", label: "Anti-aging" },
+  { value: "barrier", label: "Skin barrier" },
 ];
 
 export interface ProductFormData {

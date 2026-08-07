@@ -83,6 +83,8 @@ export async function GET(request: NextRequest) {
 
     if (concerns.length === 0) {
       score += 1;
+    } else if (goal === "all") {
+      score += 2;
     } else if (goal && concerns.includes(goal)) {
       score += 2;
     }

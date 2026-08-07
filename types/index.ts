@@ -13,7 +13,7 @@ export interface User {
 
 export type SkinType = "oily" | "dry" | "combination" | "normal" | "sensitive";
 export type AcneSeverity = "mild" | "moderate" | "severe";
-export type Goal = "clear_acne" | "fade_scars" | "brighter_skin" | "all";
+export type Goal = "clear_acne" | "fade_scars" | "brighter_skin" | "anti_aging" | "barrier" | "all";
 export type PlanType = "free" | "premium_monthly" | "premium_yearly" | "pro_monthly" | "pro_yearly";
 
 export interface DailyLog {

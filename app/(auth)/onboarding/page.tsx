@@ -56,7 +56,9 @@ const steps = [
       { value: "clear_acne", emoji: "🎯", label: "Jerawat hilang", desc: "Mengurangi jerawat aktif" },
       { value: "fade_scars", emoji: "✨", label: "Bekas jerawat memudar", desc: "Mengurangi PIH" },
       { value: "brighter_skin", emoji: "🌟", label: "Kulit lebih cerah", desc: "Skin radiance" },
-      { value: "all", emoji: "🚀", label: "Semua di atas", desc: "Jerawat, bekas, dan cerah" },
+      { value: "anti_aging", emoji: "⏳", label: "Anti-aging", desc: "Mencegah tanda penuaan" },
+      { value: "barrier", emoji: "🛡️", label: "Skin barrier", desc: "Memperbaiki lapisan kulit" },
+      { value: "all", emoji: "🚀", label: "Semua di atas", desc: "Semua kebutuhan di atas" },
     ],
   },
 ];

@@ -15,6 +15,8 @@ const GOAL_TO_CONCERN: Record<string, string> = {
   clear_acne: "acne",
   fade_scars: "scar",
   brighter_skin: "brightening",
+  anti_aging: "anti_aging",
+  barrier: "barrier",
   all: "barrier",
 };
 

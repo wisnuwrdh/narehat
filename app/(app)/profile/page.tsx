@@ -23,6 +23,8 @@ const goalLabels: Record<string, string> = {
   clear_acne: "Jerawat Hilang",
   fade_scars: "Bekas Memudar",
   brighter_skin: "Kulit Cerah",
+  anti_aging: "Anti-Aging",
+  barrier: "Skin Barrier",
   all: "Semua",
 };
 

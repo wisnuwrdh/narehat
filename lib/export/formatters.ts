@@ -17,7 +17,8 @@ const skinLabels: Record<string, string> = {
 };
 const severityLabels: Record<string, string> = { mild: "Ringan", moderate: "Sedang", severe: "Parah" };
 const goalLabels: Record<string, string> = {
-  clear_acne: "Jerawat Hilang", fade_scars: "Bekas Memudar", brighter_skin: "Kulit Cerah", all: "Semua",
+  clear_acne: "Jerawat Hilang", fade_scars: "Bekas Memudar", brighter_skin: "Kulit Cerah",
+  anti_aging: "Anti-Aging", barrier: "Skin Barrier", all: "Semua",
 };
 const planLabels: Record<string, string> = {
   free: "Gratis", premium_monthly: "Premium Bulanan", premium_yearly: "Premium Tahunan",
