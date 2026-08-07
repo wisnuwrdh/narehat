@@ -45,9 +45,15 @@ export default function TrackerPage() {
   const [stress, setStress] = useState(1);
   const [skincareMorning, setSkincareMorning] = useState(false);
   const [skincareEvening, setSkincareEvening] = useState(false);
+  const [touchedFace, setTouchedFace] = useState(false);
+  const [junkFood, setJunkFood] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [savedAt, setSavedAt] = useState<string>("");
+  const [formTouched, setFormTouched] = useState(false);
+  const [weekLogs, setWeekLogs] = useState<Set<string>>(new Set());
+  const [weekStats, setWeekStats] = useState<{ morning: number; evening: number; sleep: number; water: number } | null>(null);
 
   const selectedDateStr = days[activeDate].dateStr;
 
@@ -65,17 +71,46 @@ export default function TrackerPage() {
           setStress(log.stress_level ?? 1);
           setSkincareMorning(log.skincare_morning ?? false);
           setSkincareEvening(log.skincare_evening ?? false);
+          setTouchedFace(log.touched_face ?? false);
+          setJunkFood(log.junk_food ?? false);
           setNotes(log.notes ?? "");
         } else {
           handleReset();
         }
+        setFormTouched(false);
       })
       .catch(() => {});
   }, [selectedDateStr]);
 
-  const adjSleep = (delta: number) => setSleep((s) => Math.min(12, Math.max(0, Math.round((s + delta) * 10) / 10)));
-  const adjExercise = (delta: number) => setExercise((e) => Math.min(120, Math.max(0, e + delta)));
-  const adjWater = (delta: number) => setWater((w) => Math.min(2.5, Math.max(0, Math.round((w + delta) * 100) / 100)));
+  useEffect(() => {
+    const dates = days.map((d) => d.dateStr).join(",");
+    fetch(`/api/tracker?dates=${dates}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const logs = data.logs || [];
+        const set = new Set<string>();
+        let morning = 0, evening = 0, sleepSum = 0, waterSum = 0, n = 0;
+        for (const log of logs) {
+          set.add(log.date);
+          if (log.skincare_morning) morning++;
+          if (log.skincare_evening) evening++;
+          sleepSum += log.sleep_hours || 0;
+          waterSum += (log.water_ml || 0) / 1000;
+          n++;
+        }
+        setWeekLogs(set);
+        setWeekStats({ morning, evening, sleep: n ? sleepSum / n : 0, water: n ? waterSum / n : 0 });
+      })
+      .catch(() => {});
+  }, []);
+
+  const markTouched = () => {
+    if (!formTouched) setFormTouched(true);
+  };
+
+  const adjSleep = (delta: number) => { setSleep((s) => Math.min(12, Math.max(0, Math.round((s + delta) * 10) / 10))); markTouched(); };
+  const adjExercise = (delta: number) => { setExercise((e) => Math.min(120, Math.max(0, e + delta))); markTouched(); };
+  const adjWater = (delta: number) => { setWater((w) => Math.min(2.5, Math.max(0, Math.round((w + delta) * 100) / 100))); markTouched(); };
 
   const waterCups = Math.floor(water / 0.5);
   const sleepPct = Math.round((sleep / 8) * 100);
@@ -95,11 +130,18 @@ export default function TrackerPage() {
           stress_level: stress,
           skincare_morning: skincareMorning,
           skincare_evening: skincareEvening,
+          touched_face: touchedFace,
+          junk_food: junkFood,
           notes,
         }),
       });
       if (res.ok) {
         showToast("Data berhasil disimpan!");
+        setSavedAt(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }));
+        setFormTouched(false);
+        const set = new Set(weekLogs);
+        set.add(days[activeDate].dateStr);
+        setWeekLogs(set);
       } else {
         const data = await res.json();
         showToast(data.error || "Gagal menyimpan data", "error");
@@ -118,7 +160,19 @@ export default function TrackerPage() {
     setStress(1);
     setSkincareMorning(false);
     setSkincareEvening(false);
+    setTouchedFace(false);
+    setJunkFood(false);
     setNotes("");
+    setFormTouched(true);
+  };
+
+  const handleSelectDate = (i: number) => {
+    if (i !== activeDate && formTouched) {
+      const ok = window.confirm("Kamu punya perubahan yang belum disimpan. Lanjut pindah tanggal?");
+      if (!ok) return;
+    }
+    setActiveDate(i);
+    setFormTouched(false);
   };
 
   return (
@@ -136,13 +190,33 @@ export default function TrackerPage() {
         </div>
       </header>
 
+      {weekStats && (
+        <section className="px-6 mb-4">
+          <div className="bg-white border border-border-subtle rounded-3xl p-4 shadow-sm flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary text-xl">insights</span>
+              <div>
+                <p className="text-xs font-bold text-slate-800">Ringkasan 7 Hari</p>
+                <p className="text-xs text-muted">
+                  Skincare pagi {weekStats.morning}/7 · malam {weekStats.evening}/7
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-xs">
+              <p className="text-slate-600"><span className="font-bold">{Math.round(weekStats.sleep * 10) / 10}</span> jam tidur</p>
+              <p className="text-muted"><span className="font-bold">{Math.round(weekStats.water * 100) / 100}</span> L air</p>
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="px-6 mb-6">
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
           {days.map((d, i) => (
             <button
               key={d.date}
-              onClick={() => setActiveDate(i)}
-              className={`btn-press min-w-[60px] py-2 px-3 rounded-xl text-center transition-all ${
+              onClick={() => handleSelectDate(i)}
+              className={`btn-press min-w-[60px] py-2 px-3 rounded-xl text-center transition-all relative ${
                 i === activeDate
                   ? "bg-primary text-white shadow-lg shadow-primary/20"
                   : d.past
@@ -152,6 +226,13 @@ export default function TrackerPage() {
             >
               <span className={`text-[10px] block ${i === activeDate ? "text-white/70" : "text-muted"}`}>{d.day}</span>
               <span className={`text-sm font-bold ${i === activeDate ? "" : "text-slate-700"}`}>{d.date}</span>
+              <span
+                className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${
+                  weekLogs.has(d.dateStr)
+                    ? i === activeDate ? "bg-white" : "bg-emerald-500"
+                    : "bg-transparent"
+                }`}
+              />
             </button>
           ))}
         </div>
@@ -181,7 +262,7 @@ export default function TrackerPage() {
               <span className="material-symbols-outlined text-slate-600">add</span>
             </button>
           </div>
-          <input type="range" min={0} max={12} step={0.5} value={sleep} onChange={(e) => setSleep(parseFloat(e.target.value))} className="w-full" />
+          <input type="range" min={0} max={12} step={0.5} value={sleep} onChange={(e) => { setSleep(parseFloat(e.target.value)); markTouched(); }} className="w-full" />
           <div className="flex justify-between text-[10px] text-muted-light mt-1">
             <span>0 jam</span>
             <span className="font-semibold text-primary">Target: 8 jam</span>
@@ -242,7 +323,7 @@ export default function TrackerPage() {
           <div className="flex justify-between items-center mb-3 px-2">
             <span className="text-2xl">😌</span><span className="text-2xl">😐</span><span className="text-2xl">😤</span><span className="text-2xl">😫</span><span className="text-2xl">🤯</span>
           </div>
-          <input type="range" min={1} max={5} step={1} value={stress} onChange={(e) => setStress(parseInt(e.target.value))} className="w-full" />
+          <input type="range" min={1} max={5} step={1} value={stress} onChange={(e) => { setStress(parseInt(e.target.value)); markTouched(); }} className="w-full" />
           <div className="flex justify-between text-[10px] text-muted-light mt-1 px-1">
             <span>Santai</span><span>Sedang</span><span>Ekstrem</span>
           </div>
@@ -262,7 +343,7 @@ export default function TrackerPage() {
         >
           <span className="material-symbols-outlined text-sm">{showDetail ? "expand_less" : "expand_more"}</span>
           {showDetail ? "Sembunyikan Detail" : "Lihat Detail Lainnya"}
-          <span className="text-[10px] text-muted-light">(Olahraga, Skincare, Catatan)</span>
+          <span className="text-[10px] text-muted-light">(Olahraga, Skincare, Pemicu, Catatan)</span>
         </button>
       </section>
 
@@ -293,7 +374,7 @@ export default function TrackerPage() {
               <span className="material-symbols-outlined text-slate-600">add</span>
             </button>
           </div>
-          <input type="range" min={0} max={120} step={5} value={exercise} onChange={(e) => setExercise(parseInt(e.target.value))} className="w-full" />
+          <input type="range" min={0} max={120} step={5} value={exercise} onChange={(e) => { setExercise(parseInt(e.target.value)); markTouched(); }} className="w-full" />
           <div className="flex justify-between text-[10px] text-muted-light mt-1">
             <span>0 mnt</span>
             <span className={`font-semibold ${exercise >= 30 ? "text-emerald-600" : "text-primary"}`}>
@@ -318,7 +399,7 @@ export default function TrackerPage() {
           </div>
           <div className="space-y-3">
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-              <input type="checkbox" checked={skincareMorning} onChange={(e) => setSkincareMorning(e.target.checked)} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
+              <input type="checkbox" checked={skincareMorning} onChange={(e) => { setSkincareMorning(e.target.checked); markTouched(); }} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
               <div className="flex-1">
                 <span className="text-sm font-semibold text-slate-700 block">Pagi</span>
                 <span className="text-xs text-muted">Cleanser → Toner → Moisturizer → Sunscreen</span>
@@ -326,12 +407,39 @@ export default function TrackerPage() {
               {skincareMorning && <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>}
             </label>
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-              <input type="checkbox" checked={skincareEvening} onChange={(e) => setSkincareEvening(e.target.checked)} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
+              <input type="checkbox" checked={skincareEvening} onChange={(e) => { setSkincareEvening(e.target.checked); markTouched(); }} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
               <div className="flex-1">
                 <span className="text-sm font-semibold text-slate-700 block">Malam</span>
                 <span className="text-xs text-muted">Double cleanse → Toner → Serum → Moisturizer</span>
               </div>
               {skincareEvening && <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>}
+            </label>
+          </div>
+        </div>
+      </section>
+
+      {/* Pemicu */}
+      <section className="px-6 mb-6">
+        <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+              <span className="material-symbols-outlined text-rose-500">warning</span>
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800">Faktor Pemicu</h3>
+              <p className="text-xs text-muted">Hal yang bisa memperburuk jerawat</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+              <input type="checkbox" checked={touchedFace} onChange={(e) => { setTouchedFace(e.target.checked); markTouched(); }} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
+              <span className="flex-1 text-sm font-semibold text-slate-700">Menyentuh wajah</span>
+              {touchedFace && <span className="material-symbols-outlined text-rose-500 text-lg">check_circle</span>}
+            </label>
+            <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
+              <input type="checkbox" checked={junkFood} onChange={(e) => { setJunkFood(e.target.checked); markTouched(); }} className="w-5 h-5 rounded-lg border-border-light text-primary focus:ring-primary" />
+              <span className="flex-1 text-sm font-semibold text-slate-700">Makan junk food / tidak sehat</span>
+              {junkFood && <span className="material-symbols-outlined text-rose-500 text-lg">check_circle</span>}
             </label>
           </div>
         </div>
@@ -357,7 +465,7 @@ export default function TrackerPage() {
           <textarea
             placeholder="Contoh: Hari ini makan pedas, jerawat baru di pipi kiri..."
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => { setNotes(e.target.value); markTouched(); }}
             className="w-full px-4 py-3 bg-slate-50 border border-border-light rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none h-24"
           />
         </div>
@@ -366,7 +474,19 @@ export default function TrackerPage() {
       )}
 
       {/* Actions */}
-      <div className="px-6 pb-8 space-y-3">        <button
+      <div className="px-6 pb-8 space-y-3">
+        {formTouched ? (
+          <div className="flex items-center justify-center gap-1.5 text-xs text-amber-600 font-semibold">
+            <span className="material-symbols-outlined text-sm">edit_note</span>
+            Ada perubahan yang belum disimpan
+          </div>
+        ) : savedAt ? (
+          <div className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 font-semibold">
+            <span className="material-symbols-outlined text-sm">check_circle</span>
+            Tersimpan • {savedAt}
+          </div>
+        ) : null}
+        <button
           onClick={handleSave}
           disabled={loading}
           className="btn-press w-full py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"

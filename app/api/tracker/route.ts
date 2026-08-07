@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const today = new Date().toISOString().split("T")[0];
+  const rawDate = String(body.date ?? "");
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : today;
 
   const sleep_hours = Math.min(24, Math.max(0, Number(body.sleep_hours) || 0));
   const water_ml = Math.min(10000, Math.max(0, Number(body.water_ml) || 0));
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
 
   const { error } = await supabase.from("daily_logs").upsert({
     user_id: userId,
-    date: today,
+    date,
     sleep_hours,
     water_ml,
     exercise_minutes,
