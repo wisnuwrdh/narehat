@@ -108,8 +108,8 @@ export default function AdminProductsPage() {
           </Link>
         </div>
       ) : (
-        <div className="bg-white border border-border-subtle rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white border border-border-subtle rounded-2xl overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="border-b border-border-subtle bg-slate-50">
                 <th className="text-left px-4 py-3 font-semibold text-slate-600">Produk</th>
