@@ -9,6 +9,7 @@ const SKIN_TYPES: { value: string; label: string }[] = [
   { value: "oily", label: "Berminyak" },
   { value: "dry", label: "Kering" },
   { value: "combination", label: "Kombinasi" },
+  { value: "normal", label: "Normal" },
   { value: "sensitive", label: "Sensitif" },
 ];
 
