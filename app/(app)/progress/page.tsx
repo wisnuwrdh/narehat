@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { DailyLog } from "@/types";
-import { analyzeCorrelations } from "@/lib/insights/correlation";
-import { computeSkinScore } from "@/lib/insights/skin-score";
+import { computeSkinScore, breakdownScore, type ScoreBreakdownItem } from "@/lib/insights/skin-score";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { thumbUrlFor } from "@/lib/storage/thumb-url";
@@ -261,7 +260,7 @@ export default function ProgressPage() {
   const [rightData, setRightData] = useState<PhotoWithAnalysis | null>(null);
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
-  const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number; description: string }[]>([]);
+  const [breakdown, setBreakdown] = useState<ScoreBreakdownItem[]>([]);
   const [insightItems, setInsightItems] = useState<{ title: string; description: string; type: string }[]>([]);
   const [pickerSide, setPickerSide] = useState<"left" | "right" | null>(null);
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -302,14 +301,8 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
-        const corr = analyzeCorrelations(logs);
-        setCorrelations(corr.map((r) => ({
-          label: r.factor,
-          points: `${Math.round(r.correlation * 100)}%`,
-          color: r.correlation < 0 ? "red" : "green",
-          pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
-          description: r.description,
-        })));
+        const latest = [...logs].sort((a, b) => b.date.localeCompare(a.date))[0];
+        setBreakdown(breakdownScore(latest));
       } catch {}
 
       setLoaded(true);
@@ -351,14 +344,8 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
-        const corr = analyzeCorrelations(logs);
-        setCorrelations(corr.map((r) => ({
-          label: r.factor,
-          points: `${Math.round(r.correlation * 100)}%`,
-          color: r.correlation < 0 ? "red" : "green",
-          pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
-          description: r.description,
-        })));
+        const latest = [...logs].sort((a, b) => b.date.localeCompare(a.date))[0];
+        setBreakdown(breakdownScore(latest));
       } catch {}
     }
     load();
@@ -671,32 +658,58 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-indigo-500 text-lg">hub</span>
+              <span className="material-symbols-outlined text-indigo-500 text-lg">task_alt</span>
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-sm">Korelasi Kebiasaan</h3>
-              <p className="text-[10px] text-muted">Pengaruh kebiasaan terhadap skin score</p>
+              <h3 className="font-bold text-slate-800 text-sm">Kontribusi Skor Hari Ini</h3>
+              <p className="text-[10px] text-muted">Berapa poin dari setiap kebiasaan hari ini</p>
             </div>
           </div>
-          <div className="space-y-3">
-            {correlations.length > 0 ? correlations.map((c) => (
-              <div key={c.label + range}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="font-semibold text-slate-700">{c.label}</span>
-                  <span className={`font-bold ${c.color === "red" ? "text-red-500" : "text-emerald-600"}`}>{c.points}</span>
-                </div>
-                <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-700 ease-out ${c.color === "red" ? "bg-red-400" : "bg-emerald-400"}`}
-                    style={{ width: barsAnimated ? `${c.pct}%` : "0%" }}
-                  />
-                </div>
-                <p className="text-[10px] text-muted mt-1">{c.description}</p>
+          {breakdown.length > 0 ? (
+            <>
+              <div className="space-y-3">
+                {breakdown.map((b) => {
+                  const pct = Math.min(100, Math.round((b.current / b.max) * 100));
+                  const good = pct >= 70;
+                  return (
+                    <div key={b.key}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="font-semibold text-slate-700">{b.label}</span>
+                        <span className={`font-bold ${good ? "text-emerald-600" : "text-amber-600"}`}>
+                          {b.current}/{b.max}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ease-out ${good ? "bg-emerald-400" : "bg-amber-400"}`}
+                          style={{ width: barsAnimated ? `${pct}%` : "0%" }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            )) : (
-              <p className="text-xs text-muted text-center py-2">Korelasi akan muncul setelah kamu rutin tracking minimal seminggu.</p>
-            )}
-          </div>
+              {(() => {
+                const diffs = breakdown.map((b) => ({ b, loss: b.max - b.current }));
+                const top = diffs.sort((a, c) => c.loss - a.loss)[0];
+                if (top.loss > 0) {
+                  return (
+                    <p className="mt-4 text-xs text-slate-600 leading-relaxed bg-slate-50 rounded-xl p-3">
+                      Peluang terbesar: <b>{top.b.label}</b> (kurang {top.loss} poin). {top.b.evidenceText}
+                    </p>
+                  );
+                }
+                return (
+                  <p className="mt-4 text-xs text-slate-600 leading-relaxed bg-emerald-50 rounded-xl p-3">
+                    Semua kebiasaan hari ini sudah maksimal. Pertahankan!
+                  </p>
+                );
+              })()}
+              <p className="mt-3 text-[10px] text-muted-light">Skor adalah rangkuman kebiasaanmu, bukan diagnosis medis.</p>
+            </>
+          ) : (
+            <p className="text-xs text-muted text-center py-2">Isi tracker hari ini untuk melihat kontribusi skor.</p>
+          )}
         </div>
       </section>
 

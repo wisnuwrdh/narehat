@@ -72,40 +72,80 @@ function computeStreak(logs: { date: string }[]): number {
   return streak;
 }
 
-function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_level: number; exercise_minutes: number; skincare_morning: boolean; skincare_evening: boolean; junk_food: boolean; touched_face: boolean; date: string }[]): DashboardData["insights"] {
-  if (logs.length < 3) return [];
-  const insights: DashboardData["insights"] = [];
-  const avgSleep = logs.reduce((s, l) => s + l.sleep_hours, 0) / logs.length;
-  const avgWater = logs.reduce((s, l) => s + l.water_ml, 0) / logs.length;
-  const avgStress = logs.reduce((s, l) => s + l.stress_level, 0) / logs.length;
-  const skincareDays = logs.filter(l => l.skincare_morning && l.skincare_evening).length;
-  const junkDays = logs.filter(l => l.junk_food).length;
-  const touchDays = logs.filter(l => l.touched_face).length;
+type WeekLog = {
+  date: string; sleep_hours: number; water_ml: number; stress_level: number;
+  exercise_minutes: number; skincare_morning: boolean; skincare_evening: boolean;
+  junk_food: boolean; touched_face: boolean;
+};
 
-  if (avgStress > 3) {
-    insights.push({ title: "Tingkat stress cukup tinggi pekan ini", description: "Stres adalah salah satu faktor dengan bukti terkuat untuk jerawat. Coba teknik relaksasi 5 menit sebelum tidur.", type: "warning" });
+function compareWeeks(allLogs: WeekLog[]): DashboardData["insights"] {
+  if (allLogs.length < 6) return [];
+  const iso = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().split("T")[0];
+  };
+  const curLogs = allLogs.filter(l => l.date >= iso(-7) && l.date <= iso(0));
+  const prevLogs = allLogs.filter(l => l.date >= iso(-14) && l.date <= iso(-8));
+  if (curLogs.length < 2 || prevLogs.length < 2) return [];
+
+  const avg = (arr: number[]) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+  const avgField = (logs: WeekLog[], f: (l: WeekLog) => number) => avg(logs.map(f));
+  const countField = (logs: WeekLog[], f: (l: WeekLog) => boolean) => logs.filter(f).length;
+
+  const msgs: DashboardData["insights"] = [];
+
+  const curSleep = avgField(curLogs, l => l.sleep_hours);
+  const prevSleep = avgField(prevLogs, l => l.sleep_hours);
+  if (curSleep - prevSleep >= 0.3) {
+    msgs.push({ type: "positive", title: `Tidur membaik: ${prevSleep.toFixed(1)} → ${curSleep.toFixed(1)} jam`, description: "Rata-rata tidur naik pekan ini. Konsistensi tidur cukup mendukung regenerasi kulit." });
+  } else if (prevSleep - curSleep >= 0.3) {
+    msgs.push({ type: "warning", title: `Tidur turun: ${prevSleep.toFixed(1)} → ${curSleep.toFixed(1)} jam`, description: "Tidurmu berkurang. Targetkan 7-8 jam untuk pemulihan kulit." });
   }
-  if (junkDays >= 4) {
-    insights.push({ title: "Sering makan junk food pekan ini", description: "Pola makan tinggi gula/junk food termasuk bukti terkuat faktor makanan untuk jerawat. Coba kurangi di pekan ini.", type: "warning" });
+
+  const curStress = avgField(curLogs, l => l.stress_level);
+  const prevStress = avgField(prevLogs, l => l.stress_level);
+  if (curStress - prevStress >= 0.3) {
+    msgs.push({ type: "warning", title: `Stress naik: ${prevStress.toFixed(1)} → ${curStress.toFixed(1)}/5`, description: "Stress adalah faktor dengan bukti kuat untuk jerawat. Coba relaksasi 5 menit sebelum tidur." });
+  } else if (prevStress - curStress >= 0.3) {
+    msgs.push({ type: "positive", title: `Stress turun: ${prevStress.toFixed(1)} → ${curStress.toFixed(1)}/5`, description: "Level stress membaik. Pertahankan teknik relaksasi yang kamu lakukan." });
   }
-  if (touchDays >= 4) {
-    insights.push({ title: "Sering menyentuh wajah", description: "Sentuhan tangan memindahkan bakteri ke wajah. Bukti spesifiknya belum kuat, tapi mudah dicoba dikurangi.", type: "warning" });
+
+  const curSk = countField(curLogs, l => l.skincare_morning && l.skincare_evening);
+  const prevSk = countField(prevLogs, l => l.skincare_morning && l.skincare_evening);
+  if (curSk > prevSk) {
+    msgs.push({ type: "positive", title: `Skincare lebih konsisten: ${prevSk} → ${curSk} hari/minggu`, description: "Rutinitas pagi & malam naik. Konsistensi ini kunci progress kulit." });
+  } else if (curSk < prevSk) {
+    msgs.push({ type: "warning", title: `Skincare jarang: ${prevSk} → ${curSk} hari/minggu`, description: "Skincare pagi & malam berkurang. Usahakan minimal rutin di pagi hari." });
   }
-  if (avgSleep < 6) {
-    insights.push({ title: "Tidur kurang dari 6 jam rata-rata pekan ini", description: "Tidur cukup mendukung regenerasi kulit. Kaitannya dengan jerawat bervariasi antar studi, tapi 7-8 jam tetap baik untuk pemulihan.", type: "warning" });
-  } else if (avgSleep >= 7) {
-    insights.push({ title: "Kualitas tidur bagus pekan ini!", description: "Tidur cukup membantu regenerasi sel kulit dan mendukung pemulihan. Pertahankan!", type: "positive" });
+
+  const curJunk = countField(curLogs, l => l.junk_food);
+  const prevJunk = countField(prevLogs, l => l.junk_food);
+  if (curJunk > prevJunk) {
+    msgs.push({ type: "warning", title: `Junk food naik: ${prevJunk} → ${curJunk} hari/minggu`, description: "Frekuensi makan junk food bertambah. Makanan junk termasuk faktor makanan dengan bukti terkuat untuk jerawat." });
+  } else if (curJunk < prevJunk) {
+    msgs.push({ type: "positive", title: `Junk food turun: ${prevJunk} → ${curJunk} hari/minggu`, description: "Pola makan membaik. Kurangi gula/junk food untuk membantu kulit." });
   }
-  if (avgWater < 1500) {
-    insights.push({ title: "Hidrasi masih di bawah target", description: "Minum cukup air membantu kulit tetap lembap. Efeknya terhadap jerawat belum banyak dibuktikan, tapi baik untuk kesehatan kulit.", type: "warning" });
+
+  const curTouch = countField(curLogs, l => l.touched_face);
+  const prevTouch = countField(prevLogs, l => l.touched_face);
+  if (curTouch > prevTouch) {
+    msgs.push({ type: "warning", title: `Sentuh wajah lebih sering: ${prevTouch} → ${curTouch} hari/minggu`, description: "Sering menyentuh wajah bisa memindahkan bakteri. Usahakan lebih jarang." });
+  } else if (curTouch < prevTouch) {
+    msgs.push({ type: "positive", title: `Sentuh wajah berkurang: ${prevTouch} → ${curTouch} hari/minggu`, description: "Kamu lebih jarang menyentuh wajah pekan ini. Pertahankan." });
   }
-  if (skincareDays >= 5) {
-    insights.push({ title: "Rutinitas skincare konsisten!", description: "Kamu rutin melakukan skincare pagi & malam. Konsistensi ini kunci progress kulit yang baik.", type: "positive" });
+
+  const curEx = countField(curLogs, l => l.exercise_minutes >= 30);
+  const prevEx = countField(prevLogs, l => l.exercise_minutes >= 30);
+  if (curEx > prevEx) {
+    msgs.push({ type: "positive", title: `Olahraga lebih rutin: ${prevEx} → ${curEx} hari/minggu`, description: "Jumlah hari berolahraga naik. Pertahankan target 30 menit." });
+  } else if (curEx < prevEx) {
+    msgs.push({ type: "warning", title: `Olahraga berkurang: ${prevEx} → ${curEx} hari/minggu`, description: "Frekuensi olahraga turun. Buat jadwal ringan beberapa kali seminggu." });
   }
-  if (insights.length === 0) {
-    insights.push({ title: "Data pekan ini terlihat stabil", description: "Belum ada pola menonjol dari data tracker. Terus tracking untuk insight yang lebih personal.", type: "neutral" });
-  }
-  return insights;
+
+  const order: Record<string, number> = { warning: 0, positive: 1, neutral: 2 };
+  msgs.sort((a, b) => order[a.type] - order[b.type]);
+  return msgs.slice(0, 3);
 }
 
 export default function DashboardPage() {
@@ -123,7 +163,6 @@ export default function DashboardPage() {
   const [animatedScore, setAnimatedScore] = useState(0);
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
-  const [insightExpanded, setInsightExpanded] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const lastLoadRef = useRef(0);
 
@@ -178,7 +217,7 @@ export default function DashboardPage() {
       }
 
       const streak = computeStreak(allLogs);
-      const insights = generateInsights(weekLogs);
+      const insights = compareWeeks(allLogs as WeekLog[]);
       const userName = user.name || "User";
 
       setData({ userName, dailyLog: log, insights, photos, streak, skinScore, skinScoreDelta, hasLogs: allLogs.length > 0 });
@@ -387,72 +426,50 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <section className="px-6 mb-6 animate-fade-in-up delay-300">
+<section className="px-6 mb-6 animate-fade-in-up delay-300">
         <div className="bg-gradient-to-br from-indigo-50/80 to-violet-50/40 rounded-3xl border border-indigo-100/80 p-5 relative overflow-hidden">
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
           <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-accent/5 rounded-full blur-xl" />
           <div className="relative">
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100/50">
-                  <span className="material-symbols-outlined text-primary">bolt</span>
+                  <span className="material-symbols-outlined text-primary">insights</span>
                 </div>
                 <div>
-                  <span className="font-bold text-slate-800 text-sm block">Insight Hari Ini</span>
-                  <span className="text-[10px] text-muted">Berdasarkan data 7 hari terakhir</span>
+                  <span className="font-bold text-slate-800 text-sm block">Perbandingan Pekan Ini</span>
+                  <span className="text-[10px] text-muted">7 hari terakhir vs 7 hari sebelumnya</span>
                 </div>
               </div>
               <span className="px-2.5 py-1 bg-white text-primary text-[10px] font-bold rounded-lg border border-indigo-100 shadow-sm">Baru</span>
             </div>
-            <p className="text-sm leading-relaxed text-slate-700 mb-4">
-              {insights.length > 0 ? (
-                insights[0].title
-              ) : dailyLog ? (
-                <>Tracker harian sudah terisi. Semakin sering tracking, insight akan semakin akurat.</>
-              ) : (
-                <>Kamu belum mengisi tracker hari ini. Isi sekarang untuk melihat insight personal.</>
-              )}
-            </p>
-            {dailyLog && (
-            <div className="flex items-center gap-3 mb-4 px-3 py-2.5 bg-white/70 rounded-xl border border-white/50">
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg">😴</span>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-600">Tidur</span>
-                  <span className="text-[10px] text-muted">{dailyLog.sleep_hours} jam</span>
-                </div>
+            {insights.length > 0 ? (
+              <div className="space-y-2.5">
+                {insights.slice(0, 3).map((ins, i) => (
+                  <div key={i} className="flex items-start gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50">
+                    <span className={`material-symbols-outlined text-base mt-0.5 ${ins.type === "warning" ? "text-amber-500" : ins.type === "positive" ? "text-emerald-500" : "text-primary"}`}>
+                      {ins.type === "warning" ? "trending_down" : ins.type === "positive" ? "trending_up" : "tune"}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-slate-800">{ins.title}</p>
+                      <p className="text-[10px] text-muted mt-0.5">{ins.description}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <span className="material-symbols-outlined text-primary-muted text-sm">arrow_forward</span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg">💧</span>
-                <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-600">Air</span>
-                  <span className="text-[10px] text-muted">{(dailyLog.water_ml / 1000).toFixed(1)}L</span>
-                </div>
-              </div>
+            ) : dailyLog ? (
+              <p className="text-sm leading-relaxed text-slate-700">
+                Perbandingan antar pekan muncul setelah kamu tracking lebih dari satu minggu.
+              </p>
+            ) : (
+              <p className="text-sm leading-relaxed text-slate-700 mb-4">
+                Isi tracker harianmu sekarang untuk melihat perbandingan kebiasaan antar pekan.
+              </p>
+            )}
+            <div className="flex gap-2 mt-4">
+              <Link href="/tracker" className="btn-press px-3 py-2 bg-primary-light text-primary text-[10px] font-bold rounded-xl hover:bg-primary-light/70 transition-colors">Ke Tracker</Link>
+              <Link href="/recommendations" className="btn-press px-3 py-2 bg-white border border-border-light text-[10px] font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Lihat Rekomendasi</Link>
             </div>
-            )}
-            <button
-              onClick={() => setInsightExpanded(!insightExpanded)}
-              className="btn-press w-full flex items-center justify-between text-xs text-primary font-bold bg-white/80 hover:bg-white p-3 rounded-xl transition-colors border border-indigo-100/50"
-            >
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-sm">monitoring</span>
-                {insightExpanded ? "Sembunyikan" : "Lihat penjelasan lengkap"}
-              </div>
-              <span className={`material-symbols-outlined text-sm transition-transform ${insightExpanded ? "rotate-180" : ""}`}>expand_more</span>
-            </button>
-            {insightExpanded && (
-              <div className="mt-3 p-4 bg-white/60 rounded-xl border border-indigo-100/50 animate-scale-in">
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  {insights.length > 0 ? insights[0].description : (dailyLog ? "Berdasarkan data tracker hari ini, kami sedang menganalisis pola kebiasaanmu. Semakin konsisten kamu tracking, semakin personal insight yang akan muncul." : "Kamu belum mengisi tracker hari ini. Yuk, isi sekarang supaya AI Narehat bisa menganalisis pola kebiasaanmu dan memberikan insight yang personal.")}
-                </p>
-                <div className="flex gap-2 mt-3">
-                  <Link href="/tracker" className="btn-press px-3 py-2 bg-primary-light text-primary text-[10px] font-bold rounded-xl hover:bg-primary-light/70 transition-colors">Ke Tracker</Link>
-                  <Link href="/recommendations" className="btn-press px-3 py-2 bg-white border border-border-light text-[10px] font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Lihat Rekomendasi</Link>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </section>
