@@ -15,6 +15,8 @@ interface DashboardData {
     stress_level: number;
     skincare_morning: boolean;
     skincare_evening: boolean;
+    touched_face: boolean;
+    junk_food: boolean;
     notes: string;
   } | null;
   insights: { title: string; description: string; type: string }[];
@@ -35,11 +37,11 @@ const getScoreLabel = (s: number) => {
 const colorMap: Record<string, string> = {
   indigo: "bg-indigo-50 text-indigo-500", blue: "bg-blue-50 text-blue-500",
   amber: "bg-amber-50 text-amber-500", emerald: "bg-emerald-50 text-emerald-500",
-  violet: "bg-violet-50 text-violet-500",
+  violet: "bg-violet-50 text-violet-500", rose: "bg-rose-50 text-rose-500",
 };
 const barColorMap: Record<string, string> = {
   indigo: "bg-indigo-400", blue: "bg-blue-400", amber: "bg-amber-400",
-  emerald: "bg-emerald-400", violet: "bg-violet-400",
+  emerald: "bg-emerald-400", violet: "bg-violet-400", rose: "bg-rose-400",
 };
 const statusColorMap: Record<string, string> = { emerald: "bg-emerald-400", amber: "bg-amber-400" };
 
@@ -249,6 +251,8 @@ export default function DashboardPage() {
     { icon: "psychology", color: "amber" as const, label: "Stress", value: dailyLog.stress_level <= 2 ? "Santai" : dailyLog.stress_level <= 3 ? "Sedang" : "Tinggi", unit: "", pct: Math.round((1 - (dailyLog.stress_level - 1) / 4) * 100), target: `${dailyLog.stress_level}/5 level`, status: dailyLog.stress_level <= 2 ? "emerald" as const : "amber" as const, text: true as const },
     { icon: "directions_run", color: "emerald" as const, label: "Olahraga", value: dailyLog.exercise_minutes.toString(), unit: "mnt", pct: Math.round((dailyLog.exercise_minutes / 30) * 100), target: dailyLog.exercise_minutes >= 30 ? "target tercapai" : `kurang ${30 - dailyLog.exercise_minutes} mnt`, status: dailyLog.exercise_minutes >= 20 ? "emerald" as const : "amber" as const },
     { icon: "spa", color: "violet" as const, label: "Skincare", value: [dailyLog.skincare_morning && "Pagi", dailyLog.skincare_evening && "Malam"].filter(Boolean).join("+") || "0x", unit: "", pct: [dailyLog.skincare_morning, dailyLog.skincare_evening].filter(Boolean).length * 50, target: "2x rutinitas", status: dailyLog.skincare_morning || dailyLog.skincare_evening ? "emerald" as const : "amber" as const, text: true as const },
+    { icon: "pan_tool", color: "rose" as const, label: "Sentuh Wajah", value: dailyLog.touched_face ? "Ya" : "Tidak", unit: "", pct: dailyLog.touched_face ? 0 : 100, target: "hindari", status: dailyLog.touched_face ? "amber" as const : "emerald" as const, text: true as const },
+    { icon: "fastfood", color: "rose" as const, label: "Junk Food", value: dailyLog.junk_food ? "Ya" : "Tidak", unit: "", pct: dailyLog.junk_food ? 0 : 100, target: "hindari", status: dailyLog.junk_food ? "amber" as const : "emerald" as const, text: true as const },
   ] : [
     { icon: "edit_calendar", color: "indigo" as const, label: "Belum ada data", value: "Tracker", unit: "", pct: 0, target: "isi tracker dulu", status: "amber" as const, text: true as const },
   ];
