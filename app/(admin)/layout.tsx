@@ -1,7 +1,13 @@
+import type { Viewport } from "next";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const viewport: Viewport = {
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default async function AdminLayout({
   children,
