@@ -511,8 +511,13 @@ export default function ScanPage() {
       <section id="purging" className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
+            <div className="relative w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
               <span className="material-symbols-outlined text-amber-500">science</span>
+              {user.plan === "free" && (
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-primary text-white text-[8px] font-bold rounded-md leading-none">
+                  PREMIUM
+                </span>
+              )}
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-slate-800">Purging Checker</h3>
