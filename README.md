@@ -66,7 +66,7 @@ Pertama kali app memberikan insight seperti:
 |-------|-----------|--------|
 | Semua fitur Free | — | ✅ |
 | AI Consult — 100x/bulan | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
-| AI Deteksi Jerawat — 30x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-mini) | ✅ Done |
+| AI Deteksi Jerawat — 15x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-mini) | ✅ Done |
 | Purging Checker — 10x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
@@ -76,7 +76,7 @@ Pertama kali app memberikan insight seperti:
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
-| AI Deteksi Jerawat — 100x/bulan | Analisis paling mendalam dengan GPT-5 penuh | ✅ Done |
+| AI Deteksi Jerawat — 30x/bulan | Analisis paling mendalam dengan GPT-5 penuh | ✅ Done |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
 | Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF (gate ke Pro di UI + API) | ✅ Done |
@@ -440,8 +440,8 @@ Jalankan dengan: `npm run ingest`
 | Plan | Harga | Value Proposition |
 |------|-------|-------------------|
 | **Free** | Rp0 | Rasakan lega pertama. Tracker ringan, progress foto, AI Deteksi 2x/bulan, AI consult 10x/bulan. Cukup untuk "oh ini toh pemicunya." |
-| **Premium** ⭐ | Rp29.000/bulan (Rp199.000/tahun) | Kepastian penuh. AI Deteksi 30x/bulan (gpt-5-mini), konsultasi AI 100x/bulan, purging checker 10x/bulan, deep insight. |
-| **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | Semua diurus. AI Deteksi 100x/bulan (GPT-5 penuh), konsultasi AI 300x/bulan, analisis rutinitas, laporan mingguan PDF, akses model baru lebih awal. |
+| **Premium** ⭐ | Rp29.000/bulan (Rp199.000/tahun) | Kepastian penuh. AI Deteksi 15x/bulan (gpt-5-mini), konsultasi AI 100x/bulan, purging checker 10x/bulan, deep insight. |
+| **Pro** 👑 | Rp49.000/bulan (Rp399.000/tahun) | Semua diurus. AI Deteksi 30x/bulan (GPT-5 penuh), konsultasi AI 300x/bulan, analisis rutinitas, laporan mingguan PDF, akses model baru lebih awal. |
 
 ### Revenue Stream Tambahan
 - **Link belanja** produk skincare di halaman rekomendasi (pasif, semua tier)

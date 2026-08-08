@@ -38,7 +38,7 @@ export default function FAQSection() {
           {[
             {
               q: "Apa bedanya Premium vs Pro?",
-              a: "Premium (Rp29rb/bln) buat kamu yang mau kepastian: AI Deteksi 30x/bulan dengan model GPT-5 terbaru, AI Consult 100x/bulan, dan Purging Checker 10x/bulan. Pro (Rp49rb/bln) buat kamu yang mau AI urus semuanya: AI Deteksi 100x/bulan dengan GPT-5 penuh, AI Consult 300x/bulan, Purging Checker 30x/bulan, analisis rutinitas skincare, dan laporan mingguan export PDF.",
+              a: "Premium (Rp29rb/bln) buat kamu yang mau kepastian: AI Deteksi 15x/bulan dengan model GPT-5 terbaru, AI Consult 100x/bulan, dan Purging Checker 10x/bulan. Pro (Rp49rb/bln) buat kamu yang mau AI urus semuanya: AI Deteksi 30x/bulan dengan GPT-5 penuh, AI Consult 300x/bulan, Purging Checker 30x/bulan, analisis rutinitas skincare, dan laporan mingguan export PDF.",
             },
             {
               q: "Apakah purging checker bisa dipakai gratis?",

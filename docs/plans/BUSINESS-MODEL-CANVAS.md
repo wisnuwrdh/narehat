@@ -67,9 +67,9 @@
 | Stream | Model | Catatan |
 |--------|-------|---------|
 | **Free** | Rp0 — tracker, progress foto, rekomendasi, AI consult 10x/bulan, AI deteksi 2x/bulan | Top of funnel |
-| **Premium Bulanan** | Subscription Rp29.000/bulan (~$1.85) | AI consult 100x, deteksi 30x, purging 10x, deep insight, foto unlimited |
+| **Premium Bulanan** | Subscription Rp29.000/bulan (~$1.85) | AI consult 100x, deteksi 15x, purging 10x, deep insight, foto unlimited |
 | **Premium Tahunan** | Subscription Rp199.000/tahun (~$12.70) | Rp16.583/bulan setara (~43% saving vs bulanan) |
-| **Pro Bulanan** | Subscription Rp49.000/bulan (~$3.10) | Semua Premium + deteksi 100x, routine analyzer/builder, weekly report PDF |
+| **Pro Bulanan** | Subscription Rp49.000/bulan (~$3.10) | Semua Premium + deteksi 30x, routine analyzer/builder, weekly report PDF |
 | **Pro Tahunan** | Subscription Rp399.000/tahun (~$25.40) | Rp33.250/bulan setara (~32% saving vs bulanan) |
 | **Affiliate Shopee/Tokopedia** | Commission per sale | ~3-5% per transaksi, semua tier |
 | **B2B Data Insight** (future) | Anonymized tren kulit ke brand skincare lokal | TBD — perlu skala >1.000 MAU |

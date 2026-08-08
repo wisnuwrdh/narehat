@@ -112,10 +112,10 @@ export default function ScanPage() {
   const purgingRemaining = quota ? Math.max(0, quota.purging.limit - quota.purging.used) : null;
   const detectQuotaHint =
     user.plan === "free"
-      ? "Upgrade ke Premium untuk 30x/bulan."
+      ? "Upgrade ke Premium untuk 15x/bulan."
       : user.plan.includes("pro")
         ? "Kuota direset tiap periode langganan."
-        : "Upgrade ke Pro untuk 100x/bulan.";
+        : "Upgrade ke Pro untuk 30x/bulan.";
 
   const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

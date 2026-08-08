@@ -462,8 +462,8 @@ export default function AIConsultPage() {
                 {isPro
                   ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Kuota direset tiap periode langganan.`
                   : isPremium
-                    ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Pro untuk 300x/bulan + AI Deteksi 100x/bulan.`
-                    : `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Premium untuk 100x/bulan + AI Deteksi 30x/bulan.`}
+                    ? `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Pro untuk 300x/bulan + AI Deteksi 30x/bulan.`
+                    : `Kamu sudah menggunakan ${consultLimit}x AI Consult bulan ini. Upgrade ke Premium untuk 100x/bulan + AI Deteksi 15x/bulan.`}
               </p>
               {!isPro && (
                 <Link

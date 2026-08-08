@@ -12,8 +12,8 @@ export interface PlanQuota {
 
 export const PLAN_LIMITS: Record<PlanBucket, PlanQuota> = {
   free: { detect: 2, consult: 10, purging: 1, routine_analyze: 0, routine_build: 0 },
-  premium: { detect: 30, consult: 100, purging: 10, routine_analyze: 0, routine_build: 0 },
-  pro: { detect: 100, consult: 300, purging: 30, routine_analyze: 30, routine_build: 30 },
+  premium: { detect: 15, consult: 100, purging: 10, routine_analyze: 0, routine_build: 0 },
+  pro: { detect: 30, consult: 300, purging: 30, routine_analyze: 30, routine_build: 30 },
 };
 
 export const DETECT_MODELS: Record<PlanBucket, string> = {

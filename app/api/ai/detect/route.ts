@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     if (detectUsed >= detectLimit) {
       const upgrade =
         bucket === "free"
-          ? "Upgrade ke Premium untuk 30x/bulan."
-          : "Upgrade ke Pro untuk 100x/bulan.";
+          ? "Upgrade ke Premium untuk 15x/bulan."
+          : "Upgrade ke Pro untuk 30x/bulan.";
       return NextResponse.json(
         {
           error: "Batas deteksi bulanan tercapai",

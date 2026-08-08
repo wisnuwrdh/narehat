@@ -33,7 +33,7 @@ const plans = [
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Free",
-      "AI Deteksi 30x/bulan — model GPT-5 terbaru",
+      "AI Deteksi 15x/bulan — model GPT-5 terbaru",
       "AI Consult: 100x/bulan",
       "Purging Checker: 10x/bulan",
       "Deep insight & grafik korelasi",
@@ -51,7 +51,7 @@ const plans = [
     period: { monthly: "/bulan", yearly: "/tahun" },
     features: [
       "Semua fitur Premium",
-      "AI Deteksi 100x/bulan — GPT-5 penuh",
+      "AI Deteksi 30x/bulan — GPT-5 penuh, analisis paling dalam",
       "AI Consult: 300x/bulan",
       "Purging Checker: 30x/bulan",
       "Personalized routine builder",

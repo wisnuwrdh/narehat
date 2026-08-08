@@ -70,14 +70,14 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 
 | Fitur | Free | Premium (Rp29rb/bln · Rp199rb/thn) | Pro (Rp49rb/bln · Rp399rb/thn) |
 |-------|------|-------------------------------------|--------------------------------|
-| **AI Scan** (vision) | 2x/bln | **30x/bln** | **100x/bln** |
+| **AI Scan** (vision) | 2x/bln | **15x/bln** | **30x/bln** |
 | **Model scan** | gpt-4o-mini (dasar) | **gpt-4o — detail per-lesi, confidence, tren** | gpt-4o + **akses model baru lebih awal** |
 | **AI Consult** (teks) | 10x/bln | 100x/bln | 300x/bln |
 | **Purging Checker** | 1x/bln | 10x/bln | 30x/bln |
 | **Fitur non-AI pembeda** | Tracker, progress, rekomendasi | Insight & grafik korelasi | Routine builder, report mingguan + export PDF |
 
 **Logika angka:**
-- 30 scan/bln ≈ 1x/hari; 100 consult ≈ 3x/hari → cukup besar untuk tidak pernah terasa, tapi membatasi worst-case
+- Premium 15 scan/bln ≈ 2-4x/minggu (menutupi ~90th percentile user aktif); Pro 30 scan/bln ≈ 1x/hari → cukup besar untuk tidak pernah terasa, tapi membatasi worst-case
 - 2 scan gratis + 1 purging = **aha-moment terbuka** (kompetitor kasih scan gratis; paywall penuh = konversi mati)
 - Pro +69% harga dibenarkan oleh *delegasi* (routine builder, report) + status akses model baru
 
@@ -104,7 +104,7 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 ## 6. Momen Paywall & Value Reminder
 
 1. **Paywall pertama** → halaman hasil scan pertama (setelah 2 scan gratis habis): tampilkan perbandingan "detail Premium" yang bisa dilihat namun dikunci.
-2. **Limit tercapai** → CTA upsell: "Limit scan bulananmu habis. Premium: 30x/bln + analisis lebih detail."
+2. **Limit tercapai** → CTA upsell: "Limit scan bulananmu habis. Premium: 15x/bln + analisis lebih detail."
 3. **Value reminder bulanan** → ringkasan progres bulanan (scan, trend, konsultasi) yang me-re-anchor nilai: "Bulan ini kulitmu membaik di pipi kiri."
 4. **Report mingguan (Pro)** → re-anchor otomatis; juga jadi alasan ekspor/berbagi.
 5. **Reminder QRIS** → email + banner in-app H-3 sebelum masa berlaku habis; cegah silent churn karena manual renew.
