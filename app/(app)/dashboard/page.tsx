@@ -49,7 +49,7 @@ const quickActions = [
   { href: "/recommendations", icon: "soap", label: "Rekomendasi Produk", tier: "free" as const },
   { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", tier: "premium" as const },
   { href: "/scan", icon: "photo_camera", label: "AI Deteksi", tier: "premium" as const },
-  { href: "/scan?section=purging", icon: "science", label: "Purging Checker", tier: "free" as const },
+  { href: "/scan?section=purging", icon: "science", label: "Purging Checker", tier: "premium" as const },
   { href: "/routine", icon: "auto_awesome", label: "Routine", tier: "pro" as const },
 ];
 
