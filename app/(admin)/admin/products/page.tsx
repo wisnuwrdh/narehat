@@ -20,6 +20,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Semua");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -47,6 +48,17 @@ export default function AdminProductsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, is_active: true }),
       });
+    }
+    fetchProducts();
+  };
+
+  const handleHardDelete = async (id: string, name: string) => {
+    if (!confirm(`Hapus permanen "${name}"? Produk dan gambarnya akan dihapus dan tidak bisa dikembalikan.`)) return;
+    setDeletingId(id);
+    try {
+      await fetch(`/api/admin/products?id=${id}&permanent=true`, { method: "DELETE" });
+    } finally {
+      setDeletingId(null);
     }
     fetchProducts();
   };
@@ -143,13 +155,20 @@ export default function AdminProductsPage() {
                       {p.is_active ? "Aktif" : "Nonaktif"}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
                     <Link
                       href={`/admin/products/${p.id}/edit`}
                       className="text-primary text-xs font-bold hover:underline"
                     >
                       Edit
                     </Link>
+                    <button
+                      onClick={() => handleHardDelete(p.id, p.name)}
+                      disabled={deletingId === p.id}
+                      className="ml-3 text-red-500 text-xs font-bold hover:underline disabled:opacity-50"
+                    >
+                      {deletingId === p.id ? "Menghapus..." : "Hapus"}
+                    </button>
                   </td>
                 </tr>
               ))}

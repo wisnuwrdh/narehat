@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
+import { deletePhoto } from "@/lib/storage/r2";
 
 async function ensureAdmin(userId: string) {
   const supabase = createDBClient();
@@ -108,6 +109,23 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id wajib diisi" }, { status: 400 });
+
+  const permanent = searchParams.get("permanent") === "true";
+
+  if (permanent) {
+    const { data: product } = await supabase
+      .from("recommendations")
+      .select("image_url")
+      .eq("id", id)
+      .maybeSingle();
+    if (!product) return NextResponse.json({ error: "Produk tidak ditemukan" }, { status: 404 });
+
+    const { error } = await supabase.from("recommendations").delete().eq("id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+    if (product.image_url) await deletePhoto(product.image_url).catch(() => {});
+    return NextResponse.json({ message: "Product deleted permanently" });
+  }
 
   const { error } = await supabase.from("recommendations").update({ is_active: false }).eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
