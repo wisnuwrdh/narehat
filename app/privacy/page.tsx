@@ -75,7 +75,7 @@ export default function PrivacyPage() {
                   <tbody>
                     <tr className="border-b border-slate-100">
                       <td className="py-2 pr-4">SumoPod (platform AI)</td>
-                      <td className="py-2 pr-4">Foto kulit & teks untuk analisis AI, dijalankan dengan model OpenAI (GPT-5, GPT-5-mini, GPT-5-nano) &amp; DeepSeek</td>
+                      <td className="py-2 pr-4">Foto kulit & teks untuk analisis AI, diproses dengan model AI pihak ketiga (OpenAI &amp; DeepSeek)</td>
                       <td className="py-2">Indonesia</td>
                     </tr>
                     <tr className="border-b border-slate-100">
