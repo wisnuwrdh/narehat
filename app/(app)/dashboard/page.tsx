@@ -46,7 +46,7 @@ const barColorMap: Record<string, string> = {
 const statusColorMap: Record<string, string> = { emerald: "bg-emerald-400", amber: "bg-amber-400" };
 
 const quickActions = [
-  { href: "/recommendations", icon: "recommend", label: "Rekomendasi", tier: "free" as const },
+  { href: "/recommendations", icon: "shampoo", label: "Rekomendasi Produk", tier: "free" as const },
   { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", tier: "premium" as const },
   { href: "/scan", icon: "photo_camera", label: "AI Deteksi", tier: "premium" as const },
   { href: "/scan?section=purging", icon: "science", label: "Purging Checker", tier: "free" as const },
@@ -466,10 +466,7 @@ export default function DashboardPage() {
                 </p>
               )
             ) : !compareExpanded ? (
-              <button
-                onClick={() => setCompareExpanded(true)}
-                className="w-full flex items-center gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50 hover:bg-white transition-colors text-left"
-              >
+              <div className="flex items-center gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50 text-left">
                 <span className={`material-symbols-outlined text-base ${
                   insights[0].type === "warning" ? "text-amber-500" : insights[0].type === "positive" ? "text-emerald-500" : "text-primary"
                 }`}>
@@ -479,8 +476,7 @@ export default function DashboardPage() {
                   <span className="block text-xs font-bold text-slate-800 truncate w-full">{insights[0].title}</span>
                   <span className="text-[10px] text-muted">{insights.length} perubahan total</span>
                 </span>
-                <span className="material-symbols-outlined text-primary text-sm">expand_more</span>
-              </button>
+              </div>
             ) : (
               <>
                 <div className="space-y-2.5">
