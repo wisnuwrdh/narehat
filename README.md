@@ -1,6 +1,6 @@
 # Narehat — Jurnal Jerawat Cerdas
 
-**Versi:** 0.9.2 (Cloudflare Pages + OpenNext + NextAuth)
+**Versi:** 1.0.0 (Cloudflare Pages + OpenNext + NextAuth)
 **Terakhir diperbarui:** Agustus 2026
 
 ---
@@ -52,7 +52,7 @@ Pertama kali app memberikan insight seperti:
 
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
-| Skin Type Quiz (Onboarding) | 5-step quiz: tipe kulit, kondisi jerawat, kebiasaan, produk yang dipakai, goal | ✅ Done |
+| Skin Type Quiz (Onboarding) | 4-step quiz: tipe kulit, kondisi jerawat, produk yang dipakai, goal | ✅ Done |
 | Tracker Harian | Tidur, minum air, olahraga, tingkat stress, skincare AM/PM — 30 detik isi | ✅ Done |
 | Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
@@ -109,25 +109,14 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 **Step 2 — Kondisi Jerawat Sekarang**
 > "Seberapa parah jerawat kamu saat ini?"
 > Pilihan: Ringan / Sedang / Parah
-> + Upload foto opsional (dijadikan baseline pertama)
 
-**Step 3 — Kebiasaan Sehari-hari**
-> "Pilih kebiasaan yang sering kamu lakukan"
-> ☐ Sering begadang
-> ☐ Jarang minum air
-> ☐ Sering pegang muka
-> ☐ Makan makanan berminyak/manis
-> ☐ Jarang ganti sarung bantal
-> ☐ Stress tinggi
-> ☐ Jarang olahraga
+**Step 3 — Produk yang Dipakai**
+> "Produk apa yang sedang kamu pakai sekarang?"
+> Input manual: Cleanser / Moisturizer / Sunscreen / Treatment
 
-**Step 4 — Produk yang Dipakai**
-> "Skincare apa yang sekarang kamu pakai?"
-> Input manual atau search nama produk
-
-**Step 5 — Goal**
-> "Apa yang paling kamu inginkan?"
-> Pilihan: Jerawat hilang / Bekas jerawat memudar / Kulit lebih cerah / Semua
+**Step 4 — Goal**
+> "Goal kamu apa?"
+> Pilihan: Jerawat hilang / Bekas jerawat memudar / Kulit lebih cerah / Anti-aging / Skin barrier / Semua di atas
 
 ---
 
@@ -158,7 +147,7 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 ### App Pages (Setelah Login)
 ```
 /dashboard        → Overview kondisi kulit + skin score + insight harian
-/tracker          → Input harian (tidur, air, stress, foto; detail toggle untuk exercise, skincare, notes; AI deteksi + purging checker)
+/tracker          → Input harian (tidur, air, stress, foto; section Olahraga/Skincare/Pemicu/Catatan selalu tampil + badge Opsional; AI deteksi + purging checker)
 /progress         → Grafik tren + timeline foto + perbandingan side-by-side + export laporan PDF [PRO]
 /ai-consult       → Chat AI berbasis RAG jurnal dermatologi (10x free, 100x Premium, 300x Pro)
 /routine          → AI analisis rutinitas + builder rutinitas personal [PRO]
@@ -167,6 +156,17 @@ Onboarding adalah proses "kenalan" satu kali saat user pertama kali mendaftar. T
 /subscription     → Pilih plan — Free/Premium/Pro, monthly/yearly toggle, payment via SumoPod
 /profile          → Edit profil — nama, tipe kulit, kondisi jerawat, goal
 ```
+
+### Admin Pages (Role `admin`)
+```
+/admin               → Hub admin — grid menu (Kelola Produk, Kelola User, dll.)
+/admin/products      → Kelola katalog produk (tambah/edit/hapus, soft & hard delete + R2)
+/admin/products/new  → Form tambah produk
+/admin/products/[id]/edit → Form edit produk
+/admin/users         → Kelola user — search/filter plan, detail modal (onboarding, produk, pembayaran), ubah plan manual
+```
+
+> **Zoom Lock:** Semua halaman admin + `/recommendations` di-lock zoom (viewport `user-scalable=no`) untuk UX mobile.
 
 ---
 
@@ -318,12 +318,25 @@ narehat/
 │   │   ├── settings/page.tsx       → /settings
 │   │   ├── subscription/page.tsx   → /subscription
 │   │   ├── profile/page.tsx        → /profile
+│   │   ├── recommendations/layout.tsx  # Zoom lock
 │   │   └── layout.tsx              # Auth guard + bottom nav (mobile) / left sidebar (md+) + UserProvider
+│   ├── (admin)/
+│   │   ├── layout.tsx              # Guard role admin + top bar "← Admin" + zoom lock
+│   │   └── admin/
+│   │       ├── page.tsx            → /admin (hub menu)
+│   │       ├── products/
+│   │       │   ├── page.tsx        → /admin/products
+│   │       │   ├── new/page.tsx    → /admin/products/new
+│   │       │   └── [id]/edit/page.tsx → /admin/products/[id]/edit
+│   │       └── users/page.tsx      → /admin/users (kelola user + ubah plan)
 │   └── api/
 │       ├── auth/
 │       │   ├── [...nextauth]/      # NextAuth handler
 │       │   ├── forgot-password/    # Generate token + kirim email reset
 │       │   └── callback/           # Google OAuth callback
+│       ├── admin/
+│       │   ├── products/           # CRUD produk admin (+ hard delete permanen & R2)
+│       │   └── users/              # List/detail/ubah plan user admin
 │       ├── turnstile/              # Server-side Turnstile verify
 │       ├── tracker/               # CRUD daily_logs
 │       ├── photos/                # CRUD + proxy serve via /api/photos/serve
@@ -341,8 +354,7 @@ narehat/
 │       └── payment/               # SumoPod payment + webhook
 │
 ├── components/landing/            # Landing page sections
-├── components/ui/                 # Base components (Turnstile, Logo, dll)
-├── components/onboarding/         # Step wizard
+├── components/ui/                 # Base components (Turnstile, Logo, ProductAutocomplete, dll)
 ├── contexts/                      # React Context providers (UserContext, ToastContext)
 │
 ├── lib/
@@ -372,7 +384,7 @@ narehat/
 │
 ├── auth.ts                        # NextAuth config (Google + Credentials, JWT)
 ├── middleware.ts                  # Auth guard (NextAuth authorized callback)
-├── supabase/migrations/           # 10 migration files (0000-0009)
+├── supabase/migrations/           # 11 migration files (0001-0017)
 ├── types/                         # TypeScript types
 ├── docs/plans/                    # Threat model, gap analysis, BMC, checklist
 └── public/                        # Static assets
@@ -436,7 +448,7 @@ Jalankan dengan: `npm run ingest`
 - **Future:** Data insight anonim untuk brand skincare lokal (B2B)
 
 ### Payment Gateway
-**SumoPod** — QRIS-based payment, webhook signature + token verification, plan auto-update
+**SumoPod** — QRIS-based payment, webhook signature + token verification, plan auto-update. Integrasi kode siap produksi; masih aktif di **sandbox** — go-live menunggu set env production & daftar webhook final (lihat Fase 5).
 
 ---
 
@@ -496,6 +508,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | Weekly Skin Report | ✅ Done | Aggregate → HTML → print PDF |
 | Auth & Security | ✅ Done | NextAuth.js v5, middleware, Turnstile CAPTCHA, rate limiter, quota enforcement |
 | Payment Integration | ✅ Done | SumoPod QRIS + webhook |
+| Admin Panel | ✅ Done | Hub /admin, kelola produk (soft/hard delete), kelola user + ubah plan |
 | Perf Optimization | ✅ Done | Batched API calls (127→1), UserContext caching |
 | Cloudflare Migration | ✅ Done | Pages + Workers via OpenNext, R2 storage, custom build script, custom domain |
 | Email System | ✅ Done | Resend: forgot password + email verification + Email Routing (hello@/support@/noreply@) |
@@ -592,5 +605,5 @@ User bisa mendownload semua data mereka dari halaman Settings:
 
 ---
 
-*Dokumen ini diperbarui Agustus 2026 — setelah NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover, cancel plan, gate Report PDF ke Pro, dan ingest 91 jurnal ke RAG.*
+*Dokumen ini diperbarui Agustus 2026 — rilis v1.0: NextAuth migration, Turnstile, Email (Resend + Routing), domain cutover, cancel plan, gate Report PDF ke Pro, ingest 91 jurnal ke RAG, admin hub + kelola produk/users, goal anti-aging & barrier, zoom lock.*
 
