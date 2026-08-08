@@ -32,6 +32,22 @@ export const DETECT_DEPTHS: Record<PlanBucket, DetectDepth> = {
 
 export const PURGING_MODEL = "gpt-5-mini";
 
+export interface PurgingConfig {
+  recoCount: number;
+  withProductHistory: boolean;
+  withTimeline: boolean;
+}
+
+export const PURGING_TIERS: Record<PlanBucket, PurgingConfig> = {
+  free: { recoCount: 2, withProductHistory: false, withTimeline: false },
+  premium: { recoCount: 3, withProductHistory: true, withTimeline: false },
+  pro: { recoCount: 4, withProductHistory: true, withTimeline: true },
+};
+
+export function getPurgingConfig(bucket: PlanBucket): PurgingConfig {
+  return PURGING_TIERS[bucket];
+}
+
 export function isPlanActive(plan: string | null | undefined, expiresAt?: string | null): boolean {
   if (!plan || plan === "free") return false;
   if (!expiresAt) return true;

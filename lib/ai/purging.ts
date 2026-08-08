@@ -1,3 +1,14 @@
+export function getPurgingTimeline(type: string): string {
+  switch (type) {
+    case "purging":
+      return "Purging umumnya berlangsung 4-6 minggu dan membaik seiring waktu. Pantau 2 minggu ke depan: jika membaik, produk bekerja normal.";
+    case "breakout":
+      return "Breakout/iritasi muncul di area yang tidak biasa dan bisa menetap. Hentikan produk jika gejala berkepanjangan (lebih dari 2 minggu) dan konsultasikan ke dokter kulit.";
+    default:
+      return "Belum ada reaksi signifikan. Lanjutkan pemakaian dan pantau pekan berikutnya.";
+  }
+}
+
 export async function checkPurging(imageBase64: string, _productName: string): Promise<{
   type: string;
   confidence: number;

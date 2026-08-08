@@ -73,7 +73,7 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 | **AI Scan** (vision) | 2x/bln | **15x/bln** | **30x/bln** |
 | **Model scan** | gpt-5-nano (ringkasan) | **gpt-5-mini — detail: per-lesi, trigger explanation, insights, narasi tren** | gpt-5 penuh — **deep: skor region, top-risk area, tren 3 scan, langkah rutin** |
 | **AI Consult** (teks) | 10x/bln | 100x/bln | 300x/bln |
-| **Purging Checker** | 1x/bln | 10x/bln | 30x/bln |
+| **Purging Checker** | 1x/bln · 2 rekomendasi | 10x/bln · 3 rekomendasi · **riwayat produk** | 30x/bln · 4 rekomendasi · **riwayat + proyeksi durasi** |
 | **Fitur non-AI pembeda** | Tracker, progress, rekomendasi | Insight & grafik korelasi | Routine builder, report mingguan + export PDF |
 
 **Logika angka:**

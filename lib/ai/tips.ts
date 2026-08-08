@@ -134,14 +134,19 @@ ${depth === "deep"
 
 export async function generatePurgingAdvice(
   type: string,
-  productName: string
+  productName: string,
+  options: { recoCount?: number; historyChecks?: number } = {}
 ): Promise<{ description: string; recommendations: string[] } | null> {
+  const recoCount = Math.min(4, Math.max(1, options.recoCount || 2));
+  const historyChecks = options.historyChecks || 0;
+
   const systemPrompt = `Kamu adalah asisten skincare Narehat. Tugasmu: berikan deskripsi dan rekomendasi berdasarkan hasil analisis purging/breakout.
 
 ATURAN:
 - Jangan diagnosis medis
 - Jangan rekomendasi obat/resep
 - Bahasa Indonesia, maksimal 2 kalimat untuk deskripsi
+- Berikan tepat ${recoCount} rekomendasi singkat yang spesifik untuk kondisi ini
 - Return JSON only, no markdown
 
 FORMAT:
@@ -150,10 +155,15 @@ FORMAT:
   "recommendations": ["rekomendasi 1", "rekomendasi 2"]
 }`;
 
-  const userPrompt = `User menggunakan produk "${productName}". Hasil deteksi: ${type}.
-Beri deskripsi singkat dan 2-3 rekomendasi. Return JSON.`;
+  const historyLine =
+    historyChecks > 0
+      ? `\nKonteks: user sudah pernah mengecek produk "${productName}" ${historyChecks} kali sebelumnya. Tunjukkan progres/pola yang terpantau di rekomendasi.`
+      : "";
 
-  const raw = await callSumoPod(systemPrompt, userPrompt);
+  const userPrompt = `User menggunakan produk "${productName}". Hasil deteksi: ${type}.${historyLine}
+Beri deskripsi singkat dan tepat ${recoCount} rekomendasi. Return JSON.`;
+
+  const raw = await callSumoPod(systemPrompt, userPrompt, 400);
   if (!raw) return null;
 
   try {
@@ -162,7 +172,9 @@ Beri deskripsi singkat dan 2-3 rekomendasi. Return JSON.`;
     const result = JSON.parse(jsonMatch[0]);
     return {
       description: result.description || "",
-      recommendations: Array.isArray(result.recommendations) ? result.recommendations : [],
+      recommendations: Array.isArray(result.recommendations)
+        ? result.recommendations.slice(0, recoCount)
+        : [],
     };
   } catch {
     return null;

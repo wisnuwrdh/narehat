@@ -243,11 +243,12 @@ Free menampilkan teaser "Premium" terkunci (soft-gate) + CTA upgrade.
 Disimpan ke skin_photos.ai_analysis (JSONB) — field optional.
 ```
 
-### AI Purging Checker (Pro — GPT-5-mini Vision)
+### AI Purging Checker (GPT-5-mini Vision, tiered)
 ```
 Upload foto + nama produk baru → GPT-5-mini Vision → klasifikasi:
   - Purging (reaksi normal, bertahan 4-6 minggu) vs Breakout (reaksi negatif)
-  - Confidence score + rekomendasi tindakan
+  - Confidence score + rekomendasi tindakan (2x / 3x / 4x per tier)
+  - Premium+: riwayat produk ("sudah cek Nx"); Pro: proyeksi durasi
 ```
 
 ### AI Routine Analyzer (Pro — SumoPod LLM)

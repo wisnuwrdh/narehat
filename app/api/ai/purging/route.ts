@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createDBClient } from "@/lib/supabase/server";
-import { checkPurging } from "@/lib/ai/purging";
+import { checkPurging, getPurgingTimeline } from "@/lib/ai/purging";
 import { generatePurgingAdvice } from "@/lib/ai/tips";
 import { uploadPhotoWithThumb } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
-import { countMonthlyUsage, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
+import { countMonthlyUsage, getPlanBucket, getPlanQuota, getPurgingConfig, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     if (!profile) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     const bucket = getPlanBucket(profile.plan, profile.plan_expires_at);
+    const purgingConfig = getPurgingConfig(bucket);
     const purgingLimit = getPlanQuota(bucket).purging;
     const purgingUsed = await countMonthlyUsage(supabase, userId, "purging", getUsageSince(bucket, profile.plan_started_at));
 
@@ -117,10 +118,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate description & recommendations (text-only, DeepSeek — murah)
-    const advice = await generatePurgingAdvice(result.type, productName.trim()).catch(() => null);
+    const historyChecks = purgingConfig.withProductHistory ? await countProductChecks(supabase, userId, productName.trim()) : 0;
+    const advice = await generatePurgingAdvice(result.type, productName.trim(), {
+      recoCount: purgingConfig.recoCount,
+      historyChecks,
+    }).catch(() => null);
 
     const description = advice?.description || "";
     const recommendations = advice?.recommendations || [];
+    const timeline = purgingConfig.withTimeline ? getPurgingTimeline(result.type) : "";
 
     const { data: photo, error: insertErr } = await supabase
       .from("skin_photos")
@@ -136,6 +142,8 @@ export async function POST(request: NextRequest) {
           description,
           recommendations,
           product_name: productName,
+          history_checks: historyChecks,
+          timeline,
           analyzed_at: new Date().toISOString(),
         },
       })
@@ -156,6 +164,8 @@ export async function POST(request: NextRequest) {
       description,
       recommendations,
       product_name: productName,
+      history_checks: historyChecks,
+      timeline,
       disclaimer: "Hasil ini bersifat informatif, bukan diagnosis medis. Jika kondisi memburuk, segera hentikan produk dan konsultasikan ke dokter kulit.",
     });
   } catch (err) {
@@ -165,4 +175,25 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+async function countProductChecks(
+  supabase: ReturnType<typeof createDBClient>,
+  userId: string,
+  productName: string
+): Promise<number> {
+  const { data } = await supabase
+    .from("skin_photos")
+    .select("ai_analysis")
+    .eq("user_id", userId)
+    .eq("analysis_type", "purging")
+    .order("date", { ascending: false })
+    .limit(30);
+
+  const normalized = productName.toLowerCase();
+  const matches = (data || []).filter((row) => {
+    const name = (row.ai_analysis as { product_name?: string } | null)?.product_name;
+    return name ? name.trim().toLowerCase() === normalized : false;
+  });
+  return matches.length;
 }

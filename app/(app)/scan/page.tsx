@@ -92,6 +92,8 @@ export default function ScanPage() {
     confidence: number;
     description: string;
     recommendations: string[];
+    history_checks?: number;
+    timeline?: string;
     disclaimer: string;
   } | null>(null);
   const [purgingLoading, setPurgingLoading] = useState(false);
@@ -586,6 +588,20 @@ export default function ScanPage() {
                   <span className="ml-auto text-[10px] text-muted">{Math.round(purgingResult.confidence * 100)}% confidence</span>
                 </div>
                 <p className="text-sm text-slate-700">{purgingResult.description}</p>
+                {purgingResult.history_checks !== undefined && purgingResult.history_checks > 0 && (
+                  <div className="mt-3 p-2.5 bg-amber-50 border border-amber-100 rounded-xl">
+                    <span className="text-[10px] font-bold text-amber-700 block mb-1">Riwayat produk</span>
+                    <p className="text-[11px] text-slate-600">
+                      Kamu sudah mengecek “{purgingProduct}” {purgingResult.history_checks}x sebelumnya.
+                    </p>
+                  </div>
+                )}
+                {purgingResult.timeline && (
+                  <div className="mt-3 p-2.5 bg-violet-50 border border-violet-100 rounded-xl">
+                    <span className="text-[10px] font-bold text-violet-700 block mb-1">Proyeksi durasi</span>
+                    <p className="text-[11px] text-slate-600">{purgingResult.timeline}</p>
+                  </div>
+                )}
               </div>
               {purgingResult.recommendations.length > 0 && (
                 <div className="p-3 bg-slate-50 rounded-xl">
@@ -598,6 +614,22 @@ export default function ScanPage() {
                 </div>
               )}
               <p className="text-[10px] text-muted italic">{purgingResult.disclaimer}</p>
+              {user.plan === "free" && (
+                <div className="p-3 bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 rounded-xl">
+                  <span className="text-[10px] font-bold text-amber-800 block mb-2">
+                    <span className="material-symbols-outlined text-[12px] align-text-bottom">lock</span> Premium memantau riwayat produk
+                  </span>
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    Pantau produk berulang, lihat pola purging dari waktu ke waktu, & proyeksi durasi pemulihan.
+                  </p>
+                  <Link
+                    href="/subscription"
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+                  >
+                    Lihat Premium <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                  </Link>
+                </div>
+              )}
             </div>
           )}
         </div>
