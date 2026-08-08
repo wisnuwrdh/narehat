@@ -381,7 +381,7 @@ export default function TrackerPage() {
               <h3 className="font-bold text-slate-800">Rutinitas Skincare</h3>
               <p className="text-xs text-muted">Centang yang sudah kamu lakukan</p>
             </div>
-            <span className="ml-auto text-[10px] font-semibold text-muted-light border border-border-light rounded-full px-2.5 py-1">Opsional</span>
+            <span className="ml-auto text-[10px] font-semibold text-violet-500 border border-violet-200 rounded-full px-2.5 py-1">Pengaruh tinggi</span>
           </div>
           <div className="space-y-3">
             <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">

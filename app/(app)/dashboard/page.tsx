@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useUser } from "@/contexts/UserContext";
 import { thumbUrlFor } from "@/lib/storage/thumb-url";
+import { computeSkinScore } from "@/lib/insights/skin-score";
 
 interface DashboardData {
   userName: string;
@@ -22,18 +23,6 @@ interface DashboardData {
   skinScore: number;
   skinScoreDelta: number;
   hasLogs: boolean;
-}
-
-function computeSkinScore(log: DashboardData["dailyLog"]): number {
-  if (!log) return 0;
-  let score = 50;
-  score += Math.min(log.sleep_hours / 8, 1) * 15;
-  score += Math.min(log.water_ml / 2500, 1) * 10;
-  score += Math.min(log.exercise_minutes / 30, 1) * 10;
-  score += (1 - (log.stress_level - 1) / 4) * 10;
-  if (log.skincare_morning) score += 7;
-  if (log.skincare_evening) score += 8;
-  return Math.min(100, Math.round(score));
 }
 
 const getScoreLabel = (s: number) => {
@@ -81,24 +70,32 @@ function computeStreak(logs: { date: string }[]): number {
   return streak;
 }
 
-function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_level: number; exercise_minutes: number; skincare_morning: boolean; skincare_evening: boolean; date: string }[]): DashboardData["insights"] {
+function generateInsights(logs: { sleep_hours: number; water_ml: number; stress_level: number; exercise_minutes: number; skincare_morning: boolean; skincare_evening: boolean; junk_food: boolean; touched_face: boolean; date: string }[]): DashboardData["insights"] {
   if (logs.length < 3) return [];
   const insights: DashboardData["insights"] = [];
   const avgSleep = logs.reduce((s, l) => s + l.sleep_hours, 0) / logs.length;
   const avgWater = logs.reduce((s, l) => s + l.water_ml, 0) / logs.length;
   const avgStress = logs.reduce((s, l) => s + l.stress_level, 0) / logs.length;
   const skincareDays = logs.filter(l => l.skincare_morning && l.skincare_evening).length;
+  const junkDays = logs.filter(l => l.junk_food).length;
+  const touchDays = logs.filter(l => l.touched_face).length;
 
+  if (avgStress > 3) {
+    insights.push({ title: "Tingkat stress cukup tinggi pekan ini", description: "Stres adalah salah satu faktor dengan bukti terkuat untuk jerawat. Coba teknik relaksasi 5 menit sebelum tidur.", type: "warning" });
+  }
+  if (junkDays >= 4) {
+    insights.push({ title: "Sering makan junk food pekan ini", description: "Pola makan tinggi gula/junk food termasuk bukti terkuat faktor makanan untuk jerawat. Coba kurangi di pekan ini.", type: "warning" });
+  }
+  if (touchDays >= 4) {
+    insights.push({ title: "Sering menyentuh wajah", description: "Sentuhan tangan memindahkan bakteri ke wajah. Bukti spesifiknya belum kuat, tapi mudah dicoba dikurangi.", type: "warning" });
+  }
   if (avgSleep < 6) {
-    insights.push({ title: "Tidur kurang dari 6 jam rata-rata pekan ini", description: "Kurang tidur memicu hormon kortisol yang bisa memperparah jerawat. Targetkan 7-8 jam mulai malam ini.", type: "warning" });
+    insights.push({ title: "Tidur kurang dari 6 jam rata-rata pekan ini", description: "Tidur cukup mendukung regenerasi kulit. Kaitannya dengan jerawat bervariasi antar studi, tapi 7-8 jam tetap baik untuk pemulihan.", type: "warning" });
   } else if (avgSleep >= 7) {
-    insights.push({ title: "Kualitas tidur bagus pekan ini!", description: "Tidur cukup membantu regenerasi sel kulit dan mengurangi inflamasi jerawat. Pertahankan!", type: "positive" });
+    insights.push({ title: "Kualitas tidur bagus pekan ini!", description: "Tidur cukup membantu regenerasi sel kulit dan mendukung pemulihan. Pertahankan!", type: "positive" });
   }
   if (avgWater < 1500) {
-    insights.push({ title: "Hidrasi masih di bawah target", description: "Minum minimal 2L/hari membantu kulit tetap lembap dan mendukung proses penyembuhan jerawat.", type: "warning" });
-  }
-  if (avgStress > 3) {
-    insights.push({ title: "Tingkat stress cukup tinggi pekan ini", description: "Stress memicu jerawat hormonal. Coba teknik relaksasi 5 menit sebelum tidur.", type: "warning" });
+    insights.push({ title: "Hidrasi masih di bawah target", description: "Minum cukup air membantu kulit tetap lembap. Efeknya terhadap jerawat belum banyak dibuktikan, tapi baik untuk kesehatan kulit.", type: "warning" });
   }
   if (skincareDays >= 5) {
     insights.push({ title: "Rutinitas skincare konsisten!", description: "Kamu rutin melakukan skincare pagi & malam. Konsistensi ini kunci progress kulit yang baik.", type: "positive" });

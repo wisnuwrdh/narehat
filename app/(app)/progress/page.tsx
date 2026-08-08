@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { DailyLog } from "@/types";
 import { analyzeCorrelations } from "@/lib/insights/correlation";
+import { computeSkinScore } from "@/lib/insights/skin-score";
 import Link from "next/link";
 import { useUser } from "@/contexts/UserContext";
 import { thumbUrlFor } from "@/lib/storage/thumb-url";
@@ -37,17 +38,6 @@ interface PhotoWithAnalysis {
 interface DiffItem {
   type: "improved" | "worsened" | "info";
   text: string;
-}
-
-function computeSkinScore(log: Record<string, number>) {
-  let score = 50;
-  score += Math.min((log.sleep_hours || 0) / 8, 1) * 15;
-  score += Math.min((log.water_ml || 0) / 2500, 1) * 10;
-  score += Math.min((log.exercise_minutes || 0) / 30, 1) * 10;
-  score += (1 - ((log.stress_level || 5) - 1) / 4) * 10;
-  if (log.skincare_morning) score += 7;
-  if (log.skincare_evening) score += 8;
-  return Math.min(100, Math.round(score));
 }
 
 function formatDateLabel(dateStr: string, range: Range): string {
@@ -271,7 +261,7 @@ export default function ProgressPage() {
   const [rightData, setRightData] = useState<PhotoWithAnalysis | null>(null);
   const [chartAnimated, setChartAnimated] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
-  const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number }[]>([]);
+  const [correlations, setCorrelations] = useState<{ label: string; points: string; color: string; pct: number; description: string }[]>([]);
   const [insightItems, setInsightItems] = useState<{ title: string; description: string; type: string }[]>([]);
   const [pickerSide, setPickerSide] = useState<"left" | "right" | null>(null);
   const [filterType, setFilterType] = useState<FilterType>("all");
@@ -295,10 +285,10 @@ export default function ProgressPage() {
       try {
         const res = await fetch(`/api/tracker?dates=${dates.join(",")}`);
         const j = await res.json();
-        const logs = (j.logs || []) as Record<string, unknown>[];
-        const logsByDate: Record<string, Record<string, number>> = {};
+        const logs = (j.logs || []) as DailyLog[];
+        const logsByDate: Record<string, DailyLog> = {};
         for (const log of logs) {
-          logsByDate[log.date as string] = log as unknown as Record<string, number>;
+          logsByDate[log.date as string] = log;
         }
 
         const labels: string[] = [];
@@ -312,12 +302,13 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, "30": { labels, scores } }));
-        const corr = analyzeCorrelations(logs as unknown as DailyLog[], scores);
+        const corr = analyzeCorrelations(logs);
         setCorrelations(corr.map((r) => ({
           label: r.factor,
           points: `${Math.round(r.correlation * 100)}%`,
           color: r.correlation < 0 ? "red" : "green",
           pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
+          description: r.description,
         })));
       } catch {}
 
@@ -343,10 +334,10 @@ export default function ProgressPage() {
       try {
         const res = await fetch(`/api/tracker?dates=${dates.join(",")}`);
         const j = await res.json();
-        const logs = (j.logs || []) as Record<string, unknown>[];
-        const logsByDate: Record<string, Record<string, number>> = {};
+        const logs = (j.logs || []) as DailyLog[];
+        const logsByDate: Record<string, DailyLog> = {};
         for (const log of logs) {
-          logsByDate[log.date as string] = log as unknown as Record<string, number>;
+          logsByDate[log.date as string] = log;
         }
 
         const labels: string[] = [];
@@ -360,12 +351,13 @@ export default function ProgressPage() {
         }
 
         setChartData((prev) => ({ ...prev, [range]: { labels, scores } }));
-        const corr = analyzeCorrelations(logs as unknown as DailyLog[], scores);
+        const corr = analyzeCorrelations(logs);
         setCorrelations(corr.map((r) => ({
           label: r.factor,
           points: `${Math.round(r.correlation * 100)}%`,
           color: r.correlation < 0 ? "red" : "green",
           pct: Math.min(100, Math.abs(Math.round(r.correlation * 100))),
+          description: r.description,
         })));
       } catch {}
     }
@@ -699,9 +691,10 @@ ${report.insights.map((i: { title: string; description: string; type: string }) 
                     style={{ width: barsAnimated ? `${c.pct}%` : "0%" }}
                   />
                 </div>
+                <p className="text-[10px] text-muted mt-1">{c.description}</p>
               </div>
             )) : (
-              <p className="text-xs text-muted text-center py-2">Korelasi akan muncul setelah kamu rutin tracking selama {range} hari.</p>
+              <p className="text-xs text-muted text-center py-2">Korelasi akan muncul setelah kamu rutin tracking minimal seminggu.</p>
             )}
           </div>
         </div>
