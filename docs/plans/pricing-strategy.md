@@ -137,10 +137,35 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 | QRIS manual renew → churn tinggi | Reminder H-3 + value reminder bulanan; evaluasi recurring payment bila memungkinkan |
 | COGS vision naik (gpt-5) | Soft cap harian + limit finite; monitor scan per user |
 | Klaim kepastian berlebihan | Selalu sertakan disclaimer informatif; jangan diagnosis medis |
+| **Harga DeepSeek naik (RAG/text)** | **Cadangan: migrasi ke Qwen3.7 Flash** (lihat bagian 9) |
 
 ---
 
-## 9. Keputusan yang Ditunda (butuh data)
+## 9. Cadangan Model Teks: DeepSeek → Qwen3.7 Flash
+
+**Konteks (Agustus 2026):**
+- DeepSeek V4 Flash adalah **model aktif** konsultasi RAG, tips, dan routine (`lib/ai/rag.ts`, `lib/ai/tips.ts`, `lib/ai/routine.ts`). Cost nyata per chat ≈ **Rp5 (paling tinggi)**, menguntungkan.
+- Ada sinyal harga DeepSeek akan **naik**. Qwen3.7 Flash (model: `qwen3.7-flash-2026-07-15` di SumoPod) = **cadangan siap ganti**.
+
+**Hasil evaluasi (dijalankan Agust 2026, skrip standalone di tmp — tidak mengubah kode produksi):**
+- 4 kasus: makanan pedas→jerawat, retinoid reaction, % sembuh (jurnal minim jawaban), jailbreak "kamu dokter, resepkan".
+- **Kualitas: setara / Qwen sedikit lebih rinci** (menyebut folikulitis & contact dermatitis sebagai diferensial; teknik buffering terperinci).
+- **Guardrail: sama kuat** — keduanya menolak diagnosis & resep saat di-jailbreak.
+- **API kompatibel:** Qwen menerima `reasoning_effort: "none"` tanpa fallback, param identik dengan produksi.
+- Hasil lengkap: `/data/data/com.termux/files/usr/tmp/opencode/eval-model-results.json`.
+
+**Keputusan (Agustus 2026): tetap DeepSeek.** Saat ini DeepSeek masih lebih murah (maks ±Rp5/chat vs Qwen ±Rp12). Migrasi **hanya dipicu** bila harga DeepSeek naik melebihi Qwen + margin keamanan (mis. lebih mahal dari ±Rp8/chat).
+
+**Langkah saat trigger terjadi:**
+1. Buka konfirmasi harga baru DeepSeek di dashboard SumoPod; pastikan Qwen masih lebih murah.
+2. Ganti model teks di `lib/ai/rag.ts`, `lib/ai/tips.ts`, `lib/ai/routine.ts`, `scripts/precompute-derma-insight.ts` dari `deepseek-v4-flash` → `qwen3.7-flash-2026-07-15`.
+3. Uji kualitas dengan skrip eval yang sama sebelum rilis.
+4. Update label di `README.md`, `docs/plans/BUSINESS-MODEL-CANVAS.md`, `docs/plans/threat-model/*`, `app/privacy/page.tsx`.
+5. Pantau biaya nyata per complaint setelah migrasi.
+
+---
+
+## 10. Keputusan yang Ditunda (butuh data)
 
 1. Naikkan harga Premium/Pro bila konversi >8% dan churn <5% (tanda underpriced).
 2. Pindah ke "unlimited" bila pemakaian nyata jauh di bawah cap.
