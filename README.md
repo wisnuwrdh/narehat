@@ -57,7 +57,7 @@ Pertama kali app memberikan insight seperti:
 | Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 10x/bulan | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
-| AI Deteksi Jerawat — 2x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-nano) | ✅ Done |
+| AI Deteksi Jerawat — 2x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-nano) — ringkasan | ✅ Done |
 | Purging Checker — 1x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 
 ### ⭐ Premium — Rp29.000/bulan (Rp199.000/tahun)
@@ -66,7 +66,7 @@ Pertama kali app memberikan insight seperti:
 |-------|-----------|--------|
 | Semua fitur Free | — | ✅ |
 | AI Consult — 100x/bulan | Chat dengan AI RAG jurnal dermatologi 24/7 | ✅ Done |
-| AI Deteksi Jerawat — 15x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-mini) | ✅ Done |
+| AI Deteksi Jerawat — 15x/bulan | Analisis detail (gpt-5-mini): per-jenis lesi, "kenapa muncul?", insight + narasi tren | ✅ Done |
 | Purging Checker — 10x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 | Deep Insight & Grafik | Korelasi habit vs skin condition, trend 30/90 hari | ✅ Done |
 | Progress Foto Unlimited | Upload tiap hari, export timeline | ✅ Done |
@@ -76,7 +76,7 @@ Pertama kali app memberikan insight seperti:
 | Fitur | Deskripsi | Status |
 |-------|-----------|--------|
 | Semua fitur Premium | — | — |
-| AI Deteksi Jerawat — 30x/bulan | Analisis paling mendalam dengan GPT-5 penuh | ✅ Done |
+| AI Deteksi Jerawat — 30x/bulan | Analisis mendalam (GPT-5 full): skor per-area wajah, prioritas risiko, tren 3 scan, langkah rutinitas | ✅ Done |
 | AI Analisis Rutinitas Skincare | Upload produk yang dipakai → AI deteksi konflik ingredients, over-exfoliation, kesalahan urutan (SumoPod LLM) | ✅ Done |
 | Personalized Routine Builder | AI generate rutinitas pagi+malam, produk spesifik, budget filter, link belanja | ✅ Done |
 | Weekly Skin Report | Auto-generate laporan 7/30/90 hari: skin score, foto banding, trigger, rekomendasi → export HTML print PDF (gate ke Pro di UI + API) | ✅ Done |
@@ -229,14 +229,18 @@ User Query → SumoPod Embedding (text-embedding-3-small, 384 dim)
     → Jawaban terstruktur + sitasi jurnal + disclaimer
 ```
 
-### AI Deteksi Jerawat (Premium — GPT-5-mini Vision)
+### AI Deteksi Jerawat (Tiered — depth per plan)
 ```
-Upload foto → GPT-5-mini Vision API → analisis:
-  - Jenis jerawat (papule, pustule, nodule, cystic, comedonal)
-  - Severity (mild / moderate / informative, no medical claim)
-  - Area wajah
-  - Estimasi faktor pemicu
-  - Disimpan ke skin_photos.ai_analysis (JSONB)
+Output dibedakan per tier (model + kedalaman analisis):
+
+Free  (gpt-5-nano)  → Ringkasan: jenis, severity, area, pemicu, 2 tips, chip tren
+Premium (gpt-5-mini) → Detail: + per-jenis lesi (count+desc), kenapa ini muncul,
+                        insight/narasi, 4 tips, narasi tren (deepseek)
+Pro   (gpt-5)       → Deep: + skor region wajah, top-risk area, tren 3 scan,
+                        langkah rutin 3 langkah, 6 tips
+
+Free menampilkan teaser "Premium" terkunci (soft-gate) + CTA upgrade.
+Disimpan ke skin_photos.ai_analysis (JSONB) — field optional.
 ```
 
 ### AI Purging Checker (Pro — GPT-5-mini Vision)

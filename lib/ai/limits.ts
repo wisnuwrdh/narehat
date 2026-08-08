@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type PlanBucket = "free" | "premium" | "pro";
 
+export type DetectDepth = "basic" | "detail" | "deep";
+
 export interface PlanQuota {
   detect: number;
   consult: number;
@@ -20,6 +22,12 @@ export const DETECT_MODELS: Record<PlanBucket, string> = {
   free: "gpt-5-nano",
   premium: "gpt-5-mini",
   pro: "gpt-5",
+};
+
+export const DETECT_DEPTHS: Record<PlanBucket, DetectDepth> = {
+  free: "basic",
+  premium: "detail",
+  pro: "deep",
 };
 
 export const PURGING_MODEL = "gpt-5-mini";
@@ -46,6 +54,10 @@ export function getPlanQuota(bucket: PlanBucket): PlanQuota {
 
 export function getDetectModel(bucket: PlanBucket): string {
   return DETECT_MODELS[bucket];
+}
+
+export function getDetectDepth(bucket: PlanBucket): DetectDepth {
+  return DETECT_DEPTHS[bucket];
 }
 
 export function firstDayOfMonth(): string {

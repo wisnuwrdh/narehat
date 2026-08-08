@@ -62,13 +62,22 @@ export default function ScanPage() {
 
   const [detecting, setDetecting] = useState(false);
   const [detectResult, setDetectResult] = useState<{
+    depth?: "basic" | "detail" | "deep";
     typesDisplay: string[];
     severityDisplay: string;
     confidence: number;
     location: string;
     triggers: string[];
     tips: string[];
+    narrative?: string;
+    trend_note?: string;
+    routine_hints?: string[];
     trend: string | null;
+    trend_over_three?: string | null;
+    per_lesion?: { type: string; count: number; description: string }[];
+    trigger_explanation?: string;
+    region_scores?: { region: string; score: number; note: string }[];
+    top_risks?: { area: string; reason: string }[];
     disclaimer: string;
     is_clean_skin?: boolean;
   } | null>(null);
@@ -369,6 +378,61 @@ export default function ScanPage() {
                 <span className="text-xs font-bold text-slate-800">{detectResult.triggers.join(", ") || "-"}</span>
               </div>
             </div>
+            {detectResult.narrative && (
+              <div className="p-3 bg-violet-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-violet-700 block mb-1">
+                  <span className="material-symbols-outlined text-[12px] align-text-bottom">auto_awesome</span> Insight
+                </span>
+                <p className="text-[11px] text-slate-700">{detectResult.narrative}</p>
+              </div>
+            )}
+            {detectResult.trigger_explanation && (
+              <div className="p-3 bg-slate-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-slate-700 block mb-1">Kenapa ini muncul?</span>
+                <p className="text-[11px] text-slate-600">{detectResult.trigger_explanation}</p>
+              </div>
+            )}
+            {detectResult.per_lesion && detectResult.per_lesion.length > 0 && (
+              <div className="p-3 bg-indigo-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-indigo-700 block mb-2">Detail per jenis</span>
+                {detectResult.per_lesion.map((l, i) => (
+                  <p key={i} className="text-[11px] text-slate-700 flex items-start gap-1 mb-1 last:mb-0">
+                    <span className="text-indigo-500 font-bold shrink-0">•</span>
+                    <span><b>{l.count}x {l.type}</b> — {l.description}</span>
+                  </p>
+                ))}
+              </div>
+            )}
+            {detectResult.region_scores && detectResult.region_scores.length > 0 && (
+              <div className="p-3 bg-emerald-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-emerald-700 block mb-2">Skor area wajah</span>
+                <div className="space-y-1.5">
+                  {detectResult.region_scores.map((r, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-[11px] text-slate-700 w-16 shrink-0 capitalize">{r.region}</span>
+                      <div className="flex-1 h-1.5 bg-white rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${r.score > 0.6 ? "bg-red-400" : r.score > 0.3 ? "bg-amber-400" : "bg-emerald-400"}`}
+                          style={{ width: `${Math.min(100, Math.round(r.score * 100))}%` }}
+                        />
+                      </div>
+                      {r.note && <span className="text-[10px] text-muted ml-1 truncate">{r.note}</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {detectResult.top_risks && detectResult.top_risks.length > 0 && (
+              <div className="p-3 bg-red-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-red-600 block mb-2">Area yang perlu diperhatikan</span>
+                {detectResult.top_risks.map((t, i) => (
+                  <p key={i} className="text-[11px] text-slate-700 flex items-start gap-1 mb-1 last:mb-0">
+                    <span className="text-red-400 font-bold shrink-0">•</span>
+                    <span className="capitalize">{t.area}</span>: {t.reason}
+                  </p>
+                ))}
+              </div>
+            )}
             {detectResult.tips.length > 0 && (
               <div className="p-3 bg-sky-50 rounded-xl mb-3">
                 <span className="text-[10px] font-bold text-sky-700 block mb-2">
@@ -381,7 +445,41 @@ export default function ScanPage() {
                 ))}
               </div>
             )}
+            {detectResult.routine_hints && detectResult.routine_hints.length > 0 && (
+              <div className="p-3 bg-cyan-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-cyan-700 block mb-2">
+                  <span className="material-symbols-outlined text-[12px] align-text-bottom">spa</span> Langkah yang Bisa Dicoba
+                </span>
+                {detectResult.routine_hints.map((h, i) => (
+                  <p key={i} className="text-[11px] text-slate-700 flex items-start gap-1 mb-1 last:mb-0">
+                    <span className="text-cyan-500 font-bold shrink-0">{i + 1}.</span> {h}
+                  </p>
+                ))}
+              </div>
+            )}
+            {detectResult.trend_over_three && (
+              <div className="p-3 bg-violet-50 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-violet-700 block mb-1">Tren 3 scan</span>
+                <p className="text-[11px] text-slate-700">{detectResult.trend_over_three}</p>
+              </div>
+            )}
             <p className="text-[10px] text-muted italic mb-3">{detectResult.disclaimer}</p>
+            {detectResult.depth === "basic" && (
+              <div className="p-3 bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 rounded-xl mb-3">
+                <span className="text-[10px] font-bold text-slate-700 block mb-2">
+                  <span className="material-symbols-outlined text-[12px] align-text-bottom">lock</span> Premium dapat analisis lebih dalam
+                </span>
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Analisis per-jenis terperinci, “kenapa ini muncul?”, tren & skor area wajah.
+                </p>
+                <Link
+                  href="/subscription"
+                  className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+                >
+                  Lihat Premium <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                </Link>
+              </div>
+            )}
             <div className="flex gap-2">
               <button onClick={handleDetect} disabled={detecting} className="btn-press flex-1 py-2 bg-primary/10 text-primary text-xs font-bold rounded-xl hover:bg-primary/20 transition-colors">
                 Scan Ulang

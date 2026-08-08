@@ -50,14 +50,32 @@ async function callSumoPod(
   }
 }
 
-export async function generateSkinTips(analysis: {
-  types: string[];
-  severity: string;
-  location: string;
-}): Promise<string[]> {
-  const hasAcne = analysis.types.length > 0;
+export interface SkinTipsResult {
+  tips: string[];
+  narrative?: string;
+  trendNote?: string;
+  routineHints?: string[];
+}
 
-  const systemPrompt = `Kamu adalah asisten skincare Narehat. Tugasmu: berikan 2-3 tips singkat berdasarkan hasil analisis kulit.
+const TIP_COUNT: Record<"basic" | "detail" | "deep", number> = {
+  basic: 2,
+  detail: 4,
+  deep: 6,
+};
+
+export async function generateSkinTips(
+  analysis: {
+    types: string[];
+    severity: string;
+    location: string;
+  },
+  depth: "basic" | "detail" | "deep" = "basic",
+  trendDirection?: string | null
+): Promise<SkinTipsResult> {
+  const hasAcne = analysis.types.length > 0;
+  const count = TIP_COUNT[depth];
+
+  const systemPrompt = `Kamu adalah asisten skincare Narehat. Tugasmu: memberikan tips skincare singkat berdasarkan hasil analisis kulit${depth === "detail" || depth === "deep" ? ", narasi ringkas tren kulit, dan rekomendasi rutinitas" : ""}.
 
 ATURAN:
 - Jangan diagnosis medis
@@ -65,30 +83,52 @@ ATURAN:
 - Jangan saran yang membahayakan
 - Tips harus spesifik sesuai kondisi, bukan template umum
 - Bahasa Indonesia, santai tapi informatif
-- Return JSON array of strings saja, tanpa markdown
+- Return JSON only, tanpa markdown
 
 FORMAT:
-["tips 1", "tips 2", "tips 3"]`;
+${depth === "deep"
+  ? `{
+  "tips": ["tips 1", "tips 2", "tips 3"],
+  "narrative": "1-2 kalimat narasi hasil analisis untuk user",
+  "trend_note": "1-2 kalimat penjelasan arah perubahan kulit dibanding scan sebelumnya (jika ada)",
+  "routine_hints": ["langkah 1", "langkah 2", "langkah 3"]
+}`
+  : depth === "detail"
+    ? `{
+  "tips": ["tips 1", "tips 2", "tips 3", "tips 4"],
+  "narrative": "1 kalimat narasi hasil analisis",
+  "trend_note": "1 kalimat penjelasan tren (jika ada)"
+}`
+    : `{
+  "tips": ["tips 1", "tips 2"]
+}`}`;
 
   const kondisi = hasAcne
     ? `Jenis: ${analysis.types.join(", ")}. Tingkat: ${analysis.severity}. Lokasi: ${analysis.location || "wajah"}.`
     : "Kulit bersih, tidak terdeteksi jerawat.";
 
-  const userPrompt = `Hasil analisis kulit: ${kondisi}
-Beri 2-3 tips singkat yang spesifik untuk kondisi ini. Return JSON array.`;
+  const trendLine = trendDirection
+    ? `\nScan sebelumnya: ${trendDirection === "membaik" ? "membaik" : "memburuk"} dibanding scan terakhir.`
+    : "";
+
+  const userPrompt = `Hasil analisis kulit: ${kondisi}${trendLine}\nBeri ${count} tips singkat yang spesifik untuk kondisi ini. Return JSON yang sesuai format.`;
 
   const raw = await callSumoPod(systemPrompt, userPrompt);
-  if (!raw) return [];
+  if (!raw) return { tips: [], narrative: "", trendNote: "", routineHints: [] };
 
   try {
-    const jsonMatch = raw.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [];
-    const parsed = JSON.parse(jsonMatch[0]);
-    if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
-    return [];
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return { tips: [], narrative: "", trendNote: "", routineHints: [] };
+    const result = JSON.parse(jsonMatch[0]);
+    return {
+      tips: Array.isArray(result.tips) ? result.tips.map(String).filter(Boolean) : [],
+      narrative: typeof result.narrative === "string" ? result.narrative : "",
+      trendNote: typeof result.trend_note === "string" ? result.trend_note : "",
+      routineHints: Array.isArray(result.routine_hints) ? result.routine_hints.map(String).filter(Boolean) : [],
+    };
   } catch {
     console.error("SumoPod tips parse failed, raw:", raw);
-    return [];
+    return { tips: [], narrative: "", trendNote: "", routineHints: [] };
   }
 }
 

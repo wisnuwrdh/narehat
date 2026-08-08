@@ -5,7 +5,7 @@ import { detectAcne } from "@/lib/ai/vision";
 import { generateSkinTips } from "@/lib/ai/tips";
 import { uploadPhotoWithThumb } from "@/lib/storage/r2";
 import { arrayBufferToBase64 } from "@/lib/utils/binary";
-import { countMonthlyUsage, getDetectModel, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
+import { countMonthlyUsage, getDetectDepth, getDetectModel, getPlanBucket, getPlanQuota, getUsageSince, recordUsage } from "@/lib/ai/limits";
 
 export async function POST(request: NextRequest) {
   try {
@@ -94,8 +94,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. AI analysis
+    const depth = getDetectDepth(bucket);
     const model = getDetectModel(bucket);
-    const result = await detectAcne(imageBase64, model).catch(() => null);
+    const result = await detectAcne(imageBase64, model, depth).catch(() => null);
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -113,12 +114,75 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Gagal menganalisis foto. Coba lagi nanti." }, { status: 500 });
     }
 
+    const isCleanSkin = result.types.length === 0;
+
+    // Trend tracking: fetch previous scans BEFORE inserting current one
+    const { data: prevScans } = await supabase
+      .from("skin_photos")
+      .select("ai_analysis")
+      .eq("user_id", userId)
+      .eq("analysis_type", "detect")
+      .order("created_at", { ascending: false })
+      .limit(depth === "deep" ? 3 : 1);
+
+    const prevScansList = prevScans ?? [];
+
+    let trend: string | null = null;
+    const rank: Record<string, number> = { informative: 0, mild: 1, moderate: 2 };
+    const curRank = rank[result.severity] ?? 1;
+    const prevSeverities = prevScansList
+      .map((s) => (s.ai_analysis as { severity?: string } | null)?.severity)
+      .filter((s): s is string => !!s);
+
+    const prevSev = prevSeverities[0];
+    if (prevSev && prevSev !== result.severity) {
+      const pr = rank[prevSev] ?? 1;
+      if (curRank < pr) trend = "membaik";
+      else if (curRank > pr) trend = "memburuk";
+    }
+
+    // Pro: programmatic 3-scan narrative (no extra LLM call)
+    let trendOverThree: string | null = null;
+    if (depth === "deep" && prevSeverities.length >= 2) {
+      const series = [prevSeverities[1], prevSeverities[0], result.severity];
+      const ranks = series.map((s) => rank[s] ?? 1);
+      const diffs: number[] = [];
+      for (let i = 1; i < ranks.length; i++) diffs.push(ranks[i] - ranks[i - 1]);
+      const improving = diffs.every((d) => d <= 0) && diffs.some((d) => d < 0);
+      const worsening = diffs.every((d) => d >= 0) && diffs.some((d) => d > 0);
+      const samples = 3;
+      const fromLabel = series[0] ? (rank[series[0]] >= 1 ? "berjerawat" : "bersih") : "";
+      const toDesc = result.severity === "informative" ? "bersih" : isCleanSkin ? "bersih tanpa lesi" : "ada lesi aktif";
+      trendOverThree = improving
+        ? `Membaik konsisten dalam ${samples} scan terakhir — dari ${fromLabel} ke kondisi ${toDesc}.`
+        : worsening
+          ? `Masih memburuk dalam ${samples} scan terakhir. Jika berlanjut, segera konsultasikan ke dokter kulit.`
+          : `Fluktuatif dalam ${samples} scan terakhir — perlu pola.`;
+    }
+
+    // 3. Generate personal tips + narrative (text-only, DeepSeek — murah)
+    const tipsResult = await generateSkinTips(
+      {
+        types: result.types,
+        severity: result.severity,
+        location: result.location,
+      },
+      depth,
+      trend
+    ).catch(() => ({ tips: [] as string[], narrative: "", trendNote: "", routineHints: [] as string[] }));
+
     const analysisData = {
       types: result.types,
       severity: result.severity,
       confidence: result.confidence,
       location: result.location,
       triggers: result.triggers,
+      per_lesion: result.per_lesion,
+      trigger_explanation: result.trigger_explanation,
+      region_scores: result.region_scores,
+      top_risks: result.top_risks,
+      trend,
+      trend_over_three: trendOverThree,
       analyzed_at: new Date().toISOString(),
     };
 
@@ -134,8 +198,6 @@ export async function POST(request: NextRequest) {
     await recordUsage(supabase, userId, "detect");
 
     const detectRemaining = Math.max(0, detectLimit - detectUsed - 1);
-
-    const isCleanSkin = result.types.length === 0;
 
     const severityLabels: Record<string, string> = {
       mild: "Ringan",
@@ -153,36 +215,8 @@ export async function POST(request: NextRequest) {
       whiteheads: "Komedo putih",
     };
 
-    // 3. Generate personal tips (text-only, DeepSeek — murah)
-    const tips = await generateSkinTips({
-      types: result.types,
-      severity: result.severity,
-      location: result.location,
-    }).catch(() => []);
-
-    // Trend tracking: compare with previous scan
-    const { data: prevPhoto } = await supabase
-      .from("skin_photos")
-      .select("ai_analysis")
-      .eq("user_id", userId)
-      .eq("analysis_type", "detect")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    let trend: string | null = null;
-    if (prevPhoto?.ai_analysis) {
-      const prev = prevPhoto.ai_analysis as { severity?: string };
-      if (prev.severity && result.severity !== prev.severity) {
-        const rank: Record<string, number> = { informative: 0, mild: 1, moderate: 2 };
-        const curRank = rank[result.severity] ?? 1;
-        const prevRank = rank[prev.severity] ?? 1;
-        if (curRank < prevRank) trend = "membaik";
-        else if (curRank > prevRank) trend = "memburuk";
-      }
-    }
-
     return NextResponse.json({
+      depth,
       types: result.types,
       typesDisplay: isCleanSkin
         ? ["Tidak terdeteksi jerawat"]
@@ -192,8 +226,16 @@ export async function POST(request: NextRequest) {
       confidence: result.confidence,
       location: isCleanSkin ? "" : result.location,
       triggers: isCleanSkin ? [] : result.triggers,
-      tips,
+      per_lesion: result.per_lesion,
+      trigger_explanation: result.trigger_explanation,
+      region_scores: result.region_scores,
+      top_risks: result.top_risks,
+      tips: tipsResult.tips,
+      narrative: tipsResult.narrative,
+      trend_note: tipsResult.trendNote,
+      routine_hints: tipsResult.routineHints,
       trend,
+      trend_over_three: trendOverThree,
       is_clean_skin: isCleanSkin,
       detect_remaining: detectRemaining,
       detect_limit: detectLimit,
