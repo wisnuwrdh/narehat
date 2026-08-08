@@ -1,4 +1,4 @@
-export async function detectAcne(imageBase64: string, model = "gpt-4o-mini"): Promise<{
+export async function detectAcne(imageBase64: string, model = "gpt-5-nano"): Promise<{
   types: string[];
   severity: string;
   confidence: number;

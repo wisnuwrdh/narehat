@@ -50,7 +50,7 @@ export default function FAQSection() {
             },
             {
               q: "Bedanya kualitas analisis tiap plan?",
-              a: "Free memakai model gpt-4o-mini — cepat dan solid untuk deteksi dasar. Premium naik ke gpt-5-mini, analisis lebih detail. Pro memakai GPT-5 penuh untuk analisis paling mendalam, plus akses model AI baru lebih awal.",
+              a: "Free memakai model gpt-5-nano — cepat dan solid untuk deteksi dasar. Premium naik ke gpt-5-mini, analisis lebih detail. Pro memakai GPT-5 penuh untuk analisis paling mendalam, plus akses model AI baru lebih awal.",
             },
             {
               q: "Apakah Narehat menggantikan dokter kulit?",

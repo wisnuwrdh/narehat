@@ -57,7 +57,7 @@ Pertama kali app memberikan insight seperti:
 | Progress Foto | Upload foto, timeline view, side-by-side comparison (modal thumbnail picker) | ✅ Done |
 | Rekomendasi Produk | Produk cocok skin type + link belanja Shopee/Tokopedia | ✅ Done |
 | AI Consult — 10x/bulan | Tanya spesifik, jawaban backed by jurnal dermatologi peer-reviewed (RAG) | ✅ Done |
-| AI Deteksi Jerawat — 2x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-4o-mini) | ✅ Done |
+| AI Deteksi Jerawat — 2x/bulan | Upload foto → jenis jerawat, severity, area, estimasi pemicu (gpt-5-nano) | ✅ Done |
 | Purging Checker — 1x/bulan | "Ini purging atau breakout?" — instant AI analysis (gpt-5-mini) | ✅ Done |
 
 ### ⭐ Premium — Rp29.000/bulan (Rp199.000/tahun)
@@ -229,9 +229,9 @@ User Query → SumoPod Embedding (text-embedding-3-small, 384 dim)
     → Jawaban terstruktur + sitasi jurnal + disclaimer
 ```
 
-### AI Deteksi Jerawat (Premium — GPT-4o-mini Vision)
+### AI Deteksi Jerawat (Premium — GPT-5-mini Vision)
 ```
-Upload foto → GPT-4o-mini Vision API → analisis:
+Upload foto → GPT-5-mini Vision API → analisis:
   - Jenis jerawat (papule, pustule, nodule, cystic, comedonal)
   - Severity (mild / moderate / informative, no medical claim)
   - Area wajah
@@ -239,9 +239,9 @@ Upload foto → GPT-4o-mini Vision API → analisis:
   - Disimpan ke skin_photos.ai_analysis (JSONB)
 ```
 
-### AI Purging Checker (Pro — GPT-4o-mini Vision)
+### AI Purging Checker (Pro — GPT-5-mini Vision)
 ```
-Upload foto + nama produk baru → GPT-4o-mini Vision → klasifikasi:
+Upload foto + nama produk baru → GPT-5-mini Vision → klasifikasi:
   - Purging (reaksi normal, bertahan 4-6 minggu) vs Breakout (reaksi negatif)
   - Confidence score + rekomendasi tindakan
 ```
@@ -277,7 +277,7 @@ Export PDF hanya untuk member Pro: UI menampilkan paywall upgrade, API return `4
 | Vector DB | Supabase pgvector |
 | Embeddings | SumoPod AI (text-embedding-3-small, 384 dim) |
 | LLM Provider | SumoPod AI (deepseek-v4-flash) |
-| Vision | OpenAI GPT-4o-mini |
+| Vision | OpenAI GPT-5 series (gpt-5, gpt-5-mini, gpt-5-nano) |
 | Payment | SumoPod (QRIS-based, webhook HMAC + token verification) |
 | CAPTCHA | Cloudflare Turnstile |
 | Email | Resend (API) |
@@ -342,9 +342,9 @@ narehat/
 │       ├── photos/                # CRUD + proxy serve via /api/photos/serve
 │       ├── user/                  # Profile read/update
 │       ├── ai/
-│       │   ├── detect/            # AI deteksi jerawat (GPT-4o-mini)
+│       │   ├── detect/            # AI deteksi jerawat (GPT-5-mini/nano)
 │       │   ├── consult/           # RAG chat (pgvector + SumoPod LLM)
-│       │   ├── purging/           # Purging vs breakout checker (GPT-4o-mini)
+│       │   ├── purging/           # Purging vs breakout checker (GPT-5-mini)
 │       │   ├── routine-analyze/   # AI analisis rutinitas (SumoPod LLM)
 │       │   ├── routine-build/     # AI builder rutinitas (SumoPod LLM)
 │       │   └── quota/             # GET remaining AI quota (ai_usage table)
@@ -374,8 +374,8 @@ narehat/
 │   ├── ai/
 │   │   ├── embeddings.ts          # SumoPod embeddings + pgvector query
 │   │   ├── rag.ts                 # RAG pipeline + SumoPod call
-│   │   ├── vision.ts              # AI foto deteksi (GPT-4o-mini)
-│   │   ├── purging.ts             # Purging vs breakout classifier (GPT-4o-mini)
+│   │   ├── vision.ts              # AI foto deteksi (GPT-5-mini/nano)
+│   │   ├── purging.ts             # Purging vs breakout classifier (GPT-5-mini)
 │   │   └── routine.ts             # Routine analyzer + builder (SumoPod LLM)
 │   ├── insights/correlation.ts    # Korelasi habit ↔ skin score
 │   ├── export/formatters.ts       # CSV & PDF formatter (label Indonesia)
@@ -503,7 +503,7 @@ User bisa mendownload semua data mereka dari halaman Settings:
 | Design & Branding | ✅ Done | Logo, design system, landing page |
 | Core App Development | ✅ Done | Tracker, dashboard, progress (grafik + korelasi + insight), settings, recommendations |
 | AI Pipeline | ✅ Done | RAG consult + journal ingest |
-| AI Vision Detection | ✅ Done | GPT-4o-mini: acne detection, purging checker |
+| AI Vision Detection | ✅ Done | GPT-5 series: acne detection, purging checker |
 | AI Routine Analyzer | ✅ Done | SumoPod LLM: conflict detection, routine builder |
 | Weekly Skin Report | ✅ Done | Aggregate → HTML → print PDF |
 | Auth & Security | ✅ Done | NextAuth.js v5, middleware, Turnstile CAPTCHA, rate limiter, quota enforcement |

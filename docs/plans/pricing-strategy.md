@@ -71,7 +71,7 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 | Fitur | Free | Premium (Rp29rb/bln · Rp199rb/thn) | Pro (Rp49rb/bln · Rp399rb/thn) |
 |-------|------|-------------------------------------|--------------------------------|
 | **AI Scan** (vision) | 2x/bln | **15x/bln** | **30x/bln** |
-| **Model scan** | gpt-4o-mini (dasar) | **gpt-4o — detail per-lesi, confidence, tren** | gpt-4o + **akses model baru lebih awal** |
+| **Model scan** | gpt-5-nano (dasar) | **gpt-5-mini — detail per-lesi, confidence, tren** | gpt-5 penuh + **akses model baru lebih awal** |
 | **AI Consult** (teks) | 10x/bln | 100x/bln | 300x/bln |
 | **Purging Checker** | 1x/bln | 10x/bln | 30x/bln |
 | **Fitur non-AI pembeda** | Tracker, progress, rekomendasi | Insight & grafik korelasi | Routine builder, report mingguan + export PDF |
@@ -135,7 +135,7 @@ Semua limit **finite dan generos** (bukan "unlimited"): membatasi worst-case COG
 | Harga salah arah tanpa data | Jangan ubah harga dulu; ukur dulu (bagian 7) |
 | "Unlimited" kalah punchy vs kompetitor | Copy hasil ("selalu tahu") lebih kuat dari angka; A/B nanti |
 | QRIS manual renew → churn tinggi | Reminder H-3 + value reminder bulanan; evaluasi recurring payment bila memungkinkan |
-| COGS vision naik (gpt-4o) | Soft cap harian + limit finite; monitor scan per user |
+| COGS vision naik (gpt-5) | Soft cap harian + limit finite; monitor scan per user |
 | Klaim kepastian berlebihan | Selalu sertakan disclaimer informatif; jangan diagnosis medis |
 
 ---

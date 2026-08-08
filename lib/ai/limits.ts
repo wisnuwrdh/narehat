@@ -17,7 +17,7 @@ export const PLAN_LIMITS: Record<PlanBucket, PlanQuota> = {
 };
 
 export const DETECT_MODELS: Record<PlanBucket, string> = {
-  free: "gpt-4o-mini",
+  free: "gpt-5-nano",
   premium: "gpt-5-mini",
   pro: "gpt-5",
 };
