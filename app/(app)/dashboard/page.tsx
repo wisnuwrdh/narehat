@@ -164,6 +164,7 @@ export default function DashboardPage() {
   const [animatedStreak, setAnimatedStreak] = useState(0);
   const [showInfo, setShowInfo] = useState(false);
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
+  const [compareExpanded, setCompareExpanded] = useState(false);
   const lastLoadRef = useRef(0);
 
   useEffect(() => {
@@ -431,45 +432,76 @@ export default function DashboardPage() {
           <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
           <div className="absolute -bottom-4 -left-4 w-20 h-20 bg-accent/5 rounded-full blur-xl" />
           <div className="relative">
-            <div className="flex justify-between items-start mb-4">
+            <button
+              onClick={() => insights.length > 0 && setCompareExpanded(!compareExpanded)}
+              className={`w-full flex justify-between items-start mb-4 ${insights.length > 0 ? "cursor-pointer" : "cursor-default"}`}
+            >
               <div className="flex items-center gap-2.5">
                 <div className="p-2 bg-white rounded-xl shadow-sm border border-indigo-100/50">
                   <span className="material-symbols-outlined text-primary">insights</span>
                 </div>
-                <div>
+                <div className="text-left">
                   <span className="font-bold text-slate-800 text-sm block">Perbandingan Pekan Ini</span>
                   <span className="text-[10px] text-muted">7 hari terakhir vs 7 hari sebelumnya</span>
                 </div>
               </div>
-              <span className="px-2.5 py-1 bg-white text-primary text-[10px] font-bold rounded-lg border border-indigo-100 shadow-sm">Baru</span>
-            </div>
-            {insights.length > 0 ? (
-              <div className="space-y-2.5">
-                {insights.slice(0, 3).map((ins, i) => (
-                  <div key={i} className="flex items-start gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50">
-                    <span className={`material-symbols-outlined text-base mt-0.5 ${ins.type === "warning" ? "text-amber-500" : ins.type === "positive" ? "text-emerald-500" : "text-primary"}`}>
-                      {ins.type === "warning" ? "trending_down" : ins.type === "positive" ? "trending_up" : "tune"}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-slate-800">{ins.title}</p>
-                      <p className="text-[10px] text-muted mt-0.5">{ins.description}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2">
+                {insights.length > 0 && (
+                  <span className="px-2.5 py-1 bg-white text-primary text-[10px] font-bold rounded-lg border border-indigo-100 shadow-sm">Baru</span>
+                )}
+                {insights.length > 0 && (
+                  <span className={`material-symbols-outlined text-primary text-lg transition-transform ${compareExpanded ? "rotate-180" : ""}`}>expand_more</span>
+                )}
               </div>
-            ) : dailyLog ? (
-              <p className="text-sm leading-relaxed text-slate-700">
-                Perbandingan antar pekan muncul setelah kamu tracking lebih dari satu minggu.
-              </p>
+            </button>
+
+            {insights.length === 0 ? (
+              dailyLog ? (
+                <p className="text-sm leading-relaxed text-slate-700">
+                  Perbandingan antar pekan muncul setelah kamu tracking lebih dari satu minggu.
+                </p>
+              ) : (
+                <p className="text-sm leading-relaxed text-slate-700 mb-4">
+                  Isi tracker harianmu sekarang untuk melihat perbandingan kebiasaan antar pekan.
+                </p>
+              )
+            ) : !compareExpanded ? (
+              <button
+                onClick={() => setCompareExpanded(true)}
+                className="w-full flex items-center gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50 hover:bg-white transition-colors text-left"
+              >
+                <span className={`material-symbols-outlined text-base ${
+                  insights[0].type === "warning" ? "text-amber-500" : insights[0].type === "positive" ? "text-emerald-500" : "text-primary"
+                }`}>
+                  {insights[0].type === "warning" ? "trending_down" : insights[0].type === "positive" ? "trending_up" : "tune"}
+                </span>
+                <span className="flex-1">
+                  <span className="block text-xs font-bold text-slate-800 truncate w-full">{insights[0].title}</span>
+                  <span className="text-[10px] text-muted">{insights.length} perubahan total</span>
+                </span>
+                <span className="material-symbols-outlined text-primary text-sm">expand_more</span>
+              </button>
             ) : (
-              <p className="text-sm leading-relaxed text-slate-700 mb-4">
-                Isi tracker harianmu sekarang untuk melihat perbandingan kebiasaan antar pekan.
-              </p>
+              <>
+                <div className="space-y-2.5">
+                  {insights.slice(0, 3).map((ins, i) => (
+                    <div key={i} className="flex items-start gap-2.5 p-3 bg-white/70 rounded-xl border border-white/50">
+                      <span className={`material-symbols-outlined text-base mt-0.5 ${ins.type === "warning" ? "text-amber-500" : ins.type === "positive" ? "text-emerald-500" : "text-primary"}`}>
+                        {ins.type === "warning" ? "trending_down" : ins.type === "positive" ? "trending_up" : "tune"}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-slate-800">{ins.title}</p>
+                        <p className="text-[10px] text-muted mt-0.5">{ins.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Link href="/tracker" className="btn-press px-3 py-2 bg-primary-light text-primary text-[10px] font-bold rounded-xl hover:bg-primary-light/70 transition-colors">Ke Tracker</Link>
+                  <Link href="/recommendations" className="btn-press px-3 py-2 bg-white border border-border-light text-[10px] font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Lihat Rekomendasi</Link>
+                </div>
+              </>
             )}
-            <div className="flex gap-2 mt-4">
-              <Link href="/tracker" className="btn-press px-3 py-2 bg-primary-light text-primary text-[10px] font-bold rounded-xl hover:bg-primary-light/70 transition-colors">Ke Tracker</Link>
-              <Link href="/recommendations" className="btn-press px-3 py-2 bg-white border border-border-light text-[10px] font-bold text-slate-600 rounded-xl hover:bg-slate-50 transition-colors">Lihat Rekomendasi</Link>
-            </div>
           </div>
         </div>
       </section>
