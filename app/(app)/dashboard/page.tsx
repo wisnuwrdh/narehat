@@ -55,10 +55,10 @@ const barColorMap: Record<string, string> = {
 const statusColorMap: Record<string, string> = { emerald: "bg-emerald-400", amber: "bg-amber-400" };
 
 const quickActions = [
-  { href: "/tracker", icon: "edit_calendar", label: "Tracker", tier: "free" as const },
-  { href: "/progress", icon: "trending_up", label: "Progress", tier: "free" as const },
+  { href: "/recommendations", icon: "recommend", label: "Rekomendasi", tier: "free" as const },
   { href: "/ai-consult", icon: "smart_toy", label: "AI Consult", tier: "premium" as const },
   { href: "/scan", icon: "photo_camera", label: "AI Deteksi", tier: "premium" as const },
+  { href: "/scan?section=purging", icon: "science", label: "Purging Checker", tier: "free" as const },
   { href: "/routine", icon: "auto_awesome", label: "Routine", tier: "pro" as const },
 ];
 

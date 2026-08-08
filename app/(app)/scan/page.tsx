@@ -119,6 +119,15 @@ export default function ScanPage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (window.location.search.includes("section=purging")) {
+      const t = setTimeout(() => {
+        document.getElementById("purging")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   const detectRemaining = quota ? Math.max(0, quota.detect.limit - quota.detect.used) : null;
   const purgingRemaining = quota ? Math.max(0, quota.purging.limit - quota.purging.used) : null;
   const detectQuotaHint =
@@ -499,7 +508,7 @@ export default function ScanPage() {
       )}
 
       {/* Purging Checker */}
-      <section className="px-6 mb-6">
+      <section id="purging" className="px-6 mb-6">
         <div className="bg-white border border-border-subtle rounded-3xl p-5 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center">
