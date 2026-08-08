@@ -9,9 +9,9 @@ const MENU_ITEMS: { title: string; desc: string; icon: string; href?: string; so
   },
   {
     title: "Kelola User",
-    desc: "Lihat dan kelola akun pengguna",
+    desc: "Lihat pengguna, onboarding, dan riwayat pembayaran",
     icon: "group",
-    soon: true,
+    href: "/admin/users",
   },
   {
     title: "Menu Lainnya",
